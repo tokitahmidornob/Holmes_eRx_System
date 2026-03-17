@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>eRx System - Doctor Login</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #eef2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .login-container { background-color: #ffffff; padding: 40px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; width: 100%; max-width: 450px; }
+        h1 { color: #2c3e50; font-size: 24px; margin-bottom: 5px; }
+        h2 { color: #7f8c8d; font-size: 16px; margin-bottom: 25px; }
+        .input-group { text-align: left; margin-bottom: 15px; }
+        .input-group label { display: block; margin-bottom: 5px; color: #34495e; font-weight: bold; font-size: 13px;}
+        .input-group input, .input-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-family: inherit; background-color: #fdfdfd;}
+        .input-group select:disabled { background-color: #eaeded; cursor: not-allowed; }
+        button { background-color: #3498db; color: white; border: none; padding: 12px 20px; width: 100%; border-radius: 5px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px;}
+        button:hover { background-color: #2980b9; }
+        .section-title { text-align: left; border-bottom: 2px solid #ecf0f1; margin-bottom: 15px; padding-bottom: 5px; color: #16a085; font-size: 14px; font-weight: bold;}
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1>Unified eRx Portal</h1>
+        <h2>Doctor Authentication & Routing</h2>
+
+        <form>
+            <div class="section-title">1. Credentials</div>
+            <div style="display: flex; gap: 10px;">
+                <div class="input-group" style="flex: 1;">
+                    <label>Doctor ID</label>
+                    <input type="text" id="doc-id" placeholder="DOC-123">
+                </div>
+                <div class="input-group" style="flex: 1;">
+                    <label>Password</label>
+                    <input type="password" id="password" placeholder="admin123">
+                </div>
+            </div>
+
+            <div class="section-title">2. Location & Schedule Selection</div>
+            
+            <div class="input-group">
+                <label>Division</label>
+                <select id="division" onchange="populateDistricts()">
+                    <option value="">-- Select Division --</option>
+                    <option value="Dhaka">Dhaka Division</option>
+                    <option value="Chittagong">Chittagong Division</option>
+                    <option value="Sylhet">Sylhet Division</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label>District</label>
+                <select id="district" onchange="populateHospitals()" disabled>
+                    <option value="">-- Await Division --</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label>Hospital / Clinic</label>
+                <select id="hospital" onchange="enableTime()" disabled>
+                    <option value="">-- Await District --</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label>Allotted Chamber Shift</label>
+                <select id="shift" disabled>
+                    <option value="">-- Await Hospital --</option>
+                    <option value="Morning (09:00 AM - 01:00 PM)">Morning (09:00 AM - 01:00 PM)</option>
+                    <option value="Evening (05:00 PM - 09:00 PM)">Evening (05:00 PM - 09:00 PM)</option>
+                    <option value="Night (09:00 PM - 12:00 AM)">Night (09:00 PM - 12:00 AM)</option>
+                </select>
+            </div>
+            
+            <button type="button" onclick="attemptLogin()">Initialize Session</button>
+        </form>
+    </div>
+
+    <script>
+        // The Hierarchical Location Database
+        const locationData = {
+            "Dhaka": {
+                "Dhaka City": ["Square Hospitals Ltd", "Labaid Specialized Hospital", "United Hospital", "Evercare Hospital Dhaka", "Ibn Sina Hospital (Dhanmondi)", "Dhaka Medical College Hospital (DMCH)", "BSMMU (PG Hospital)", "Popular Diagnostic Centre"],
+                "Gazipur": ["Gazipur Sadar Hospital", "Tairunnessa Memorial Medical College", "City Hospital Gazipur"],
+                "Narayanganj": ["Narayanganj General Hospital", "Pro-Active Medical College"]
+            },
+            "Chittagong": {
+                "Chattogram City": ["Evercare Hospital Chattogram", "Max Hospital & Diagnostic", "CSCR Hospital", "Chattogram Medical College"],
+                "Cox's Bazar": ["Cox's Bazar Sadar Hospital", "Union Hospital"]
+            },
+            "Sylhet": {
+                "Sylhet City": ["Mount Adora Hospital", "Oasis Hospital", "Sylhet MAG Osmani Medical College"]
+            }
+        };
+
+        function populateDistricts() {
+            const divSelect = document.getElementById("division").value;
+            const distSelect = document.getElementById("district");
+            const hospSelect = document.getElementById("hospital");
+            const shiftSelect = document.getElementById("shift");
+
+            // Reset lower dropdowns
+            distSelect.innerHTML = '<option value="">-- Select District --</option>';
+            hospSelect.innerHTML = '<option value="">-- Await District --</option>';
+            hospSelect.disabled = true; shiftSelect.disabled = true;
+
+            if (divSelect !== "") {
+                distSelect.disabled = false;
+                const districts = Object.keys(locationData[divSelect]);
+                districts.forEach(dist => {
+                    distSelect.innerHTML += `<option value="${dist}">${dist}</option>`;
+                });
+            } else {
+                distSelect.disabled = true;
+            }
+        }
+
+        function populateHospitals() {
+            const divSelect = document.getElementById("division").value;
+            const distSelect = document.getElementById("district").value;
+            const hospSelect = document.getElementById("hospital");
+            const shiftSelect = document.getElementById("shift");
+
+            hospSelect.innerHTML = '<option value="">-- Select Hospital --</option>';
+            shiftSelect.disabled = true;
+
+            if (distSelect !== "") {
+                hospSelect.disabled = false;
+                const hospitals = locationData[divSelect][distSelect];
+                hospitals.forEach(hosp => {
+                    hospSelect.innerHTML += `<option value="${hosp}">${hosp}</option>`;
+                });
+            } else {
+                hospSelect.disabled = true;
+            }
+        }
+
+        function enableTime() {
+            const hospSelect = document.getElementById("hospital").value;
+            const shiftSelect = document.getElementById("shift");
+            if (hospSelect !== "") { shiftSelect.disabled = false; } 
+            else { shiftSelect.disabled = true; }
+        }
+
+        function attemptLogin() {
+            let docId = document.getElementById('doc-id').value;
+            let pass = document.getElementById('password').value;
+            let hosp = document.getElementById('hospital').value; 
+            let shift = document.getElementById('shift').value;
+
+            if (docId === "DOC-123" && pass === "admin123") {
+                if (hosp === "" || shift === "") {
+                    alert("Please complete the location and shift selection.");
+                    return; 
+                }
+                
+                // Combine Hospital and Shift for the Dashboard Header
+                let sessionString = hosp + " | " + shift;
+                localStorage.setItem("activeChamber", sessionString);
+                window.location.href = "dashboard.html"; 
+            } else {
+                alert("Access Denied: Invalid Credentials.");
+            }
+        }
+    </script>
+</body>
+</html>
