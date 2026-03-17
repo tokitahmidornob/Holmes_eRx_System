@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>eRx System - Master Dashboard</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f4f8; margin: 0; color: #2c3e50; }
+        header { background-color: #1a252f; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+        
+        .card { background: #ffffff; padding: 25px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 25px; border-top: 4px solid #3498db; }
+        .card h3 { margin-top: 0; color: #2980b9; border-bottom: 2px solid #ecf0f1; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center;}
+        
+        .row { display: flex; gap: 20px; margin-bottom: 15px; flex-wrap: wrap; }
+        .col { flex: 1; min-width: 200px; }
+        
+        label { display: block; font-weight: bold; margin-bottom: 6px; color: #34495e; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;}
+        input, select { width: 100%; padding: 10px; border: 1px solid #bdc3c7; border-radius: 5px; box-sizing: border-box; background-color: #fdfdfd; font-family: inherit;}
+        input:disabled { background-color: #eaeded; color: #7f8c8d; cursor: not-allowed; border: 1px dashed #bdc3c7;}
+        
+        button { cursor: pointer; border: none; border-radius: 5px; font-weight: bold; transition: 0.2s; font-family: inherit; }
+        .btn-add { background-color: #3498db; color: white; padding: 10px; width: 100%; height: 40px; margin-top: 24px; }
+        .btn-add:hover { background-color: #2980b9; }
+        .btn-info { background-color: #9b59b6; color: white; padding: 10px; height: 40px; margin-top: 24px; width: 50px; border-radius: 5px; font-size: 16px;}
+        .btn-info:hover { background-color: #8e44ad; }
+        .btn-danger { background-color: #e74c3c; color: white; padding: 6px 10px; font-size: 12px; }
+        .btn-template { background-color: #f39c12; color: white; padding: 8px 15px; font-size: 12px; border-radius: 20px;}
+        .btn-success { background-color: #2ecc71; color: white; font-size: 16px; padding: 15px 30px;}
+        .btn-secondary { background-color: #7f8c8d; color: white; font-size: 16px; padding: 15px 30px;}
+        .btn-audit { background-color: #34495e; color: #f1c40f; border: 1px solid #f1c40f; padding: 5px 15px; font-size: 12px; margin-right: 15px; border-radius: 3px;}
+        .btn-audit:hover { background-color: #f1c40f; color: #34495e; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px;}
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ecf0f1; }
+        th { background-color: #f8f9fa; color: #2c3e50; }
+        
+        .quick-access-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; }
+        .quick-pill { background-color: #ecf0f1; border: 1px solid #bdc3c7; border-radius: 20px; padding: 6px 14px; font-size: 12px; color: #2c3e50; cursor: pointer; transition: 0.2s; font-weight: bold; display: flex; align-items: center; gap: 5px;}
+        .quick-pill:hover { background-color: #3498db; color: white; border-color: #3498db; transform: translateY(-2px); box-shadow: 0 2px 5px rgba(52, 152, 219, 0.3);}
+        .cache-label { font-size: 11px; color: #95a5a6; font-weight: bold; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 1px;}
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 1000;}
+        .modal-content { background-color: #fff; padding: 30px; border-radius: 10px; width: 90%; max-width: 600px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); max-height: 85vh; overflow-y: auto;}
+        .modal-header { font-size: 22px; font-weight: bold; color: #16a085; margin-bottom: 5px; }
+        .modal-generic { font-style: italic; color: #7f8c8d; margin-bottom: 20px; font-size: 14px; border-bottom: 1px solid #eee; padding-bottom: 10px;}
+        .close-modal { float: right; cursor: pointer; font-size: 24px; color: #e74c3c; font-weight: bold;}
+        
+        .accordion { background-color: #ecf0f1; color: #2c3e50; cursor: pointer; padding: 12px; width: 100%; border: none; text-align: left; outline: none; font-size: 14px; font-weight: bold; transition: 0.4s; margin-top: 5px; border-radius: 4px;}
+        .accordion:hover { background-color: #bdc3c7; }
+        .panel { padding: 0 15px; background-color: white; display: none; overflow: hidden; font-size: 13px; color: #555; border-left: 3px solid #16a085; margin-bottom: 5px; line-height: 1.5;}
+        
+        .checkbox-group { display: flex; align-items: center; gap: 8px; margin-top: 5px;}
+        .checkbox-group label { margin: 0; text-transform: none; font-size: 12px; color: #e67e22;}
+        .signature-block { display: none; text-align: right; margin-top: 20px; padding-top: 20px; border-top: 2px dashed #bdc3c7;}
+        .signature-font { font-family: 'Brush Script MT', cursive; font-size: 28px; color: #2c3e50; }
+
+        /* NEW: Audit Log Modal Terminal Style */
+        .audit-terminal { background-color: #1e1e1e; color: #00ff00; font-family: 'Courier New', Courier, monospace; padding: 15px; border-radius: 5px; height: 300px; overflow-y: auto; font-size: 12px; line-height: 1.4;}
+        .audit-entry { margin-bottom: 5px; border-bottom: 1px dashed #333; padding-bottom: 5px;}
+        .audit-time { color: #f39c12; }
+        .audit-user { color: #3498db; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div id="display-hospital-name" style="font-size: 18px; font-weight: bold; letter-spacing: 0.5px;">Loading Data...</div>
+        <div>
+            <button class="btn-audit" onclick="viewAuditLog()">View Audit Log</button>
+            Dr. Sherlock Holmes | <a href="index.html" onclick="logout()" style="color: #ecf0f1; text-decoration: none; margin-left: 15px; font-weight: bold;">Logout</a>
+        </div>
+    </header>
+
+    <div class="container">
+        
+        <div class="card">
+            <h3>Clinical Vitals & Diagnostics</h3>
+            <div class="row">
+                <div class="col"><label>Patient ID</label><input type="text" id="patient-id-input" value="PT-99482" disabled></div>
+                <div class="col"><label>Blood Pressure (mmHg)</label><input type="text" id="bp-input" placeholder="e.g., 120/80" onchange="saveDraft()"></div>
+                <div class="col"><label>Weight (kg)</label><input type="number" id="weight-input" placeholder="e.g., 62" onchange="saveDraft()"></div>
+                <div class="col"><label>Known Allergies <span style="color:red">*</span></label><input type="text" id="allergy-input" placeholder="e.g., Penicillin, Dust" onchange="saveDraft()"></div>
+            </div>
+            <div class="row">
+                <div class="col"><label>Primary Diagnosis</label><input type="text" id="diagnosis-input" placeholder="Enter clinical diagnosis" onchange="saveDraft()"></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>
+                Rx: Medication Protocol
+                <button class="btn-template" onclick="applyTemplate('viral')">⚡ Protocol: Viral Fever</button>
+            </h3>
+            
+            <div class="cache-label">⚡ Intelligent Cache: Your Most Prescribed</div>
+            <div class="quick-access-container" id="quick-access-list"></div>
+
+            <div class="row">
+                <div class="col" style="flex: 2;">
+                    <label>Search Drug Name</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="drug-input" list="drug-list" placeholder="Start typing drug name..." onchange="handleDrugSelection()">
+                        <datalist id="drug-list"></datalist>
+                        <button class="btn-info" onclick="openModal()" title="View Drug Encyclopedia">ℹ️</button>
+                    </div>
+                </div>
+                <div class="col">
+                    <label>Dosage</label>
+                    <input type="text" id="dosage-input" placeholder="Auto-filled..." disabled>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="override-check" onchange="toggleOverride()">
+                        <label for="override-check">Arbitrary Override</label>
+                    </div>
+                </div>
+                <div class="col"><label>Days</label><input type="number" id="days-input" placeholder="e.g., 5"></div>
+                <div class="col" style="flex: 0.5;"><button class="btn-add" onclick="addMedication()">+ Add</button></div>
+            </div>
+
+            <table id="prescription-table">
+                <thead><tr><th>Medication</th><th>Dosage Protocol</th><th>Duration</th><th>Action</th></tr></thead>
+                <tbody id="prescription-body"></tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h3>Investigations & Lab Tests</h3>
+            <div class="row">
+                <div class="col" style="flex: 3;">
+                    <label>Order Test</label>
+                    <select id="test-input">
+                        <option value="">-- Select Diagnostic Test --</option>
+                        <option value="CBC (Complete Blood Count)">CBC (Complete Blood Count)</option>
+                        <option value="Chest X-Ray (P/A View)">Chest X-Ray (P/A View)</option>
+                        <option value="Dengue NS1 Antigen">Dengue NS1 Antigen</option>
+                        <option value="Serum Creatinine">Serum Creatinine</option>
+                    </select>
+                </div>
+                <div class="col" style="flex: 1;"><button class="btn-add" onclick="addTest()" style="background-color: #16a085;">+ Order Test</button></div>
+            </div>
+            <table id="test-table"><tbody id="test-body"></tbody></table>
+        </div>
+
+        <div class="card">
+            <div class="row">
+                <div class="col"><label>Schedule Next Visit</label><input type="date" id="followup-input" onchange="saveDraft()"></div>
+            </div>
+        </div>
+
+        <div id="signature-area" class="signature-block">
+            <div class="signature-font">S. Holmes</div>
+            <div style="font-weight: bold; color: #7f8c8d; font-size: 14px;">Dr. Sherlock Holmes, BSc, MD</div>
+            <div style="font-size: 12px; color: #bdc3c7;">Digitally Verified & Signed</div>
+        </div>
+
+        <div class="row" style="justify-content: flex-end; gap: 15px; margin-top: 30px; margin-bottom: 50px;">
+            <button class="btn-secondary" onclick="finalizePrescription('outside')">Lock & Generate OTP (Outside)</button>
+            <button class="btn-success" onclick="finalizePrescription('hospital')">Sign & Route to Pharmacy</button>
+        </div>
+    </div>
+
+    <div id="drug-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('drug-modal')">&times;</span>
+            <div id="modal-brand" class="modal-header">Drug Name</div>
+            <div id="modal-generic" class="modal-generic">Generic Data</div>
+            <button class="accordion">Indications</button><div class="panel"><p id="modal-ind"></p></div>
+            <button class="accordion">Adult Dose</button><div class="panel"><p id="modal-dose"></p></div>
+            <button class="accordion">Child Dose</button><div class="panel"><p id="modal-child"></p></div>
+            <button class="accordion">Renal Dose</button><div class="panel"><p id="modal-renal"></p></div>
+            <button class="accordion">Administration</button><div class="panel"><p id="modal-admin"></p></div>
+            <button class="accordion">Side Effects</button><div class="panel"><p id="modal-side"></p></div>
+            <button class="accordion">Precautions & Warnings</button><div class="panel"><p id="modal-warn"></p></div>
+        </div>
+    </div>
+
+    <div id="audit-modal" class="modal">
+        <div class="modal-content" style="background-color: #2c3e50;">
+            <span class="close-modal" onclick="closeModal('audit-modal')" style="color: white;">&times;</span>
+            <div class="modal-header" style="color: #f1c40f;">System Audit Log (Immutable)</div>
+            <div class="modal-generic" style="color: #ecf0f1; border-color: #34495e;">Tracking Session ID: <span id="session-id-display"></span></div>
+            <div class="audit-terminal" id="audit-terminal-body">
+                </div>
+        </div>
+    </div>
+
+    <script>
+        const drugDatabase = {
+            "Fexo 120mg (Tablet)": { company: "Square Pharmaceuticals PLC", generic: "Fexofenadine Hydrochloride", adultDose: "120 mg once daily", childDose: "2-12 years: 30 mg twice daily", renalDose: "CrCl <80 mL/min: 60 mg once daily initially", administration: "Take on an empty stomach.", indications: "Seasonal Allergic Rhinitis, Chronic Idiopathic Urticaria.", sideEffects: "Headache (5-10%), Cough (4%), Dizziness (2%), Vomiting (6%).", precautions: "Renal impairment. Pregnancy category C." },
+            "Napa 500mg (Tablet)": { company: "Beximco Pharmaceuticals Ltd", generic: "Paracetamol", adultDose: "1+1+1 after meal", childDose: "10-15 mg/kg every 4-6 hours", renalDose: "CrCl 10-50 mL/min: dose every 6 hours", administration: "Can be taken with or without food.", indications: "Fever, mild to moderate pain.", sideEffects: "Rarely skin rash, blood disorders.", precautions: "Hepatic impairment. Max 4g/day." },
+            "Seclo 20mg (Capsule)": { company: "Square Pharmaceuticals PLC", generic: "Omeprazole", adultDose: "1+0+1 before meal", childDose: "1 mg/kg once daily", renalDose: "Dose adjustment not required", administration: "Take 30 minutes before meal. Do not chew.", indications: "GERD, Peptic ulcer disease, Zollinger-Ellison syndrome.", sideEffects: "Headache, abdominal pain, nausea, diarrhea.", precautions: "May mask symptoms of gastric cancer." },
+            "Maxpro 20mg (Tablet)": { company: "Renata Limited", generic: "Esomeprazole", adultDose: "20 mg once daily before meal", childDose: "12-17 years: 20 mg once daily", renalDose: "Dose adjustment not required", administration: "Swallow whole with liquid. Do not crush.", indications: "GERD, erosive esophagitis, H. pylori eradication.", sideEffects: "Headache, flatulence, dry mouth.", precautions: "Severe hepatic impairment." },
+            "Monas 10mg (Tablet)": { company: "The ACME Laboratories Ltd", generic: "Montelukast", adultDose: "10 mg once daily in the evening", childDose: "6-14 years: 5 mg chewable tablet", renalDose: "Dose adjustment not required", administration: "Take in the evening with or without food.", indications: "Asthma prophylaxis, Allergic rhinitis.", sideEffects: "Upper respiratory infection, fever, headache.", precautions: "Not for acute asthma attacks." },
+            "Cef-3 200mg (Capsule)": { company: "Square Pharmaceuticals PLC", generic: "Cefixime", adultDose: "200 mg twice daily", childDose: "8 mg/kg/day in 1 or 2 divided doses", renalDose: "CrCl 21-60 mL/min: 75% of standard dose", administration: "Can be taken with or without food.", indications: "Uncomplicated UTI, Otitis Media, Pharyngitis, Gonorrhea.", sideEffects: "Diarrhea, abdominal pain, nausea.", precautions: "History of GI disease, especially colitis." },
+            "Azith 500mg (Tablet)": { company: "Square Pharmaceuticals PLC", generic: "Azithromycin", adultDose: "500 mg once daily for 3 days", childDose: "10 mg/kg once daily for 3 days", renalDose: "Caution in severe renal impairment", administration: "Take 1 hour before or 2 hours after meals.", indications: "Respiratory tract infections, Skin infections, Chlamydia.", sideEffects: "Nausea, vomiting, diarrhea, abdominal pain.", precautions: "Prolonged QT interval." }
+        };
+
+        const topPrescribedCache = [
+            "Napa 500mg (Tablet)", "Fexo 120mg (Tablet)", "Seclo 20mg (Capsule)", "Azith 500mg (Tablet)", "Monas 10mg (Tablet)"
+        ];
+
+        let currentPrescription = [];
+        let currentTests = [];
+        let systemAuditLog = []; // NEW: Array to hold the immutable logs
+
+        // NEW: The Immutable Logging Engine
+        function logAction(actionType, details) {
+            const timestamp = new Date().toISOString();
+            const doctorId = "DOC-123"; // In a real app, fetched from secure session
+            const patientId = document.getElementById('patient-id-input').value;
+            
+            const logEntry = {
+                time: timestamp,
+                user: doctorId,
+                patient: patientId,
+                action: actionType,
+                data: details
+            };
+            
+            systemAuditLog.push(logEntry);
+            localStorage.setItem("systemAuditLog", JSON.stringify(systemAuditLog));
+        }
+
+        window.onload = function() {
+            const dataList = document.getElementById("drug-list");
+            for (let drug in drugDatabase) { dataList.innerHTML += `<option value="${drug}">`; }
+            renderQuickAccess();
+
+            let savedChamber = localStorage.getItem("activeChamber");
+            if (savedChamber) { 
+                document.getElementById('display-hospital-name').innerText = savedChamber; 
+                document.getElementById('session-id-display').innerText = btoa(savedChamber).substring(0, 10).toUpperCase(); // Fake Hash for visual effect
+            } else { 
+                document.getElementById('display-hospital-name').innerText = "Development Sandbox eRx Portal"; 
+            }
+
+            // Recover Audit Log
+            try {
+                systemAuditLog = JSON.parse(localStorage.getItem("systemAuditLog")) || [];
+            } catch(e) { systemAuditLog = []; }
+
+            // Log Session Start
+            logAction("SESSION_START", "Doctor accessed prescribing dashboard.");
+
+            if (localStorage.getItem("rxDraft")) {
+                try {
+                    currentPrescription = JSON.parse(localStorage.getItem("rxDraft")) || [];
+                } catch(e) { currentPrescription = []; }
+                try {
+                    currentTests = JSON.parse(localStorage.getItem("testDraft")) || [];
+                } catch(e) { currentTests = []; }
+
+                document.getElementById('bp-input').value = localStorage.getItem("draftBP") || "";
+                document.getElementById('weight-input').value = localStorage.getItem("draftWt") || "";
+                document.getElementById('allergy-input').value = localStorage.getItem("draftAllergy") || "";
+                document.getElementById('diagnosis-input').value = localStorage.getItem("draftDiag") || "";
+                document.getElementById('followup-input').value = localStorage.getItem("draftFollow") || "";
+                renderTable(); renderTests();
+            }
+            setupAccordions();
+        };
+
+        function logout() { 
+            logAction("SESSION_END", "Doctor logged out.");
+            localStorage.removeItem("activeChamber"); 
+        }
+
+        function saveDraft() {
+            try {
+                localStorage.setItem("rxDraft", JSON.stringify(currentPrescription));
+                localStorage.setItem("testDraft", JSON.stringify(currentTests));
+                localStorage.setItem("draftBP", document.getElementById('bp-input').value);
+                localStorage.setItem("draftWt", document.getElementById('weight-input').value);
+                localStorage.setItem("draftAllergy", document.getElementById('allergy-input').value);
+                localStorage.setItem("draftDiag", document.getElementById('diagnosis-input').value);
+                localStorage.setItem("draftFollow", document.getElementById('followup-input').value);
+            } catch(e) { console.error("Local Storage Error:", e); }
+        }
+
+        function renderQuickAccess() {
+            const container = document.getElementById('quick-access-list');
+            container.innerHTML = "";
+            topPrescribedCache.forEach(drug => {
+                container.innerHTML += `<button class="quick-pill" onclick="selectQuickDrug('${drug}')">✚ ${drug.split(' ')[0]} ${drug.split(' ')[1]}</button>`;
+            });
+        }
+
+        function selectQuickDrug(drugName) {
+            const drugInput = document.getElementById('drug-input');
+            drugInput.value = drugName;
+            handleDrugSelection(); 
+            document.getElementById('days-input').focus(); 
+        }
+
+        function handleDrugSelection() {
+            const drugKey = document.getElementById('drug-input').value;
+            const dosageInput = document.getElementById('dosage-input');
+            const overrideCheck = document.getElementById('override-check');
+            overrideCheck.checked = false; 
+            if (drugKey && drugDatabase[drugKey]) {
+                dosageInput.value = drugDatabase[drugKey].adultDose;
+                dosageInput.disabled = true; 
+            } else {
+                dosageInput.value = "";
+                dosageInput.disabled = false; 
+            }
+        }
+
+        function toggleOverride() {
+            const overrideCheck = document.getElementById('override-check');
+            const dosageInput = document.getElementById('dosage-input');
+            const drugKey = document.getElementById('drug-input').value;
+            if (overrideCheck.checked) { 
+                dosageInput.disabled = false;
+                logAction("OVERRIDE_ACTIVATED", `Doctor bypassed standard dosage lock for ${drugKey || 'custom drug'}`); 
+            } else {
+                dosageInput.disabled = true;
+                if (drugKey && drugDatabase[drugKey]) { dosageInput.value = drugDatabase[drugKey].adultDose; }
+            }
+        }
+
+        function openModal() {
+            const drugKey = document.getElementById('drug-input').value;
+            if (!drugKey || !drugDatabase[drugKey]) { alert("Please select a valid drug from the search list to view the encyclopedia."); return; }
+            const data = drugDatabase[drugKey];
+            document.getElementById('modal-brand').innerText = drugKey;
+            document.getElementById('modal-generic').innerText = data.generic + " | " + data.company;
+            document.getElementById('modal-ind').innerText = data.indications || "N/A";
+            document.getElementById('modal-dose').innerText = data.adultDose || "N/A";
+            document.getElementById('modal-child').innerText = data.childDose || "N/A";
+            document.getElementById('modal-renal').innerText = data.renalDose || "N/A";
+            document.getElementById('modal-admin').innerText = data.administration || "N/A";
+            document.getElementById('modal-side').innerText = data.sideEffects || "N/A";
+            document.getElementById('modal-warn').innerText = data.precautions || "N/A";
+            document.getElementById('drug-modal').style.display = "flex";
+            
+            logAction("ENCYCLOPEDIA_VIEW", `Doctor reviewed clinical data for ${drugKey}`);
+        }
+        
+        function closeModal(modalId) { document.getElementById(modalId).style.display = "none"; }
+        
+        function setupAccordions() {
+            let acc = document.getElementsByClassName("accordion");
+            for (let i = 0; i < acc.length; i++) {
+                acc[i].addEventListener("click", function() {
+                    this.classList.toggle("active");
+                    let panel = this.nextElementSibling;
+                    if (panel.style.display === "block") { panel.style.display = "none"; } else { panel.style.display = "block"; }
+                });
+            }
+        }
+
+        function addMedication() {
+            try {
+                const drug = document.getElementById('drug-input').value.trim();
+                const dosage = document.getElementById('dosage-input').value.trim();
+                const days = document.getElementById('days-input').value.trim();
+
+                if (!drugDatabase[drug] && !document.getElementById('override-check').checked) { alert("Please select a recognized drug or check 'Arbitrary Override'."); return; }
+                if (drug === "" || dosage === "" || days === "") { alert("Incomplete drug details."); return; }
+                if (!Array.isArray(currentPrescription)) currentPrescription = [];
+
+                currentPrescription.push({ medicationName: drug, dosageProtocol: dosage, duration: days });
+                
+                // NEW: Log the addition
+                logAction("DRUG_ADDED", `Prescribed: ${drug} | Dose: ${dosage} | Days: ${days}`);
+
+                renderTable(); saveDraft();
+                
+                document.getElementById('drug-input').value = ""; document.getElementById('dosage-input').value = ""; document.getElementById('days-input').value = "";
+                document.getElementById('dosage-input').disabled = false; document.getElementById('override-check').checked = false;
+            } catch (error) { alert("System Error: " + error.message); }
+        }
+
+        function removeMedication(index) { 
+            logAction("DRUG_REMOVED", `Deleted drug from protocol: ${currentPrescription[index].medicationName}`);
+            currentPrescription.splice(index, 1); 
+            renderTable(); saveDraft(); 
+        }
+        
+        function renderTable() {
+            const tbody = document.getElementById('prescription-body');
+            tbody.innerHTML = "";
+            for (let i = 0; i < currentPrescription.length; i++) {
+                const item = currentPrescription[i];
+                tbody.innerHTML += `<tr><td><strong>${item.medicationName}</strong></td><td>${item.dosageProtocol}</td><td>${item.duration} Days</td><td><button class="btn-danger" onclick="removeMedication(${i})">X</button></td></tr>`;
+            }
+        }
+
+        function addTest() {
+            try {
+                const test = document.getElementById('test-input').value;
+                if (test === "") return;
+                if (!Array.isArray(currentTests)) currentTests = []; 
+                currentTests.push(test); 
+                logAction("TEST_ORDERED", `Ordered investigation: ${test}`);
+                renderTests(); saveDraft();
+                document.getElementById('test-input').value = "";
+            } catch (error) { alert("System Error: " + error.message); }
+        }
+        
+        function removeTest(index) { 
+            logAction("TEST_REMOVED", `Cancelled investigation: ${currentTests[index]}`);
+            currentTests.splice(index, 1); 
+            renderTests(); saveDraft(); 
+        }
+        
+        function renderTests() {
+            const tbody = document.getElementById('test-body');
+            tbody.innerHTML = "";
+            for (let i = 0; i < currentTests.length; i++) {
+                tbody.innerHTML += `<tr><td style="border-left: 3px solid #16a085;"><strong>${currentTests[i]}</strong></td><td style="text-align:right;"><button class="btn-danger" onclick="removeTest(${i})">X</button></td></tr>`;
+            }
+        }
+
+        function applyTemplate(type) {
+            if(type === 'viral') {
+                if (!Array.isArray(currentPrescription)) currentPrescription = [];
+                currentPrescription.push({ medicationName: "Napa 500mg (Tablet)", dosageProtocol: "1+1+1 after meal", duration: "3" });
+                currentPrescription.push({ medicationName: "Fexo 120mg (Tablet)", dosageProtocol: "120 mg once daily", duration: "5" });
+                document.getElementById('diagnosis-input').value = "Viral Fever / URTI";
+                
+                logAction("TEMPLATE_APPLIED", "Applied standard 'Viral Fever' clinical protocol.");
+                
+                renderTable(); saveDraft();
+            }
+        }
+
+        // NEW: View Audit Log Logic
+        function viewAuditLog() {
+            const terminal = document.getElementById('audit-terminal-body');
+            terminal.innerHTML = "";
+            
+            if (systemAuditLog.length === 0) {
+                terminal.innerHTML = "<div>No logs recorded yet...</div>";
+            } else {
+                systemAuditLog.forEach(log => {
+                    const timeString = new Date(log.time).toLocaleTimeString();
+                    terminal.innerHTML += `
+                        <div class="audit-entry">
+                            [<span class="audit-time">${timeString}</span>] 
+                            <span class="audit-user">${log.user}</span> -> 
+                            <strong>[${log.action}]</strong> ${log.data}
+                        </div>
+                    `;
+                });
+            }
+            
+            document.getElementById('audit-modal').style.display = "flex";
+            terminal.scrollTop = terminal.scrollHeight; // Auto-scroll to bottom
+        }
+
+        function finalizePrescription(route) {
+            if (currentPrescription.length === 0 && currentTests.length === 0) { alert("Prescription is empty."); return; }
+            document.getElementById('signature-area').style.display = "block";
+            let activeChamber = localStorage.getItem("activeChamber") || "the Internal";
+            
+            logAction("PRESCRIPTION_FINALIZED", `Record locked and signed. Routed to: ${route.toUpperCase()}`);
+            
+            setTimeout(() => {
+                if (route === 'hospital') { alert("✅ SUCCESS: Signed Document routed securely to " + activeChamber.split(" | ")[0] + " Pharmacy."); } 
+                else if (route === 'outside') { alert("✅ SUCCESS: File locked. OTP sent to Patient's Mobile App."); }
+                
+                currentPrescription = []; currentTests = [];
+                document.getElementById('bp-input').value = ""; document.getElementById('weight-input').value = ""; document.getElementById('allergy-input').value = ""; document.getElementById('diagnosis-input').value = ""; document.getElementById('followup-input').value = "";
+                document.getElementById('signature-area').style.display = "none";
+                localStorage.removeItem("rxDraft"); localStorage.removeItem("testDraft"); localStorage.removeItem("draftBP"); localStorage.removeItem("draftWt"); localStorage.removeItem("draftAllergy"); localStorage.removeItem("draftDiag"); localStorage.removeItem("draftFollow");
+                renderTable(); renderTests();
+            }, 500); 
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Portal - Mobile App</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #dcdde1; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+        .mobile-frame { background-color: #f4f7f6; width: 100%; max-width: 390px; height: 800px; border-radius: 40px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); border: 12px solid #2f3640; overflow-y: auto; position: relative; display: flex; flex-direction: column;}
+        .app-header { background-color: #16a085; color: white; padding: 40px 20px 20px 20px; border-radius: 25px 25px 0 0; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 10;}
+        .app-header h1 { margin: 0; font-size: 22px; font-weight: 700; }
+        .app-header p { margin: 5px 0 0 0; font-size: 14px; opacity: 0.9; }
+        .content { padding: 20px; flex-grow: 1; }
+        
+        /* NEW: QR Code Section */
+        .qr-card { background: white; border-radius: 15px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); text-align: center; border: 2px dashed #16a085;}
+        .qr-card img { width: 150px; height: 150px; margin-bottom: 10px; }
+        .qr-card h3 { margin: 0; color: #2c3e50; font-size: 16px; }
+        .qr-card p { margin: 5px 0 0 0; font-size: 14px; color: #7f8c8d; }
+        .otp-display { display: inline-block; background-color: #ecf0f1; padding: 5px 15px; border-radius: 20px; font-weight: bold; color: #e74c3c; letter-spacing: 2px; margin-top: 10px;}
+
+        .rx-card { background: white; border-radius: 15px; padding: 15px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-left: 4px solid #3498db;}
+        .rx-card h3 { margin: 0 0 5px 0; color: #2c3e50; font-size: 16px; }
+        .rx-card p { margin: 0; font-size: 13px; color: #7f8c8d; }
+        .time-block { margin-bottom: 25px; }
+        .time-label { font-weight: bold; color: #34495e; font-size: 18px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;}
+        .med-item { background: white; border-radius: 12px; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.02); border: 1px solid #ecf0f1; transition: 0.3s;}
+        .med-info h4 { margin: 0 0 4px 0; color: #2c3e50; font-size: 15px; }
+        .med-info p { margin: 0; font-size: 12px; color: #e67e22; font-weight: bold;}
+        .btn-take { background-color: #3498db; color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s;}
+        .btn-take.taken { background-color: #2ecc71; color: white; }
+        .med-item.taken-style { opacity: 0.6; }
+        .med-item.taken-style h4 { text-decoration: line-through; }
+        .bottom-nav { background: white; padding: 15px 20px; display: flex; justify-content: space-between; border-top: 1px solid #ecf0f1; border-radius: 0 0 25px 25px; position: sticky; bottom: 0;}
+        .nav-item { text-align: center; color: #7f8c8d; font-size: 12px; font-weight: bold; cursor: pointer;}
+        .nav-item.active { color: #16a085; }
+    </style>
+</head>
+<body>
+
+    <div class="mobile-frame">
+        <div class="app-header">
+            <h1>My Health Wallet</h1>
+            <p>John H. Watson | PT-99482</p>
+        </div>
+
+        <div class="content">
+            <div class="qr-card">
+                <h3>Pharmacy Digital Key</h3>
+                <p>Show this to your pharmacist to unlock your prescription securely.</p>
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=PT-99482|123456" alt="Prescription QR Code">
+                <br>
+                <div class="otp-display">OTP: 123456</div>
+            </div>
+
+            <div style="font-size: 14px; font-weight: bold; color: #7f8c8d; margin-bottom: 10px;">ACTIVE PRESCRIPTION</div>
+            <div class="rx-card">
+                <h3>Dr. Sherlock Holmes</h3>
+                <p>Issued: Today | Duration: 5 Days</p>
+            </div>
+
+            <div style="font-size: 14px; font-weight: bold; color: #7f8c8d; margin-bottom: 15px; margin-top: 25px;">TODAY'S SCHEDULE</div>
+
+            <div class="time-block">
+                <div class="time-label">🌅 Morning (09:00 AM)</div>
+                <div class="med-item" id="med-1"><div class="med-info"><h4>Napa 500mg</h4><p>After Meal</p></div><button class="btn-take" id="btn-1" onclick="takeMedicine(1)">Take</button></div>
+                <div class="med-item" id="med-2"><div class="med-info"><h4>Fexo 120mg</h4><p>Empty Stomach</p></div><button class="btn-take" id="btn-2" onclick="takeMedicine(2)">Take</button></div>
+            </div>
+
+            <div class="time-block">
+                <div class="time-label">🌙 Night (09:00 PM)</div>
+                <div class="med-item" id="med-4"><div class="med-info"><h4>Napa 500mg</h4><p>After Meal</p></div><button class="btn-take" id="btn-4" onclick="takeMedicine(4)">Take</button></div>
+                <div class="med-item" id="med-5"><div class="med-info"><h4>Fexo 120mg</h4><p>Empty Stomach</p></div><button class="btn-take" id="btn-5" onclick="takeMedicine(5)">Take</button></div>
+            </div>
+        </div>
+
+        <div class="bottom-nav">
+            <div class="nav-item active">📅 Today</div>
+            <div class="nav-item">📋 My Rx</div>
+            <div class="nav-item">👤 Profile</div>
+        </div>
+    </div>
+
+    <script>
+        function takeMedicine(id) {
+            const btn = document.getElementById('btn-' + id);
+            const card = document.getElementById('med-' + id);
+            if (btn.innerText === "Take") {
+                btn.innerText = "Taken ✅"; btn.classList.add("taken"); card.classList.add("taken-style");
+            } else {
+                btn.innerText = "Take"; btn.classList.remove("taken"); card.classList.remove("taken-style");
+            }
+        }
+    </script>
+</body>
+</html>

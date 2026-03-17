@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>eRx - Pharmacist Dispensing Portal</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #e8f6f3; margin: 0; color: #2c3e50; display: flex; flex-direction: column; min-height: 100vh;}
+        header { background-color: #117a65; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .container { max-width: 800px; margin: 40px auto; padding: 0 20px; flex-grow: 1; width: 100%; box-sizing: border-box;}
+        
+        .card { background: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); margin-bottom: 25px; border-top: 5px solid #1abc9c; }
+        .card h2 { margin-top: 0; color: #117a65; border-bottom: 2px solid #ecf0f1; padding-bottom: 10px; text-align: center;}
+        
+        .input-group { margin-bottom: 20px; }
+        label { display: block; font-weight: bold; margin-bottom: 8px; color: #34495e; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;}
+        input { width: 100%; padding: 15px; border: 2px solid #bdc3c7; border-radius: 8px; box-sizing: border-box; font-size: 16px; transition: border-color 0.3s;}
+        input:focus { border-color: #1abc9c; outline: none; }
+        
+        button { background-color: #1abc9c; color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 6px rgba(26, 188, 156, 0.2);}
+        button:hover { background-color: #16a085; transform: translateY(-2px);}
+        
+        /* NEW: Scanner Button & UI */
+        .btn-scan { background-color: #34495e; margin-bottom: 20px; display: flex; justify-content: center; align-items: center; gap: 10px;}
+        .btn-scan:hover { background-color: #2c3e50; }
+        .divider { text-align: center; margin: 20px 0; color: #7f8c8d; font-weight: bold; position: relative; }
+        .divider::before, .divider::after { content: ""; position: absolute; top: 50%; width: 40%; height: 1px; background-color: #bdc3c7; }
+        .divider::before { left: 0; } .divider::after { right: 0; }
+
+        /* Scanner Animation Overlay */
+        #scanner-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center; flex-direction: column;}
+        .scan-box { width: 300px; height: 300px; border: 4px solid #1abc9c; border-radius: 20px; position: relative; overflow: hidden; box-shadow: 0 0 20px rgba(26, 188, 156, 0.5);}
+        .scan-line { width: 100%; height: 4px; background-color: #e74c3c; position: absolute; top: 0; animation: scanAnim 1.5s infinite; box-shadow: 0 0 10px #e74c3c;}
+        @keyframes scanAnim { 0% { top: 0; } 50% { top: 100%; } 100% { top: 0; } }
+        
+        #prescription-view { display: none; }
+        .patient-info { background-color: #f4f6f6; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; font-size: 14px;}
+        .patient-info div span { font-weight: bold; color: #117a65; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 15px;}
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #ecf0f1; }
+        th { background-color: #e8f6f3; color: #117a65; }
+        .dispense-check { transform: scale(1.5); cursor: pointer; }
+        .btn-dispense { background-color: #e67e22; margin-top: 30px; }
+        .btn-dispense:hover { background-color: #d35400; }
+        .status-badge { background-color: #f1c40f; color: #fff; padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold;}
+    </style>
+</head>
+<body>
+
+    <header>
+        <div style="font-size: 22px; font-weight: bold; letter-spacing: 1px;">eRx External Vendor Portal</div>
+        <div style="font-weight: bold;">Store: Bismillah Pharmacy | <a href="#" onclick="location.reload()" style="color: #ecf0f1; text-decoration: none; margin-left: 15px;">Refresh</a></div>
+    </header>
+
+    <div class="container">
+        
+        <div class="card" id="auth-view">
+            <h2>Patient Authentication</h2>
+            
+            <button class="btn-scan" onclick="activateScanner()">
+                <span style="font-size: 24px;">📷</span> Scan Patient QR Code
+            </button>
+
+            <div class="divider">OR ENTER MANUALLY</div>
+
+            <div class="input-group">
+                <label>Patient ID / NID</label>
+                <input type="text" id="patient-id" placeholder="e.g., PT-99482">
+            </div>
+            
+            <div class="input-group">
+                <label>Secure OTP</label>
+                <input type="number" id="otp-code" placeholder="e.g., 123456" style="letter-spacing: 5px; font-weight: bold; text-align: center;">
+            </div>
+            
+            <button onclick="unlockPrescription()">Unlock Medical Record</button>
+        </div>
+
+        <div class="card" id="prescription-view">
+            <h2>Authorized Prescription</h2>
+            
+            <div class="patient-info">
+                <div>Patient: <span>John H. Watson</span></div>
+                <div>ID: <span id="display-pid">PT-99482</span></div>
+                <div>Prescribing Doctor: <span>Dr. S. Holmes</span></div>
+            </div>
+
+            <p style="color: #e74c3c; font-weight: bold; font-size: 14px;">⚠️ Verify stock before marking as dispensed.</p>
+
+            <table>
+                <thead><tr><th>Medication Details</th><th>Dosage & Duration</th><th>Status</th><th>Dispense</th></tr></thead>
+                <tbody id="dispense-body"></tbody>
+            </table>
+
+            <button class="btn-dispense" onclick="confirmDispensation()">Confirm Selected Medications</button>
+        </div>
+    </div>
+
+    <div id="scanner-overlay">
+        <h2 style="color: white; margin-bottom: 20px;">Align QR Code within frame...</h2>
+        <div class="scan-box">
+            <div class="scan-line"></div>
+        </div>
+        <button style="margin-top: 30px; width: 200px; background-color: #e74c3c;" onclick="cancelScan()">Cancel</button>
+    </div>
+
+    <script>
+        const pendingDrugs = [
+            { name: "Napa 500mg (Tablet)", dosage: "1+1+1 after meal", days: 3 },
+            { name: "Fexo 120mg (Tablet)", dosage: "120 mg once daily", days: 5 }
+        ];
+
+        // NEW: Scanner Simulation Logic
+        function activateScanner() {
+            document.getElementById('scanner-overlay').style.display = 'flex';
+            
+            // Simulate the camera taking 1.5 seconds to recognize the QR code
+            setTimeout(() => {
+                document.getElementById('scanner-overlay').style.display = 'none';
+                
+                // Automatically fill the boxes with the decoded data
+                document.getElementById('patient-id').value = "PT-99482";
+                document.getElementById('otp-code').value = "123456";
+                
+                // Instantly trigger the unlock
+                unlockPrescription();
+            }, 1500);
+        }
+
+        function cancelScan() { document.getElementById('scanner-overlay').style.display = 'none'; }
+
+        function unlockPrescription() {
+            const pid = document.getElementById('patient-id').value;
+            const otp = document.getElementById('otp-code').value;
+
+            if (pid === "PT-99482" && otp === "123456") {
+                document.getElementById('auth-view').style.display = "none";
+                document.getElementById('prescription-view').style.display = "block";
+                document.getElementById('display-pid').innerText = pid;
+                renderDispenseTable();
+            } else {
+                alert("Security Alert: Invalid Patient ID or OTP. Access Denied.");
+            }
+        }
+
+        function renderDispenseTable() {
+            const tbody = document.getElementById('dispense-body');
+            tbody.innerHTML = "";
+            pendingDrugs.forEach((drug, index) => {
+                tbody.innerHTML += `<tr><td><strong>${drug.name}</strong></td><td>${drug.dosage}<br><span style="color:#7f8c8d; font-size:12px;">For ${drug.days} Days</span></td><td><span class="status-badge">Pending</span></td><td style="text-align: center;"><input type="checkbox" class="dispense-check" id="check-${index}"></td></tr>`;
+            });
+        }
+
+        function confirmDispensation() {
+            let dispensedCount = 0;
+            pendingDrugs.forEach((drug, index) => {
+                if (document.getElementById(`check-${index}`).checked) dispensedCount++;
+            });
+
+            if (dispensedCount === 0) { alert("You must select at least one medication to dispense."); return; }
+            if (dispensedCount === pendingDrugs.length) { alert("✅ Full Fulfillment: All medications dispensed successfully. Digital record updated."); } 
+            else { alert("⚠️ Partial Fulfillment: Only " + dispensedCount + " out of " + pendingDrugs.length + " medications dispensed."); }
+            location.reload();
+        }
+    </script>
+</body>
+</html>
