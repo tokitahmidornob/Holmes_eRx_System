@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Waiting Room</title>
+    <script src="http://localhost:3000/socket.io/socket.io.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #0f172a; /* Deep Slate TV Background */
+            color: white;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .header {
+            background-color: #1e293b;
+            padding: 20px;
+            text-align: center;
+            font-size: 2rem;
+            font-weight: bold;
+            border-bottom: 4px solid #3b82f6;
+            letter-spacing: 2px;
+        }
+
+        .main-display {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s;
+        }
+
+        /* The Flash Animation when a patient is called */
+        .flash-active {
+            animation: pulse-green 1.5s ease-out;
+        }
+
+        @keyframes pulse-green {
+            0% { background-color: #047857; }
+            100% { background-color: transparent; }
+        }
+
+        .now-serving-label {
+            font-size: 2.5rem;
+            color: #94a3b8;
+            margin-bottom: 20px;
+        }
+
+        .patient-name {
+            font-size: 6rem;
+            font-weight: 900;
+            color: #fbbf24; /* Bright Amber */
+            text-align: center;
+            text-transform: uppercase;
+            margin: 0;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+
+        .room-number {
+            font-size: 4rem;
+            color: #38bdf8; /* Sky Blue */
+            margin-top: 20px;
+            font-weight: bold;
+        }
+
+        .footer {
+            background-color: #1e293b;
+            padding: 15px;
+            text-align: center;
+            color: #64748b;
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        HOLMES eRX MEDICAL CENTER
+    </div>
+
+    <div class="main-display" id="displayArea">
+        <div class="now-serving-label">PLEASE PROCEED TO DOCTOR:</div>
+        <div class="patient-name" id="currentPatient">-- WAITING --</div>
+        <div class="room-number" id="currentRoom">--</div>
+    </div>
+
+    <div class="footer">
+        Please wait for your name to appear on the screen.
+    </div>
+
+    <script>
+        // ⚡ Connect to the Central Server ⚡
+        const socket = io("http://localhost:3000");
+
+        // Listen for the 'queue_update' broadcast from the server
+        socket.on('queue_update', (data) => {
+            console.log("Signal received!", data);
+            
+            // Update the giant TV text
+            document.getElementById('currentPatient').innerText = data.name;
+            document.getElementById('currentRoom').innerText = "Please proceed to: " + data.room;
+
+            // Trigger the visual flash animation
+            const displayArea = document.getElementById('displayArea');
+            displayArea.classList.remove('flash-active');
+            
+            // Magic trick to restart CSS animation instantly
+            void displayArea.offsetWidth; 
+            
+            displayArea.classList.add('flash-active');
+        });
+    </script>
+
+</body>
+</html>

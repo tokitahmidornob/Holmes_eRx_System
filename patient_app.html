@@ -3,94 +3,203 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Patient Portal - Mobile App</title>
+    <title>Holmes eRx | Patient Portal</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #dcdde1; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
-        .mobile-frame { background-color: #f4f7f6; width: 100%; max-width: 390px; height: 800px; border-radius: 40px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); border: 12px solid #2f3640; overflow-y: auto; position: relative; display: flex; flex-direction: column;}
-        .app-header { background-color: #16a085; color: white; padding: 40px 20px 20px 20px; border-radius: 25px 25px 0 0; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 10;}
-        .app-header h1 { margin: 0; font-size: 22px; font-weight: 700; }
-        .app-header p { margin: 5px 0 0 0; font-size: 14px; opacity: 0.9; }
-        .content { padding: 20px; flex-grow: 1; }
+        :root { --primary: #0284c7; --primary-hover: #0369a1; --bg-color: #f0f9ff; --card-bg: #ffffff; --text-main: #0f172a; --border-color: #e0f2fe; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 20px; }
         
-        /* NEW: QR Code Section */
-        .qr-card { background: white; border-radius: 15px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); text-align: center; border: 2px dashed #16a085;}
-        .qr-card img { width: 150px; height: 150px; margin-bottom: 10px; }
-        .qr-card h3 { margin: 0; color: #2c3e50; font-size: 16px; }
-        .qr-card p { margin: 5px 0 0 0; font-size: 14px; color: #7f8c8d; }
-        .otp-display { display: inline-block; background-color: #ecf0f1; padding: 5px 15px; border-radius: 20px; font-weight: bold; color: #e74c3c; letter-spacing: 2px; margin-top: 10px;}
+        .header { text-align: center; margin-bottom: 30px; }
+        .header h1 { color: var(--primary); margin-bottom: 5px; }
+        .header p { color: #64748b; margin-top: 0; }
+        
+        .container { max-width: 1000px; margin: 0 auto; }
+        
+        /* Directory Grid */
+        .directory-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        
+        .doctor-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: transform 0.2s; }
+        .doctor-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px rgba(0,0,0,0.1); }
+        
+        .doc-name { font-size: 1.4rem; color: var(--primary); font-weight: bold; margin: 0 0 5px 0; }
+        .doc-desig { color: #475569; font-weight: bold; margin: 0 0 10px 0; font-size: 0.95rem;}
+        .doc-degrees { font-size: 0.85rem; color: #64748b; margin-bottom: 15px; }
+        
+        .chamber-tag { display: inline-block; background: #e0f2fe; color: #0284c7; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; margin-right: 5px; margin-bottom: 5px; font-weight: bold;}
+        
+        button { width: 100%; background-color: var(--primary); color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-size: 1rem; font-weight: bold; margin-top: 15px; transition: 0.3s;}
+        button:hover { background-color: var(--primary-hover); }
 
-        .rx-card { background: white; border-radius: 15px; padding: 15px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-left: 4px solid #3498db;}
-        .rx-card h3 { margin: 0 0 5px 0; color: #2c3e50; font-size: 16px; }
-        .rx-card p { margin: 0; font-size: 13px; color: #7f8c8d; }
-        .time-block { margin-bottom: 25px; }
-        .time-label { font-weight: bold; color: #34495e; font-size: 18px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;}
-        .med-item { background: white; border-radius: 12px; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.02); border: 1px solid #ecf0f1; transition: 0.3s;}
-        .med-info h4 { margin: 0 0 4px 0; color: #2c3e50; font-size: 15px; }
-        .med-info p { margin: 0; font-size: 12px; color: #e67e22; font-weight: bold;}
-        .btn-take { background-color: #3498db; color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s;}
-        .btn-take.taken { background-color: #2ecc71; color: white; }
-        .med-item.taken-style { opacity: 0.6; }
-        .med-item.taken-style h4 { text-decoration: line-through; }
-        .bottom-nav { background: white; padding: 15px 20px; display: flex; justify-content: space-between; border-top: 1px solid #ecf0f1; border-radius: 0 0 25px 25px; position: sticky; bottom: 0;}
-        .nav-item { text-align: center; color: #7f8c8d; font-size: 12px; font-weight: bold; cursor: pointer;}
-        .nav-item.active { color: #16a085; }
+        /* Booking Modal */
+        #bookingModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: white; padding: 30px; border-radius: 12px; width: 100%; max-width: 400px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+        .modal-content h2 { margin-top: 0; color: var(--primary); }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; color: #333; }
+        select, input[type="date"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px;}
+        
+        .btn-cancel { background-color: #ef4444; margin-top: 10px; }
+        .btn-cancel:hover { background-color: #dc2626; }
+        .logout-btn { background-color: #64748b; width: auto; padding: 10px 20px; float: right; margin-top: -60px; }
     </style>
 </head>
 <body>
 
-    <div class="mobile-frame">
-        <div class="app-header">
-            <h1>My Health Wallet</h1>
-            <p>John H. Watson | PT-99482</p>
-        </div>
-
-        <div class="content">
-            <div class="qr-card">
-                <h3>Pharmacy Digital Key</h3>
-                <p>Show this to your pharmacist to unlock your prescription securely.</p>
-                <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=PT-99482|123456" alt="Prescription QR Code">
-                <br>
-                <div class="otp-display">OTP: 123456</div>
-            </div>
-
-            <div style="font-size: 14px; font-weight: bold; color: #7f8c8d; margin-bottom: 10px;">ACTIVE PRESCRIPTION</div>
-            <div class="rx-card">
-                <h3>Dr. Sherlock Holmes</h3>
-                <p>Issued: Today | Duration: 5 Days</p>
-            </div>
-
-            <div style="font-size: 14px; font-weight: bold; color: #7f8c8d; margin-bottom: 15px; margin-top: 25px;">TODAY'S SCHEDULE</div>
-
-            <div class="time-block">
-                <div class="time-label">🌅 Morning (09:00 AM)</div>
-                <div class="med-item" id="med-1"><div class="med-info"><h4>Napa 500mg</h4><p>After Meal</p></div><button class="btn-take" id="btn-1" onclick="takeMedicine(1)">Take</button></div>
-                <div class="med-item" id="med-2"><div class="med-info"><h4>Fexo 120mg</h4><p>Empty Stomach</p></div><button class="btn-take" id="btn-2" onclick="takeMedicine(2)">Take</button></div>
-            </div>
-
-            <div class="time-block">
-                <div class="time-label">🌙 Night (09:00 PM)</div>
-                <div class="med-item" id="med-4"><div class="med-info"><h4>Napa 500mg</h4><p>After Meal</p></div><button class="btn-take" id="btn-4" onclick="takeMedicine(4)">Take</button></div>
-                <div class="med-item" id="med-5"><div class="med-info"><h4>Fexo 120mg</h4><p>Empty Stomach</p></div><button class="btn-take" id="btn-5" onclick="takeMedicine(5)">Take</button></div>
-            </div>
-        </div>
-
-        <div class="bottom-nav">
-            <div class="nav-item active">📅 Today</div>
-            <div class="nav-item">📋 My Rx</div>
-            <div class="nav-item">👤 Profile</div>
-        </div>
+<div class="container">
+    <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+    
+    <div class="header">
+        <h1>Holmes eRx Directory</h1>
+        <p>Welcome, <span id="patientNameDisplay" style="font-weight: bold; color: #0284c7;">Patient</span>. Select a specialist to book an appointment.</p>
     </div>
 
-    <script>
-        function takeMedicine(id) {
-            const btn = document.getElementById('btn-' + id);
-            const card = document.getElementById('med-' + id);
-            if (btn.innerText === "Take") {
-                btn.innerText = "Taken ✅"; btn.classList.add("taken"); card.classList.add("taken-style");
-            } else {
-                btn.innerText = "Take"; btn.classList.remove("taken"); card.classList.remove("taken-style");
-            }
+    <div class="directory-grid" id="directoryGrid">
+        <p style="text-align: center; width: 100%; color: #64748b;">Loading Hospital Directory...</p>
+    </div>
+</div>
+
+<div id="bookingModal">
+    <div class="modal-content">
+        <h2>Book Appointment</h2>
+        <p><strong>Doctor:</strong> <span id="modalDocName"></span></p>
+        
+        <div class="form-group">
+            <label>Select Chamber / Location</label>
+            <select id="modalChamber">
+                </select>
+        </div>
+        
+        <div class="form-group">
+            <label>Select Date</label>
+            <input type="date" id="modalDate">
+        </div>
+        
+        <button onclick="confirmBooking()" style="background-color: #10b981;">✅ Confirm Booking</button>
+        <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+    </div>
+</div>
+
+<script>
+    const myPatientId = localStorage.getItem('eRx_UserId');
+    const myPatientName = localStorage.getItem('eRx_UserName');
+    let selectedDoctorId = null;
+
+    window.onload = function() {
+        const token = localStorage.getItem('eRx_Token');
+        if (!token || localStorage.getItem('eRx_Role') !== 'patient') {
+            alert("🔒 ACCESS DENIED. Please log in as a Patient.");
+            window.location.href = 'auth.html';
+        } else {
+            document.getElementById('patientNameDisplay').innerText = myPatientName;
+            fetchDirectory();
         }
-    </script>
+    };
+
+    function logout() { localStorage.clear(); window.location.href = 'auth.html'; }
+
+    // Fetch all doctors from the Vault
+    async function fetchDirectory() {
+        try {
+            const response = await fetch('http://localhost:3000/api/doctors');
+            const doctors = await response.json();
+            
+            const grid = document.getElementById("directoryGrid");
+            grid.innerHTML = "";
+
+            if(doctors.length === 0) {
+                grid.innerHTML = "<p>No doctors found in the directory.</p>";
+                return;
+            }
+
+            doctors.forEach(doc => {
+                // Safely format degrees
+                const degreesStr = (doc.degrees && doc.degrees.length > 0) ? doc.degrees.join(', ') : "Medical Professional";
+                
+                // Format Chamber Tags
+                let chambersHTML = "";
+                if(doc.chambers && doc.chambers.length > 0) {
+                    doc.chambers.forEach(c => {
+                        chambersHTML += `<span class="chamber-tag">📍 ${c.facility}</span>`;
+                    });
+                } else {
+                    chambersHTML = `<span class="chamber-tag" style="background:#f1f5f9; color:#64748b;">Chambers Pending</span>`;
+                }
+
+                // Build the Card
+                // Note: We stringify the doc.chambers array so we can pass it to the modal!
+                const card = document.createElement("div");
+                card.className = "doctor-card";
+                card.innerHTML = `
+                    <h3 class="doc-name">Dr. ${doc.name}</h3>
+                    <p class="doc-desig">${doc.designation || 'Consultant'} | ${doc.department || 'General Medicine'}</p>
+                    <p class="doc-degrees">🎓 ${degreesStr}</p>
+                    <div style="margin-bottom: 15px;">${chambersHTML}</div>
+                    <p style="font-size: 0.85rem; color: #475569; height: 40px; overflow: hidden;">${doc.biography || 'Dedicated to providing exceptional patient care.'}</p>
+                    <button onclick='openModal("${doc.doctorId}", "Dr. ${doc.name}", ${JSON.stringify(doc.chambers || [])})'>📅 Request Appointment</button>
+                `;
+                grid.appendChild(card);
+            });
+        } catch (error) {
+            document.getElementById("directoryGrid").innerHTML = "<p style='color:red;'>Failed to load directory. Is the server running?</p>";
+        }
+    }
+
+    // Modal Logic
+    function openModal(docId, docName, chambersArray) {
+        selectedDoctorId = docId;
+        document.getElementById("modalDocName").innerText = docName;
+        
+        const chamberSelect = document.getElementById("modalChamber");
+        chamberSelect.innerHTML = "";
+        
+        if (chambersArray.length === 0) {
+            chamberSelect.innerHTML = `<option value="">No Active Chambers</option>`;
+        } else {
+            chambersArray.forEach(c => {
+                chamberSelect.innerHTML += `<option value="${c.facility} (Room ${c.room})">${c.facility} - ${c.schedule}</option>`;
+            });
+        }
+
+        // Set min date to today
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById("modalDate").setAttribute('min', today);
+        document.getElementById("modalDate").value = today;
+
+        document.getElementById("bookingModal").style.display = "flex";
+    }
+
+    function closeModal() { document.getElementById("bookingModal").style.display = "none"; selectedDoctorId = null; }
+
+    // Fire the Booking Request to the Backend
+    async function confirmBooking() {
+        const chamber = document.getElementById("modalChamber").value;
+        const date = document.getElementById("modalDate").value;
+        const docName = document.getElementById("modalDocName").innerText;
+
+        if (!chamber) return alert("Please select a valid chamber.");
+        if (!date) return alert("Please select a date.");
+
+        const payload = {
+            patientId: myPatientId,
+            patientName: myPatientName,
+            doctorId: selectedDoctorId,
+            doctorName: docName,
+            chamber: chamber,
+            date: date
+        };
+
+        try {
+            const response = await fetch('http://localhost:3000/api/appointments', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await response.json();
+            
+            if (response.ok) {
+                alert(`✅ Success! Your appointment with ${docName} on ${date} is confirmed.`);
+                closeModal();
+            } else alert("❌ Booking failed.");
+        } catch (error) { alert("Vault Connection Error."); }
+    }
+</script>
 </body>
 </html>

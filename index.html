@@ -5,64 +5,112 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Unified eRx Ecosystem</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; color: #2c3e50; }
-        
-        .header-section { text-align: center; margin-bottom: 40px; }
-        .header-section h1 { font-size: 36px; color: #16a085; margin-bottom: 10px; letter-spacing: 1px; }
-        .header-section p { font-size: 16px; color: #7f8c8d; max-width: 600px; margin: 0 auto; line-height: 1.5; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #f4f7f6; 
+            margin: 0; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            min-height: 100vh;
+        }
 
-        .portal-grid { display: flex; gap: 30px; flex-wrap: wrap; justify-content: center; max-width: 1000px; padding: 20px; }
+        .header-section { 
+            text-align: center; 
+            margin-bottom: 40px; 
+            padding-top: 60px;
+        }
+
+        .header-section h1 { 
+            font-size: 38px; 
+            color: #16a085; 
+            margin-bottom: 10px; 
+            letter-spacing: 1px; 
+        }
+
+        .header-section p { 
+            font-size: 18px; 
+            color: #7f8c8d; 
+            max-width: 600px; 
+            margin: 0 auto; 
+            line-height: 1.5; 
+        }
+
+        .portal-grid { 
+            display: flex; 
+            gap: 30px; 
+            flex-wrap: wrap; 
+            justify-content: center; 
+            max-width: 1000px; 
+            padding: 20px; 
+        }
+
+        /* The Link Wrapper */
+        .card-link {
+            text-decoration: none;
+            color: inherit;
+        }
         
-        .portal-card { background: white; width: 280px; padding: 40px 20px; border-radius: 15px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.05); text-decoration: none; color: inherit; transition: all 0.3s ease; border-top: 5px solid transparent; cursor: pointer;}
+        .portal-card { 
+            background: white; 
+            width: 280px; 
+            padding: 40px 20px; 
+            border-radius: 15px; 
+            text-align: center; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05); 
+            cursor: pointer; 
+            transition: transform 0.3s, box-shadow 0.3s; 
+            border-top: 6px solid transparent; 
+        }
         
-        /* Specific Card Colors */
+        /* Specific Card Colors from your design */
         .card-doctor { border-top-color: #3498db; }
-        .card-patient { border-top-color: #9b59b6; }
+        .card-patient { border-top-color: #9b59b6; } 
         .card-pharmacy { border-top-color: #1abc9c; }
 
-        .portal-card:hover { transform: translateY(-10px); box-shadow: 0 15px 40px rgba(0,0,0,0.1); }
-        .card-doctor:hover { border-top-color: #2980b9; }
-        .card-patient:hover { border-top-color: #8e44ad; }
-        .card-pharmacy:hover { border-top-color: #16a085; }
-
+        .portal-card:hover { 
+            transform: translateY(-10px); 
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15); 
+        }
+        
         .icon { font-size: 50px; margin-bottom: 20px; }
-        .portal-card h2 { margin: 0 0 10px 0; font-size: 22px; }
-        .portal-card p { margin: 0; font-size: 14px; color: #7f8c8d; }
-
-        .footer { position: absolute; bottom: 20px; font-size: 12px; color: #bdc3c7; font-weight: bold; }
+        .card-title { font-size: 24px; font-weight: bold; margin-bottom: 10px; color: #2c3e50; }
+        .card-desc { font-size: 15px; color: #7f8c8d; line-height: 1.4; }
     </style>
 </head>
 <body>
 
     <div class="header-section">
         <h1>Unified eRx Ecosystem</h1>
-        <p>A completely secure, end-to-end digital prescription tracking system. Please select your operational role to enter the secure network.</p>
+        <p>Select your secure portal to access the centralized hospital network. All connections are encrypted and monitored.</p>
     </div>
 
     <div class="portal-grid">
         
-        <a href="doctor_login.html" class="portal-card card-doctor">
-            <div class="icon">🩺</div>
-            <h2>Clinical Dashboard</h2>
-            <p>For licensed medical professionals to diagnose, prescribe, and sign.</p>
+        <a href="auth.html" class="card-link">
+            <div class="portal-card card-doctor">
+                <div class="icon">🩺</div>
+                <div class="card-title">Chief Medical Officer</div>
+                <div class="card-desc">Access patient records, draft secure prescriptions, and upload medical archives.</div>
+            </div>
         </a>
 
-        <a href="patient_app.html" class="portal-card card-patient">
-            <div class="icon">📱</div>
-            <h2>My Health Wallet</h2>
-            <p>For patients to track doses, view history, and generate pharmacy keys.</p>
+        <a href="auth.html" class="card-link">
+            <div class="portal-card card-pharmacy">
+                <div class="icon">💊</div>
+                <div class="card-title">Dispensary Terminal</div>
+                <div class="card-desc">Verify secure OTPs, decrypt prescriptions, and log dispensed medications.</div>
+            </div>
         </a>
 
-        <a href="pharmacist_portal.html" class="portal-card card-pharmacy">
-            <div class="icon">💊</div>
-            <h2>External Vendor Portal</h2>
-            <p>For verified pharmacists to scan QR keys and dispense medications.</p>
+        <a href="auth.html" class="card-link">
+            <div class="portal-card card-patient">
+                <div class="icon">👤</div>
+                <div class="card-title">Patient Records</div>
+                <div class="card-desc">View your personal medical history, active prescriptions, and lab reports.</div>
+            </div>
         </a>
 
-    </div>
-
-    <div class="footer">
-        Engineered by Holmes & Watson | V1.0 Prototype
     </div>
 
 </body>
