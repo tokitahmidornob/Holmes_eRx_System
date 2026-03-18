@@ -1,3 +1,4 @@
+require('dotenv').config(); // Allows the app to read secret variables
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
@@ -10,7 +11,8 @@ const fs = require('fs');
 const apiRoutes = require('./backend/routes/api');
 
 const app = express();
-const PORT = 3000;
+// CRITICAL FIX: Use Render's assigned port, or 3000 if on your laptop
+const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
@@ -33,7 +35,8 @@ io.on('connection', (socket) => {
 app.use('/api', apiRoutes);
 
 // --- 🗄️ THE IRON VAULT CONNECTION ---
-const mongoURI = "mongodb://tokitahmidornob_db_user:OJKUcEoZiVb6uWSI@ac-vrhvu6s-shard-00-00.rhc8rji.mongodb.net:27017,ac-vrhvu6s-shard-00-01.rhc8rji.mongodb.net:27017,ac-vrhvu6s-shard-00-02.rhc8rji.mongodb.net:27017/eRxDatabase?ssl=true&replicaSet=atlas-vjhom4-shard-0&authSource=admin&appName=eRx-Central";
+// CRITICAL FIX: This tells the code to grab the key from Render's Secret Vault!
+const mongoURI = process.env.MONGO_URI;
 
 mongoose.connect(mongoURI)
     .then(() => {
