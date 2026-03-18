@@ -99,7 +99,7 @@
     // Fetch all doctors from the Vault
     async function fetchDirectory() {
         try {
-            const response = await fetch('http://localhost:3000/api/doctors');
+            const response = await fetch('https://holmes-erx-system.onrender.com/api/doctors');
             const doctors = await response.json();
             
             const grid = document.getElementById("directoryGrid");
@@ -188,7 +188,7 @@
         };
 
         try {
-            const response = await fetch('http://localhost:3000/api/appointments', {
+            const response = await fetch('https://holmes-erx-system.onrender.com/api/appointments', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });

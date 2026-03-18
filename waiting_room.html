@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hospital Waiting Room</title>
-    <script src="http://localhost:3000/socket.io/socket.io.js"></script>
+    <script src="https://holmes-erx-system.onrender.com/socket.io/socket.io.js"></script>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -97,7 +97,7 @@
 
     <script>
         // ⚡ Connect to the Central Server ⚡
-        const socket = io("http://localhost:3000");
+        const socket = io("https://holmes-erx-system.onrender.com");
 
         // Listen for the 'queue_update' broadcast from the server
         socket.on('queue_update', (data) => {

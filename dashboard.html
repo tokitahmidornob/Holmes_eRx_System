@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Holmes eRx | CMO Terminal</title>
     
-    <script src="http://localhost:3000/socket.io/socket.io.js"></script>
+    <script src="https://holmes-erx-system.onrender.com/socket.io/socket.io.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
     <style>
@@ -202,7 +202,7 @@
     // --- 📅 QUEUE LOGIC ---
     async function loadPatientQueue() {
         try {
-            const response = await fetch(`http://localhost:3000/api/appointments/doctor/${myDoctorId}`);
+            const response = await fetch(`https://holmes-erx-system.onrender.com/api/appointments/doctor/${myDoctorId}`);
             const queue = await response.json();
             
             const container = document.getElementById("queueContainer");
@@ -247,7 +247,7 @@
     // --- 🏢 PRACTICE MANAGER LOGIC ---
     async function loadPracticeData() {
         try {
-            const response = await fetch(`http://localhost:3000/api/doctors/${myDoctorId}`);
+            const response = await fetch(`https://holmes-erx-system.onrender.com/api/doctors/${myDoctorId}`);
             const data = await response.json();
             if(response.ok) {
                 myChambers = data.chambers || [];
@@ -302,7 +302,7 @@
 
     async function savePracticeData() {
         try {
-            const response = await fetch(`http://localhost:3000/api/doctors/${myDoctorId}/practice`, {
+            const response = await fetch(`https://holmes-erx-system.onrender.com/api/doctors/${myDoctorId}/practice`, {
                 method: 'PUT', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ chambers: myChambers, surgeryLogs: mySurgeries })
             });
@@ -322,7 +322,7 @@
     }
 
     // --- 🏥 CLINICAL LOGIC (Patient, Drugs, Print) ---
-    const socket = io("http://localhost:3000");
+    const socket = io("https://holmes-erx-system.onrender.com");
 
     function broadcastToWaitingRoom() {
         const pName = document.getElementById("pName").innerText;
@@ -337,7 +337,7 @@
         const searchId = document.getElementById("patientIdInput").value.trim();
         if (!searchId) return alert("Enter a Patient ID.");
         try {
-            const response = await fetch(`http://localhost:3000/api/patients/${searchId}`);
+            const response = await fetch(`https://holmes-erx-system.onrender.com/api/patients/${searchId}`);
             const data = await response.json();
             if (response.ok) {
                 document.getElementById("pName").innerText = data.name;
@@ -370,7 +370,7 @@
             return; 
         }
         try {
-            const response = await fetch(`http://localhost:3000/api/drugs/search?q=${query}`);
+            const response = await fetch(`https://holmes-erx-system.onrender.com/api/drugs/search?q=${query}`);
             const drugs = await response.json();
             dropdown.innerHTML = "";
             if (drugs.length > 0) {
@@ -426,7 +426,7 @@
         if (draftMedications.length === 0) return alert("Add a medication.");
 
         try {
-            const response = await fetch('http://localhost:3000/api/prescriptions', {
+            const response = await fetch('https://holmes-erx-system.onrender.com/api/prescriptions', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ patientId: activePatientId, medications: draftMedications, tests: [] })
             });

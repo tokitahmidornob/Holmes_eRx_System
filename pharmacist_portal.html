@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Holmes eRx | Dispensary Terminal</title>
     
-    <script src="http://localhost:3000/socket.io/socket.io.js"></script>
+    <script src="https://holmes-erx-system.onrender.com/socket.io/socket.io.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
@@ -113,7 +113,7 @@
         if (!otp || otp.length < 5) return alert("Please enter a valid OTP.");
 
         try {
-            const rxResponse = await fetch(`http://localhost:3000/api/prescriptions/${otp}`);
+            const rxResponse = await fetch(`https://holmes-erx-system.onrender.com/api/prescriptions/${otp}`);
             const rxData = await rxResponse.json();
 
             if (!rxResponse.ok) {
@@ -127,7 +127,7 @@
             let patientName = "Unknown", patientAge = "Unknown", patientBlood = "Unknown";
 
             try {
-                const ptResponse = await fetch(`http://localhost:3000/api/patients/${patientId}`);
+                const ptResponse = await fetch(`https://holmes-erx-system.onrender.com/api/patients/${patientId}`);
                 const ptData = await ptResponse.json();
                 if (ptResponse.ok) {
                     patientName = ptData.name; patientAge = ptData.age; patientBlood = ptData.bloodGroup;

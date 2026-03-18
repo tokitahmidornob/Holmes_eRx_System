@@ -158,7 +158,7 @@ router.get('/patients/:id', async (req, res) => {
 router.post('/patients/:id/upload', upload.single('reportFile'), async (req, res) => {
     try {
         if (!req.file) return res.status(400).json({ error: "No file uploaded." });
-        const fileUrl = `http://localhost:3000/uploads/${req.file.filename}`;
+        const fileUrl = `https://holmes-erx-system.onrender.com/uploads/${req.file.filename}`;
         await Patient.findOneAndUpdate(
             { patientId: req.params.id },
             { $push: { medicalHistory: { fileName: req.file.originalname, url: fileUrl, uploadedAt: new Date() } } }
