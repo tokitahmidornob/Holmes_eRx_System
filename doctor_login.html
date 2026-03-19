@@ -156,12 +156,13 @@
             const wrapperDiv = document.createElement('div');
             wrapperDiv.className = 'med-row-container';
             
+            // 🛠️ THE FIX: Added id="medInstruction_${rowId}" so we can target the instructions box
             wrapperDiv.innerHTML = `
                 <div class="med-row">
                     <input type="text" placeholder="Search Drug..." class="med-name" id="medName_${rowId}" autocomplete="off" oninput="searchVault(this, ${rowId})">
                     <input type="text" placeholder="Dose (1+1+1)" class="med-dose" id="medDose_${rowId}" required>
                     <input type="text" placeholder="Days (e.g., 5)" class="med-duration" required>
-                    <input type="text" placeholder="Instructions" class="med-instruction">
+                    <input type="text" placeholder="Instructions" class="med-instruction" id="medInstruction_${rowId}">
                     <button type="button" class="btn-remove" onclick="this.parentElement.parentElement.remove()">X</button>
                 </div>
                 <div class="autocomplete-dropdown" id="dropdown_${rowId}"></div>
@@ -199,7 +200,7 @@
                         dropdown.style.display = 'none';
                     }
                 } catch (err) { }
-            }, 300); // 300ms delay to prevent spamming the database
+            }, 300); 
         }
 
         // 💉 THE AUTO-FILL PROTOCOL
@@ -207,6 +208,10 @@
             // Fill Inputs
             document.getElementById(`medName_${rowId}`).value = `${drug.brandName} (${drug.strength})`;
             document.getElementById(`medDose_${rowId}`).value = drug.defaultDose || '';
+            
+            // 🛠️ THE FIX: Auto-fill the instructions/administration!
+            document.getElementById(`medInstruction_${rowId}`).value = drug.administration || '';
+            
             document.getElementById(`dropdown_${rowId}`).style.display = 'none';
 
             // Show Clinical Pharmacopoeia Info
