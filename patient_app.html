@@ -6,68 +6,54 @@
     <title>Patient Command Center | H.O.L.M.E.S.</title>
     <style>
         :root {
-            --primary-dark: #0f172a;
+            --primary-dark: #0f172a; 
             --patient-color: #10b981;
-            --patient-light: #d1fae5;
+            --patient-light: #d1fae5; 
             --bg-color: #f8fafc;
-            --text-main: #334155;
+            --text-main: #334155; 
             --text-light: #64748b;
         }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            margin: 0; color: var(--text-main);
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: var(--bg-color); 
+            margin: 0; 
+            color: var(--text-main); 
         }
         
-        /* HEADER & NAVIGATION */
-        .header {
-            background-color: var(--primary-dark); color: white;
-            padding: 1rem 2rem; display: flex; justify-content: space-between;
-            align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        .header { 
+            background-color: var(--primary-dark); 
+            color: white; 
+            padding: 1rem 2rem; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
         }
         .header h1 { margin: 0; font-size: 1.5rem; border-left: 4px solid var(--patient-color); padding-left: 10px; }
-        .logout-btn {
-            background-color: #ef4444; color: white; border: none; 
-            padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold;
-        }
+        .logout-btn { background-color: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; }
         
-        /* TABBED INTERFACE */
         .dashboard-container { max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
         .tabs { display: flex; gap: 10px; margin-bottom: 2rem; border-bottom: 2px solid #e2e8f0; }
-        .tab-btn {
-            background: none; border: none; padding: 10px 20px; font-size: 1.1rem;
-            color: var(--text-light); cursor: pointer; font-weight: bold;
-            border-bottom: 3px solid transparent; margin-bottom: -2px; transition: 0.3s;
-        }
+        .tab-btn { background: none; border: none; padding: 10px 20px; font-size: 1.1rem; color: var(--text-light); cursor: pointer; font-weight: bold; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: 0.3s; }
         .tab-btn.active { color: var(--patient-color); border-bottom: 3px solid var(--patient-color); }
         .tab-content { display: none; animation: fadeIn 0.4s; }
         .tab-content.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* CARDS & GRIDS */
-        .card {
-            background: white; border-radius: 10px; padding: 2rem;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.03); border-top: 4px solid var(--patient-color);
-            margin-bottom: 1.5rem;
-        }
+        .card { background: white; border-radius: 10px; padding: 2rem; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border-top: 4px solid var(--patient-color); margin-bottom: 1.5rem; }
         .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; }
         .info-box p { margin: 0; font-size: 0.9rem; color: var(--text-light); }
         .info-box h3 { margin: 5px 0 0 0; font-size: 1.1rem; color: var(--primary-dark); }
         
-        /* TIMELINE UI */
-        .timeline-container { border-left: 3px solid var(--patient-light); padding-left: 20px; margin-left: 10px; }
+        .timeline-container { border-left: 3px solid var(--patient-light); padding-left: 20px; margin-left: 10px; margin-top: 20px; }
         .timeline-item { position: relative; margin-bottom: 1.5rem; }
-        .timeline-item::before {
-            content: ''; position: absolute; left: -29px; top: 0;
-            width: 15px; height: 15px; background: white; border: 3px solid var(--patient-color);
-            border-radius: 50%;
-        }
+        .timeline-item::before { content: ''; position: absolute; left: -29px; top: 0; width: 15px; height: 15px; background: white; border: 3px solid var(--patient-color); border-radius: 50%; }
         .timeline-date { font-weight: bold; color: var(--patient-color); font-size: 0.9rem; }
         .timeline-content { background: #f1f5f9; padding: 15px; border-radius: 8px; margin-top: 5px; }
         
-        /* FORMS */
-        select, input { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; }
+        select, input { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-family: inherit;}
         .btn-action { background: var(--patient-color); color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 15px; }
+        .manual-entry-box { background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px dashed #cbd5e1; margin-bottom: 20px; }
     </style>
 </head>
 <body>
@@ -91,9 +77,7 @@
         <div id="profile" class="tab-content active">
             <div class="card">
                 <h2 style="margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 10px;">Comprehensive Biological Data</h2>
-                <div class="info-grid" id="profileGrid">
-                    <p>Loading your data from the Iron Vault...</p>
-                </div>
+                <div class="info-grid" id="profileGrid"><p>Loading your data...</p></div>
             </div>
         </div>
 
@@ -102,18 +86,9 @@
                 <h2 style="margin-top: 0;">Book a Consultation</h2>
                 <form id="bookingForm" onsubmit="bookAppointment(event)">
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                        <div>
-                            <label>Select Department</label>
-                            <select id="deptSelect" required><option>General Medicine</option><option>Cardiology</option><option>Neurology</option></select>
-                        </div>
-                        <div>
-                            <label>Select Doctor</label>
-                            <select id="doctorSelect" required><option>Loading Doctors...</option></select>
-                        </div>
-                        <div>
-                            <label>Preferred Date</label>
-                            <input type="date" id="apptDate" required>
-                        </div>
+                        <div><label>Select Department</label><select id="deptSelect" required><option>General Medicine</option><option>Cardiology</option><option>Neurology</option><option>Orthopedics</option></select></div>
+                        <div><label>Select Doctor</label><select id="doctorSelect" required><option>Loading...</option></select></div>
+                        <div><label>Preferred Date</label><input type="date" id="apptDate" required></div>
                     </div>
                     <button type="submit" class="btn-action">Request Appointment</button>
                 </form>
@@ -124,16 +99,19 @@
         <div id="timeline" class="tab-content">
             <div class="card">
                 <h2 style="margin-top: 0;">Chronological Medical History</h2>
-                <p style="color: var(--text-light); font-size: 0.9rem;">A detailed log of your past visits and prescriptions.</p>
                 
+                <div class="manual-entry-box">
+                    <h3 style="margin-top: 0; color: var(--primary-dark); font-size: 1rem;">+ Add Personal Medical Event</h3>
+                    <form onsubmit="addManualHistory(event)" style="display: grid; grid-template-columns: 1fr 2fr; gap: 10px; align-items: end;">
+                        <div><label style="font-size: 0.8rem; font-weight: bold;">Date</label><input type="date" id="histDate" required></div>
+                        <div><label style="font-size: 0.8rem; font-weight: bold;">Title (e.g., Flu Vaccine, Blood Test)</label><input type="text" id="histTitle" required></div>
+                        <div style="grid-column: 1 / -1;"><label style="font-size: 0.8rem; font-weight: bold;">Details / Results</label><input type="text" id="histDesc" required placeholder="Describe the event, symptoms, or diagnoses..."></div>
+                        <button type="submit" class="btn-action" style="grid-column: 1 / -1; margin-top: 0;">Save to Timeline</button>
+                    </form>
+                </div>
+
                 <div class="timeline-container" id="timelineContainer">
-                    <div class="timeline-item">
-                        <div class="timeline-date">Account Created</div>
-                        <div class="timeline-content">
-                            <strong>System Initialization</strong><br>
-                            Patient profile established in the H.O.L.M.E.S. eRx Engine.
-                        </div>
-                    </div>
+                    <p>Loading timeline...</p>
                 </div>
             </div>
         </div>
@@ -145,18 +123,12 @@
         const token = localStorage.getItem('token');
         const userId = localStorage.getItem('userId');
 
-        // 🔐 THE SECURITY PROTOCOL (Check Padlock)
+        // Security check
         if (!token || !userId || !userId.startsWith('PT-')) {
-            alert("Unauthorized Entry. Redirecting to Secure Lobby.");
-            window.location.href = 'index.html';
+            alert("Unauthorized Entry."); window.location.href = 'index.html';
         }
 
-        // --- DASHBOARD LOGIC ---
-        
-        function logout() {
-            localStorage.clear();
-            window.location.href = 'index.html';
-        }
+        function logout() { localStorage.clear(); window.location.href = 'index.html'; }
 
         function switchTab(tabId, element) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
@@ -165,28 +137,79 @@
             element.classList.add('active');
         }
 
-        // --- DATA FETCHING FROM VAULT ---
         async function fetchPatientData() {
             try {
-                const response = await fetch(`${API_BASE_URL}/patients/${userId}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+                const response = await fetch(`${API_BASE_URL}/patients/${userId}`, { headers: { 'Authorization': `Bearer ${token}` } });
                 if (response.ok) {
                     const patient = await response.json();
                     document.getElementById('headerName').innerText = `Welcome, ${patient.name}`;
                     
-                    // Render Profile Grid
                     const allergies = patient.allergies && patient.allergies.length > 0 ? patient.allergies.join(", ") : "None Recorded";
                     document.getElementById('profileGrid').innerHTML = `
                         <div class="info-box"><p>Patient ID</p><h3>${patient.patientId}</h3></div>
-                        <div class="info-box"><p>Blood Group</p><h3 style="color: red;">${patient.bloodGroup || 'Not set'}</h3></div>
+                        <div class="info-box"><p>Blood Group</p><h3 style="color: #ef4444;">${patient.bloodGroup || 'Not set'}</h3></div>
                         <div class="info-box"><p>Age & Gender</p><h3>${patient.age || '?'} yrs, ${patient.gender || '?'}</h3></div>
                         <div class="info-box"><p>Contact Number</p><h3>${patient.contact || 'Not set'}</h3></div>
                         <div class="info-box"><p>Emergency Contact</p><h3>${patient.emergencyContact || 'Not set'}</h3></div>
                         <div class="info-box"><p>Known Allergies</p><h3>${allergies}</h3></div>
                     `;
+
+                    // Render Timeline
+                    const timeline = document.getElementById('timelineContainer');
+                    timeline.innerHTML = '';
+                    
+                    if (patient.medicalHistory && patient.medicalHistory.length > 0) {
+                        const historyReversed = [...patient.medicalHistory].reverse();
+                        historyReversed.forEach(record => {
+                            if (record.type === 'manual') {
+                                timeline.innerHTML += `
+                                    <div class="timeline-item">
+                                        <div class="timeline-date">${record.date}</div>
+                                        <div class="timeline-content">
+                                            <strong>${record.title}</strong><br>
+                                            <span style="color: #475569;">${record.description}</span>
+                                        </div>
+                                    </div>
+                                `;
+                            }
+                        });
+                    } else {
+                        timeline.innerHTML = '<p style="color: gray; font-style: italic;">No medical history recorded yet. Add your first event above.</p>';
+                    }
                 }
             } catch (err) { console.error("Vault transmission failed:", err); }
+        }
+
+        async function addManualHistory(e) {
+            e.preventDefault();
+            const payload = {
+                date: document.getElementById('histDate').value,
+                title: document.getElementById('histTitle').value,
+                description: document.getElementById('histDesc').value
+            };
+
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.innerText = "Saving...";
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/patients/${userId}/history`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (response.ok) {
+                    e.target.reset(); 
+                    submitBtn.innerText = "Save to Timeline";
+                    fetchPatientData(); // Refresh the UI immediately
+                } else {
+                    alert("Failed to save record.");
+                    submitBtn.innerText = "Save to Timeline";
+                }
+            } catch (err) { 
+                alert("Server connection error."); 
+                submitBtn.innerText = "Save to Timeline";
+            }
         }
 
         async function fetchDoctors() {
@@ -196,48 +219,35 @@
                     const doctors = await response.json();
                     const select = document.getElementById('doctorSelect');
                     select.innerHTML = '<option value="">Select a specific doctor...</option>';
-                    doctors.forEach(doc => {
-                        select.innerHTML += `<option value="${doc.doctorId}">${doc.name} (${doc.department || 'General'})</option>`;
-                    });
+                    doctors.forEach(doc => { select.innerHTML += `<option value="${doc.doctorId}">${doc.name} (${doc.department || 'General'})</option>`; });
                 }
-            } catch (err) { console.error("Failed to fetch doctor directory."); }
+            } catch (err) {}
         }
 
         async function bookAppointment(e) {
             e.preventDefault();
-            const doctorId = document.getElementById('doctorSelect').value;
-            const date = document.getElementById('apptDate').value;
-            const msgBox = document.getElementById('bookingMsg');
-
-            if (!doctorId) { msgBox.innerText = "Please select a doctor."; msgBox.style.color = "red"; return; }
-
-            const payload = {
-                patientId: userId,
-                patientName: document.getElementById('headerName').innerText.replace('Welcome, ', ''),
-                doctorId: doctorId,
-                doctorName: document.getElementById('doctorSelect').options[document.getElementById('doctorSelect').selectedIndex].text,
-                chamber: "Main Hospital", // Can be dynamic later
-                date: date
+            const payload = { 
+                patientId: userId, 
+                patientName: document.getElementById('headerName').innerText.replace('Welcome, ', ''), 
+                doctorId: document.getElementById('doctorSelect').value, 
+                doctorName: document.getElementById('doctorSelect').options[document.getElementById('doctorSelect').selectedIndex].text, 
+                chamber: "Main Hospital", 
+                date: document.getElementById('apptDate').value 
             };
-
             try {
-                const response = await fetch(`${API_BASE_URL}/appointments`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify(payload)
-                });
-                
-                if (response.ok) {
-                    msgBox.innerText = "Appointment Successfully Booked!";
-                    msgBox.style.color = "var(--patient-color)";
-                    e.target.reset();
-                } else {
-                    msgBox.innerText = "Failed to book appointment.";
+                const response = await fetch(`${API_BASE_URL}/appointments`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) });
+                const msgBox = document.getElementById('bookingMsg');
+                if (response.ok) { 
+                    msgBox.innerText = "Appointment Successfully Booked!"; 
+                    msgBox.style.color = "var(--patient-color)"; 
+                    e.target.reset(); 
+                } else { 
+                    msgBox.innerText = "Failed to book appointment."; 
                 }
-            } catch (err) { msgBox.innerText = "Server connection error."; }
+            } catch (err) {}
         }
 
-        // Initialize Dashboard
+        // Boot sequence
         fetchPatientData();
         fetchDoctors();
     </script>
