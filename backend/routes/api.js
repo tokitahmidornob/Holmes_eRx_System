@@ -20,6 +20,8 @@ const upload = multer({ storage: storage });
 // 🔐 1. AUTHENTICATION & REGISTRATION GATEWAY
 // ==========================================
 router.post('/auth/register', async (req, res) => {
+    // 💡 WATSON'S NOTE: Because you used ...otherData, this route automatically 
+    // absorbs all the new profile fields (allergies, license numbers, etc.)!
     const { role, email, password, name, ...otherData } = req.body;
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -75,15 +77,16 @@ router.get('/doctors/:id', async (req, res) => {
     } catch (error) { res.status(500).json({ error: "Failed to fetch profile." }); }
 });
 
+// 🛠️ UPGRADED: Doctor Profile Update with new schema fields
 router.put('/doctors/:id/profile', async (req, res) => {
     try {
-        const { designation, department, degrees, specialties, experienceYears, visitingHours, roomNumber, biography } = req.body;
-        const degreesArray = degrees ? degrees.split(',').map(d => d.trim()) : [];
-        const specialtiesArray = specialties ? specialties.split(',').map(s => s.trim()) : [];
+        const { contactNumber, licenseNumber, designation, department, degrees, specialties, experienceYears, consultationHours, biography } = req.body;
+        const degreesArray = degrees && typeof degrees === 'string' ? degrees.split(',').map(d => d.trim()) : degrees;
+        const specialtiesArray = specialties && typeof specialties === 'string' ? specialties.split(',').map(s => s.trim()) : specialties;
 
         const updatedDoctor = await Doctor.findOneAndUpdate(
             { doctorId: req.params.id },
-            { designation, department, degrees: degreesArray, specialties: specialtiesArray, experienceYears, visitingHours, roomNumber, biography },
+            { contactNumber, licenseNumber, designation, department, degrees: degreesArray, specialties: specialtiesArray, experienceYears, consultationHours, biography },
             { new: true }
         );
         res.status(200).json({ message: "Profile updated successfully!", doctor: updatedDoctor });
@@ -153,6 +156,36 @@ router.get('/patients/:id', async (req, res) => {
         const foundPatient = await Patient.findOne({ patientId: req.params.id });
         foundPatient ? res.status(200).json(foundPatient) : res.status(404).json({ error: "Patient not found." });
     } catch (error) { res.status(500).json({ error: "Vault search failed." }); }
+});
+
+// 🆕 NEW: Patient Profile Update Route
+router.put('/patients/:id/profile', async (req, res) => {
+    try {
+        const { age, gender, bloodGroup, contact, emergencyContact, address, allergies } = req.body;
+        const allergiesArray = allergies && typeof allergies === 'string' ? allergies.split(',').map(a => a.trim()) : allergies;
+
+        const updatedPatient = await Patient.findOneAndUpdate(
+            { patientId: req.params.id },
+            { age, gender, bloodGroup, contact, emergencyContact, address, allergies: allergiesArray },
+            { new: true }
+        );
+        res.status(200).json({ message: "Patient profile updated successfully!", patient: updatedPatient });
+    } catch (error) { res.status(500).json({ error: "Failed to update patient profile." }); }
+});
+
+// 🆕 NEW: Pharmacist Profile Update Route
+router.put('/pharmacists/:id/profile', async (req, res) => {
+    try {
+        const { employeeId, contactNumber, licenseNumber, branchLocation, degrees, experienceYears, biography } = req.body;
+        const degreesArray = degrees && typeof degrees === 'string' ? degrees.split(',').map(d => d.trim()) : degrees;
+
+        const updatedPharmacist = await Pharmacist.findOneAndUpdate(
+            { pharmacistId: req.params.id },
+            { employeeId, contactNumber, licenseNumber, branchLocation, degrees: degreesArray, experienceYears, biography },
+            { new: true }
+        );
+        res.status(200).json({ message: "Pharmacist profile updated!", pharmacist: updatedPharmacist });
+    } catch (error) { res.status(500).json({ error: "Failed to update pharmacist profile." }); }
 });
 
 router.post('/patients/:id/upload', upload.single('reportFile'), async (req, res) => {
