@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>National Admin Grid</title>
+    <style>
+        body { font-family: sans-serif; background: #1e293b; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .box { background: #334155; padding: 40px; border-radius: 12px; text-align: center; border-top: 5px solid #ef4444; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        input[type="file"] { margin: 20px 0; background: #0f172a; padding: 10px; border-radius: 5px; }
+        button { background: #ef4444; color: white; border: none; padding: 12px 25px; font-weight: bold; cursor: pointer; border-radius: 5px; font-size: 1.1rem; }
+        button:hover { background: #dc2626; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2>H.O.L.M.E.S. National Grid Importer</h2>
+        <p>Upload a CSV file containing the National Drug Database.</p>
+        <p style="font-size: 0.8rem; color: #94a3b8; max-width: 400px; margin: 0 auto;">
+            CSV Headers must strictly be: brandName, genericName, strength, form, indications, defaultDose, childDose, renalDose, administration, sideEffects
+        </p>
+        
+        <form id="uploadForm">
+            <input type="file" id="csvFile" accept=".csv" required><br>
+            <button type="submit">Inject into Iron Vault</button>
+        </form>
+        <p id="msg" style="margin-top: 20px; font-weight: bold; font-size: 1.1rem;"></p>
+    </div>
+
+    <script>
+        document.getElementById('uploadForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const msg = document.getElementById('msg');
+            msg.innerText = "Parsing spreadsheet and injecting...";
+            msg.style.color = "yellow";
+
+            const formData = new FormData();
+            formData.append("csvFile", document.getElementById("csvFile").files[0]);
+
+            try {
+                const res = await fetch('https://holmes-erx-system.onrender.com/api/admin/upload-drugs', {
+                    method: 'POST', body: formData
+                });
+                const data = await res.json();
+                msg.innerText = data.message || data.error;
+                msg.style.color = res.ok ? "#10b981" : "#ef4444";
+            } catch (err) {
+                msg.innerText = "Fatal connection error.";
+                msg.style.color = "#ef4444";
+            }
+        };
+    </script>
+</body>
+</html>
