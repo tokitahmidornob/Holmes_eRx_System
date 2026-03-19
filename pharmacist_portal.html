@@ -93,20 +93,25 @@
 </div>
 
 <script>
-    const pharmacistName = localStorage.getItem('eRx_UserName') || "Pharmacist";
-    const pharmacistId = localStorage.getItem('eRx_UserId') || "PH-0000";
+    // 🔐 UPDATED SECURITY KEYS TO MATCH STEP 5.2
+    const pharmacistId = localStorage.getItem('userId');
+    const pharmacistName = "Pharmacist Desk"; // We can make this dynamic later
     let activePrescriptionData = null; 
 
     window.onload = function() {
-        const token = localStorage.getItem('eRx_Token');
-        const role = localStorage.getItem('eRx_Role');
-        if (!token || role !== 'pharmacist') {
+        const token = localStorage.getItem('token');
+        
+        // Check for the new token and ensure the ID starts with 'PH-' (Pharmacist)
+        if (!token || !pharmacistId || !pharmacistId.startsWith('PH-')) {
             alert("🔒 ACCESS DENIED. Redirecting to Gateway.");
-            window.location.href = 'auth.html';
+            window.location.href = 'index.html'; // Redirects to the new Grand Lobby
         }
     };
 
-    function logout() { localStorage.clear(); window.location.href = 'auth.html'; }
+    function logout() { 
+        localStorage.clear(); 
+        window.location.href = 'index.html'; 
+    }
 
     async function verifyAndFetch() {
         const otp = document.getElementById("otpInput").value.trim();
