@@ -3,8 +3,9 @@ const router = express.Router();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
+const fs = require('fs');          // 🆕 REQUIRED FOR BULK IMPORT
+const csv = require('csv-parser'); // 🆕 REQUIRED FOR BULK IMPORT
 
-// THE FIX: Appointment is now securely wired into the database imports!
 const { Prescription, Patient, Doctor, Pharmacist, Drug, Appointment } = require('../models/Schemas');
 
 const JWT_SECRET = "HolmesIronVaultSecretKey2026";
@@ -20,8 +21,6 @@ const upload = multer({ storage: storage });
 // 🔐 1. AUTHENTICATION & REGISTRATION GATEWAY
 // ==========================================
 router.post('/auth/register', async (req, res) => {
-    // 💡 WATSON'S NOTE: Because you used ...otherData, this route automatically 
-    // absorbs all the new profile fields (allergies, license numbers, etc.)!
     const { role, email, password, name, ...otherData } = req.body;
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -77,7 +76,6 @@ router.get('/doctors/:id', async (req, res) => {
     } catch (error) { res.status(500).json({ error: "Failed to fetch profile." }); }
 });
 
-// 🛠️ UPGRADED: Doctor Profile Update with new schema fields
 router.put('/doctors/:id/profile', async (req, res) => {
     try {
         const { contactNumber, licenseNumber, designation, department, degrees, specialties, experienceYears, consultationHours, biography } = req.body;
@@ -131,6 +129,30 @@ router.get('/drugs/search', async (req, res) => {
     } catch (err) { res.status(500).json({ error: "Search failed." }); }
 });
 
+// 🆕 THE NATIONAL CSV BULK IMPORTER
+router.post('/admin/upload-drugs', upload.single('csvFile'), (req, res) => {
+    if (!req.file) return res.status(400).json({ error: "No spreadsheet detected." });
+    
+    const results = [];
+    fs.createReadStream(req.file.path)
+        .pipe(csv())
+        .on('data', (data) => results.push(data))
+        .on('end', async () => {
+            try {
+                // Wipe the old database and inject the entire national spreadsheet
+                await Drug.deleteMany({}); 
+                await Drug.insertMany(results);
+                
+                // Clean up the uploaded file from the server
+                fs.unlinkSync(req.file.path); 
+                
+                res.status(200).json({ message: `Success! Injected ${results.length} drugs into the National Vault.` });
+            } catch (err) { 
+                res.status(500).json({ error: "Vault injection failed. Check your CSV format." }); 
+            }
+        });
+});
+
 // ==========================================
 // 🏥 4. HOSPITAL OPERATIONS (Prescriptions & Patients)
 // ==========================================
@@ -158,7 +180,6 @@ router.get('/patients/:id', async (req, res) => {
     } catch (error) { res.status(500).json({ error: "Vault search failed." }); }
 });
 
-// 🆕 NEW: Patient Profile Update Route
 router.put('/patients/:id/profile', async (req, res) => {
     try {
         const { age, gender, bloodGroup, contact, emergencyContact, address, allergies } = req.body;
@@ -173,19 +194,28 @@ router.put('/patients/:id/profile', async (req, res) => {
     } catch (error) { res.status(500).json({ error: "Failed to update patient profile." }); }
 });
 
-// 🆕 NEW: Pharmacist Profile Update Route
-router.put('/pharmacists/:id/profile', async (req, res) => {
+// 🆕 MANUAL MEDICAL HISTORY LOGGING
+router.post('/patients/:id/history', async (req, res) => {
     try {
-        const { employeeId, contactNumber, licenseNumber, branchLocation, degrees, experienceYears, biography } = req.body;
-        const degreesArray = degrees && typeof degrees === 'string' ? degrees.split(',').map(d => d.trim()) : degrees;
-
-        const updatedPharmacist = await Pharmacist.findOneAndUpdate(
-            { pharmacistId: req.params.id },
-            { employeeId, contactNumber, licenseNumber, branchLocation, degrees: degreesArray, experienceYears, biography },
+        const { date, title, description } = req.body;
+        
+        const updatedPatient = await Patient.findOneAndUpdate(
+            { patientId: req.params.id },
+            { $push: { 
+                medicalHistory: { 
+                    date: date, 
+                    title: title, 
+                    description: description, 
+                    type: 'manual', 
+                    addedAt: new Date() 
+                } 
+            }},
             { new: true }
         );
-        res.status(200).json({ message: "Pharmacist profile updated!", pharmacist: updatedPharmacist });
-    } catch (error) { res.status(500).json({ error: "Failed to update pharmacist profile." }); }
+        res.status(200).json({ message: "History updated!", patient: updatedPatient });
+    } catch (error) { 
+        res.status(500).json({ error: "Failed to add manual history." }); 
+    }
 });
 
 router.post('/patients/:id/upload', upload.single('reportFile'), async (req, res) => {
@@ -198,6 +228,20 @@ router.post('/patients/:id/upload', upload.single('reportFile'), async (req, res
         );
         res.status(200).json({ message: "Report archived!", url: fileUrl, fileName: req.file.originalname });
     } catch (error) { res.status(500).json({ error: "File archiving failed." }); }
+});
+
+router.put('/pharmacists/:id/profile', async (req, res) => {
+    try {
+        const { employeeId, contactNumber, licenseNumber, branchLocation, degrees, experienceYears, biography } = req.body;
+        const degreesArray = degrees && typeof degrees === 'string' ? degrees.split(',').map(d => d.trim()) : degrees;
+
+        const updatedPharmacist = await Pharmacist.findOneAndUpdate(
+            { pharmacistId: req.params.id },
+            { employeeId, contactNumber, licenseNumber, branchLocation, degrees: degreesArray, experienceYears, biography },
+            { new: true }
+        );
+        res.status(200).json({ message: "Pharmacist profile updated!", pharmacist: updatedPharmacist });
+    } catch (error) { res.status(500).json({ error: "Failed to update pharmacist profile." }); }
 });
 
 // ==========================================
