@@ -66,7 +66,7 @@ const pharmacistSchema = new mongoose.Schema({
 const Pharmacist = mongoose.model('Pharmacist', pharmacistSchema);
 
 const drugSchema = new mongoose.Schema({
-    brandName: { type: String, required: true }, 
+    brandName: { type: String, required: true, index: true }, // ⚡ THE FIX: index: true added here!
     genericName: String, 
     strength: String, 
     form: String, 
