@@ -1,46 +1,41 @@
 const express = require('express');
 const router = express.Router();
-const Prescription = require('../models/Prescription'); // Links to your Blueprint
-const Patient = require('../models/Patient');           // To verify the patient exists
+const Prescription = require('../models/Prescription');
+const Patient = require('../models/Patient');
 
-// POST: Create a new prescription
 router.post('/add', async (req, res) => {
+    // DEBUG: This will show us if the body is actually reaching the server
+    console.log("📥 Incoming Data Payload:", req.body);
+
     try {
         const { patientId, medications, diagnosis, notes, doctorName } = req.body;
 
-        // 1. Verification: Check if the patient actually exists in our records
-        const patientExists = await Patient.findById(patientId);
-        if (!patientExists) {
-            return res.status(404).json({ 
-                success: false, 
-                error: "Patient not found. Cannot issue prescription for a non-existent record." 
-            });
+        // 1. Check if patientId was actually sent
+        if (!patientId) {
+            return res.status(400).json({ success: false, error: "Patient ID is missing from the request." });
         }
 
-        // 2. Draft the Prescription
+        // 2. Verify Patient in Vault
+        const patientExists = await Patient.findById(patientId);
+        if (!patientExists) {
+            return res.status(404).json({ success: false, error: "No patient found with that ID." });
+        }
+
+        // 3. Create Prescription (Defaulting to Toki Tahmid if name is missing)
         const newPrescription = new Prescription({
             patient: patientId,
             medications,
             diagnosis,
             notes,
-            doctorName
+            doctorName: doctorName || "Toki Tahmid" 
         });
 
-        // 3. Save to the Local Vault
         const savedPrescription = await newPrescription.save();
-
-        res.status(201).json({
-            success: true,
-            message: "Prescription successfully issued!",
-            data: savedPrescription
-        });
+        res.status(201).json({ success: true, message: "Prescription issued!", data: savedPrescription });
         
     } catch (error) {
         console.error("❌ Prescription Error:", error);
-        res.status(400).json({ 
-            success: false, 
-            error: "Failed to issue prescription. Check data formatting." 
-        });
+        res.status(400).json({ success: false, error: error.message });
     }
 });
 
