@@ -1,40 +1,78 @@
 const express = require('express');
 const router = express.Router();
-const Patient = require('../models/Patient'); // Our previously drafted blueprint
+const jwt = require('jsonwebtoken');
+const Patient = require('../models/Patient');
+const Prescription = require('../models/Prescription');
 
-// POST Endpoint: Register a new patient into the system
-router.post('/add', async (req, res) => {
+const JWT_SECRET = process.env.JWT_SECRET || "HolmesIronVaultSecretKey2026";
+
+// --- 🛑 SECURITY MIDDLEWARE ---
+// This acts as the bouncer. It checks the digital ID badge before letting anyone in.
+const authenticateToken = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1]; // Expects "Bearer [token]"
+    
+    if (!token) return res.status(401).json({ success: false, error: "Access Denied: No digital badge provided." });
+
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+        if (err) return res.status(403).json({ success: false, error: "Access Denied: Invalid or expired badge." });
+        req.user = user; 
+        next();
+    });
+};
+
+// --- 🧑‍⚕️ PATIENT ROUTES ---
+
+// 1. Get Patient Profile (Secured)
+router.get('/:id', authenticateToken, async (req, res) => {
     try {
-        // 1. Intercept the incoming data payload
-        const { name, age, gender, contactNumber, medicalHistory } = req.body;
-
-        // 2. Instantiate a new patient record, adhering strictly to the Schema
-        const newPatient = new Patient({
-            name,
-            age,
-            gender,
-            contactNumber,
-            medicalHistory
-        });
-
-        // 3. Securely commit the record to the MongoDB Vault
-        const savedPatient = await newPatient.save();
-
-        // 4. Return a successful 201 (Created) response with the assigned ID
-        res.status(201).json({ 
-            success: true,
-            message: "Patient successfully registered in the central database.", 
-            data: savedPatient 
-        });
-
-    } catch (error) {
-        console.error("❌ Intake Valve Error:", error);
+        const patient = await Patient.findOne({ patientId: req.params.id }).select('-password');
+        if (!patient) return res.status(404).json({ success: false, error: "Patient not found." });
         
-        // Return a professional 400 (Bad Request) if validation fails
-        res.status(400).json({ 
-            success: false,
-            error: "Failed to process patient intake. Please verify the data format." 
-        });
+        res.status(200).json({ success: true, data: patient });
+    } catch (error) { 
+        res.status(500).json({ success: false, error: "Vault search failed." }); 
+    }
+});
+
+// 2. Update Patient Profile (Secured)
+router.put('/:id/profile', authenticateToken, async (req, res) => {
+    try {
+        const { age, gender, bloodGroup, contact, emergencyContact, address, allergies } = req.body;
+        
+        // Ensure allergies is an array
+        const allergiesArray = typeof allergies === 'string' ? allergies.split(',').map(a => a.trim()) : allergies;
+
+        const updatedPatient = await Patient.findOneAndUpdate(
+            { patientId: req.params.id },
+            { age, gender, bloodGroup, contact, emergencyContact, address, allergies: allergiesArray },
+            { new: true, runValidators: true }
+        ).select('-password');
+
+        if (!updatedPatient) return res.status(404).json({ success: false, error: "Patient not found." });
+
+        res.status(200).json({ success: true, message: "Profile updated successfully!", data: updatedPatient });
+    } catch (error) { 
+        res.status(500).json({ success: false, error: "Failed to update profile." }); 
+    }
+});
+
+// 3. Add Manual Medical History (Secured)
+router.post('/:id/history', authenticateToken, async (req, res) => {
+    try {
+        const { date, title, description } = req.body;
+        
+        const updatedPatient = await Patient.findOneAndUpdate(
+            { patientId: req.params.id },
+            { $push: { 
+                medicalHistory: { date, title, description, type: 'manual', addedAt: new Date() } 
+            }},
+            { new: true }
+        ).select('-password');
+
+        res.status(200).json({ success: true, message: "History updated!", data: updatedPatient });
+    } catch (error) { 
+        res.status(500).json({ success: false, error: "Failed to add medical history." }); 
     }
 });
 

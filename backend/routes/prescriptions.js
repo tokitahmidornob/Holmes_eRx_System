@@ -1,41 +1,67 @@
 const express = require('express');
 const router = express.Router();
+const jwt = require('jsonwebtoken');
 const Prescription = require('../models/Prescription');
-const Patient = require('../models/Patient');
 
-router.post('/add', async (req, res) => {
-    // DEBUG: This will show us if the body is actually reaching the server
-    console.log("📥 Incoming Data Payload:", req.body);
+const JWT_SECRET = process.env.JWT_SECRET || "HolmesIronVaultSecretKey2026";
 
+// --- 🛑 SECURITY MIDDLEWARE ---
+const authenticateToken = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1]; 
+    if (!token) return res.status(401).json({ success: false, error: "Access Denied. Digital badge required." });
+
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+        if (err) return res.status(403).json({ success: false, error: "Invalid or expired badge." });
+        req.user = user; 
+        next();
+    });
+};
+
+// --- 📝 PRESCRIPTION ROUTES ---
+
+// 1. Issue a New Prescription (Secured - Doctors Only)
+router.post('/', authenticateToken, async (req, res) => {
+    // 🛡️ Extra Security: Ensure only logged-in doctors can create prescriptions
+    if (req.user.role !== 'doctor') {
+        return res.status(403).json({ success: false, error: "Unauthorized. Only physicians may issue prescriptions." });
+    }
+
+    const incomingData = req.body; 
+    const secureOTP = Math.floor(100000 + Math.random() * 900000).toString();
+    
     try {
-        const { patientId, medications, diagnosis, notes, doctorName } = req.body;
-
-        // 1. Check if patientId was actually sent
-        if (!patientId) {
-            return res.status(400).json({ success: false, error: "Patient ID is missing from the request." });
-        }
-
-        // 2. Verify Patient in Vault
-        const patientExists = await Patient.findById(patientId);
-        if (!patientExists) {
-            return res.status(404).json({ success: false, error: "No patient found with that ID." });
-        }
-
-        // 3. Create Prescription (Defaulting to Toki Tahmid if name is missing)
-        const newPrescription = new Prescription({
-            patient: patientId,
-            medications,
-            diagnosis,
-            notes,
-            doctorName: doctorName || "Toki Tahmid" 
+        const newRecord = new Prescription({ 
+            recordId: "RX-" + Date.now(), 
+            otp: secureOTP, 
+            ...incomingData, 
+            timestamp: new Date().toISOString() 
         });
-
-        const savedPrescription = await newPrescription.save();
-        res.status(201).json({ success: true, message: "Prescription issued!", data: savedPrescription });
         
-    } catch (error) {
-        console.error("❌ Prescription Error:", error);
-        res.status(400).json({ success: false, error: error.message });
+        await newRecord.save();
+        
+        // ⚡ REAL-TIME QUEUE: Broadcast to the pharmacist waiting room!
+        const io = req.app.get('io');
+        if (io) {
+            io.emit('new_prescription_alert', { message: "New prescription arrived!", recordId: newRecord.recordId });
+        }
+
+        res.status(201).json({ success: true, message: "Prescription securely archived!", otp: secureOTP });
+    } catch (error) { 
+        console.error("Prescription Error:", error);
+        res.status(500).json({ success: false, error: "Vault lock failed." }); 
+    }
+});
+
+// 2. Retrieve Prescription via OTP (Secured)
+router.get('/:otp', authenticateToken, async (req, res) => {
+    try {
+        const foundRecord = await Prescription.findOne({ otp: req.params.otp });
+        if (!foundRecord) return res.status(404).json({ success: false, error: "Invalid OTP. Record not found." });
+        
+        res.status(200).json({ success: true, data: foundRecord });
+    } catch (error) { 
+        res.status(500).json({ success: false, error: "Vault search failed." }); 
     }
 });
 

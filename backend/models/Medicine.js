@@ -1,24 +1,17 @@
 const mongoose = require('mongoose');
 
 const medicineSchema = new mongoose.Schema({
-    brandName: { 
-        type: String, 
-        required: true,
-        trim: true 
-    },
-    genericName: { 
-        type: String, 
-        required: true,
-        trim: true
-    },
-    dosageForm: { 
-        type: String, // e.g., Tablet, Syrup, Injection
-        default: "Tablet"
-    },
-    strength: { 
-        type: String, // e.g., 500mg, 120mg
-        required: true
-    }
+    brandName: { type: String, required: true, index: true }, 
+    genericName: String, 
+    strength: String, 
+    form: String, 
+    indications: String, 
+    defaultDose: String, 
+    childDose: String, 
+    renalDose: String, 
+    administration: String, 
+    sideEffects: String
 });
 
+// We name it 'Medicine' to match our new routes, but it uses the 'Drug' fields
 module.exports = mongoose.model('Medicine', medicineSchema);
