@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Medicine = require('../models/Medicine');
+const Medicine = require('../models/medicine');
 
 // POST: Add a new medicine to the database (For our testing)
 router.post('/add', async (req, res) => {

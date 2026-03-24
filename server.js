@@ -1,18 +1,22 @@
-require('dotenv').config(); // 🛡️ Loads hidden environment variables
+require('dotenv').config(); 
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const helmet = require('helmet'); // 🛡️ HTTP Security headers
-const rateLimit = require('express-rate-limit'); // 🛡️ API Traffic Control
+const helmet = require('helmet'); 
+const rateLimit = require('express-rate-limit'); 
 const http = require('http');
 const { Server } = require('socket.io');
+const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
 
 // --- ⚙️ 1. ENTERPRISE MIDDLEWARE & SECURITY ---
 // Protects against known web vulnerabilities
-app.use(helmet()); 
+// 🔓 Helmet's CSP is disabled here so our inline frontend scripts are allowed to run!
+app.use(helmet({
+    contentSecurityPolicy: false, 
+}));
 
 // Allows your Netlify frontend to talk to your Render backend securely
 app.use(cors({
@@ -62,6 +66,15 @@ io.on('connection', (socket) => {
 
 // Make 'io' globally accessible to your routes so they can broadcast updates
 app.set('io', io);
+
+// --- 🖥️ 6. FRONTEND INTEGRATION (Serving the UI) ---
+// Tell the server to host all files inside the 'frontend' folder publicly
+app.use(express.static(path.join(__dirname, 'frontend')));
+
+// If a user visits the root domain (e.g., localhost:3000 or your render link), send them the Gateway!
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
+});
 
 // --- 🚨 5. GLOBAL ERROR CATCHER ---
 // If any code fails, this prevents the entire server from crashing and sends a clean error to the frontend

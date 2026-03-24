@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Holmes eRx | Master Gateway</title>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
+        body { background-color: #f9fafb; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+        
+        .auth-container { width: 100%; max-width: 450px; background-color: #ffffff; padding: 2.5rem 2rem; border-radius: 1rem; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid #f3f4f6; }
+        .header-text { text-align: center; margin-bottom: 2rem; }
+        .header-text h1 { font-size: 2rem; font-weight: 800; color: #1e3a8a; }
+        .header-text p { font-size: 0.9rem; color: #6b7280; margin-top: 0.25rem; }
+        
+        .toggle-switch { display: flex; background-color: #f3f4f6; border-radius: 0.5rem; padding: 0.3rem; margin-bottom: 2rem; position: relative; z-index: 100; /* Forces buttons to the top layer */ }
+        .toggle-btn { flex: 1; padding: 0.6rem; font-size: 0.9rem; font-weight: 600; border: none; background: transparent; cursor: pointer; border-radius: 0.4rem; color: #6b7280; transition: all 0.2s ease; position: relative; z-index: 101; }
+        .active-login { background-color: #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); color: #1d4ed8 !important; }
+        .active-register { background-color: #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); color: #15803d !important; }
+        
+        .form-group { margin-bottom: 1.25rem; }
+        .form-group label { display: block; font-size: 0.85rem; font-weight: 600; color: #374151; margin-bottom: 0.4rem; }
+        .form-control { width: 100%; padding: 0.6rem 1rem; border: 1px solid #d1d5db; border-radius: 0.5rem; font-size: 0.95rem; background-color: #f9fafb; outline: none; }
+        .form-control:focus { border-color: #3b82f6; background-color: #ffffff; box-shadow: 0 0 0 3px rgba(59,130,246,0.2); }
+        
+        .btn-submit { width: 100%; padding: 0.8rem 1rem; border: none; border-radius: 0.5rem; font-size: 1rem; font-weight: 700; color: #ffffff; cursor: pointer; margin-top: 0.5rem; }
+        .btn-login { background-color: #2563eb; }
+        .btn-register { background-color: #16a34a; }
+        
+        .alert-box { padding: 1rem; margin-bottom: 1.5rem; border-radius: 0.5rem; font-size: 0.85rem; font-weight: 600; text-align: center; display: none; }
+        .alert-error { background-color: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+        .alert-success { background-color: #dcfce3; color: #166534; border: 1px solid #86efac; }
+    </style>
+</head>
+<body>
+
+    <div class="auth-container">
+        <div class="header-text">
+            <h1>Holmes eRx</h1>
+            <p>National Medical Archive Gateway</p>
+        </div>
+
+        <div id="systemAlert" class="alert-box"></div>
+
+        <div class="toggle-switch">
+            <button type="button" id="tabLogin" onclick="triggerLoginView()" class="toggle-btn active-login">Sign In</button>
+            <button type="button" id="tabRegister" onclick="triggerRegisterView()" class="toggle-btn">Create Account</button>
+        </div>
+
+        <form id="loginForm" style="display: block;">
+            <div class="form-group">
+                <label>Select Role</label>
+                <select id="loginRole" class="form-control">
+                    <option value="doctor">Medical Professional (Doctor)</option>
+                    <option value="pharmacist">Dispensary (Pharmacist)</option>
+                    <option value="patient">Citizen (Patient)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" id="loginEmail" required placeholder="name@example.com" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="loginPassword" required placeholder="••••••••" class="form-control">
+            </div>
+            <button type="submit" id="loginBtn" class="btn-submit btn-login">Secure Login</button>
+        </form>
+
+        <form id="registerForm" style="display: none;">
+            <div class="form-group">
+                <label>Registering As</label>
+                <select id="regRole" class="form-control">
+                    <option value="patient">Citizen (Patient)</option>
+                    <option value="doctor">Medical Professional (Doctor)</option>
+                    <option value="pharmacist">Dispensary (Pharmacist)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Full Legal Name</label>
+                <input type="text" id="regName" required placeholder="John Doe" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" id="regEmail" required placeholder="name@example.com" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>Create Password</label>
+                <input type="password" id="regPassword" required placeholder="••••••••" class="form-control">
+            </div>
+            <button type="submit" id="regBtn" class="btn-submit btn-register">Register New ID</button>
+        </form>
+    </div>
+
+    <script>
+        // --- 1. THE GUARANTEED UI TOGGLES ---
+        function triggerRegisterView() {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'block';
+            
+            document.getElementById('tabRegister').classList.add('active-register');
+            document.getElementById('tabRegister').classList.remove('active-login');
+            
+            document.getElementById('tabLogin').classList.remove('active-login');
+            document.getElementById('tabLogin').classList.remove('active-register');
+            
+            document.getElementById('systemAlert').style.display = 'none';
+        }
+
+        function triggerLoginView() {
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('loginForm').style.display = 'block';
+            
+            document.getElementById('tabLogin').classList.add('active-login');
+            document.getElementById('tabLogin').classList.remove('active-register');
+            
+            document.getElementById('tabRegister').classList.remove('active-register');
+            document.getElementById('tabRegister').classList.remove('active-login');
+            
+            document.getElementById('systemAlert').style.display = 'none';
+        }
+
+        // --- 2. API CALLS ---
+        function showAlert(msg, isError = true) {
+            const alertBox = document.getElementById('systemAlert');
+            alertBox.textContent = msg;
+            alertBox.style.display = 'block';
+            alertBox.className = isError ? 'alert-box alert-error' : 'alert-box alert-success';
+        }
+
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('regBtn');
+            btn.textContent = "Creating ID..."; btn.disabled = true;
+
+            const payload = {
+                role: document.getElementById('regRole').value,
+                name: document.getElementById('regName').value,
+                email: document.getElementById('regEmail').value,
+                password: document.getElementById('regPassword').value
+            };
+
+            try {
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    showAlert("Registration successful! You may now log in.", false);
+                    document.getElementById('registerForm').reset();
+                    setTimeout(() => triggerLoginView(), 2000); 
+                } else {
+                    showAlert(data.error || "Registration failed.");
+                }
+            } catch (err) {
+                showAlert("Server offline. Cannot connect to Holmes Engine.");
+            } finally {
+                btn.textContent = "Register New ID"; btn.disabled = false;
+            }
+        });
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('loginBtn');
+            btn.textContent = "Authenticating..."; btn.disabled = true;
+
+            const payload = {
+                role: document.getElementById('loginRole').value,
+                email: document.getElementById('loginEmail').value,
+                password: document.getElementById('loginPassword').value
+            };
+
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    localStorage.setItem('holmesToken', data.token);
+                    localStorage.setItem('holmesUser', JSON.stringify(data.userData));
+
+                    if(payload.role === 'doctor') window.location.href = 'dashboard.html';
+                    if(payload.role === 'pharmacist') window.location.href = 'pharmacist_portal.html';
+                    if(payload.role === 'patient') window.location.href = 'patient_app.html';
+                } else {
+                    showAlert(data.error || "Authentication failed.");
+                }
+            } catch (error) {
+                showAlert("Server offline. Cannot connect to Holmes Engine.");
+            } finally {
+                btn.textContent = "Secure Login"; btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
