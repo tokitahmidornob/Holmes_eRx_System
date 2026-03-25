@@ -79,3 +79,50 @@ body {
     padding-left: 1.5rem; /* Slight indent on hover */
     border-left: 4px solid #14b8a6; /* Teal accent bar */
 }
+
+/* =========================================================
+   HOLMES eRx - COMPLETION CARD (MODAL) VISUALS
+========================================================= */
+
+/* The Blurry Background Overlay */
+#completionModal {
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity: 0;
+    pointer-events: none; /* Can't click through it when hidden */
+}
+
+/* State when the modal is active */
+#completionModal.modal-active {
+    opacity: 1;
+    pointer-events: auto;
+    backdrop-filter: blur(20px); /* Deep blur behind the card */
+    -webkit-backdrop-filter: blur(20px);
+}
+
+/* The visual physics of the card itself */
+.completion-card {
+    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    transform: translateY(-40px) scale(0.9) rotate3d(1, 0, 0, -5deg);
+}
+
+.modal-active .completion-card {
+    transform: translateY(0) scale(1) rotate3d(1, 0, 0, 0deg);
+}
+
+/* Special Glowing Effects for High-Security Area */
+.otp-box-glow {
+    box-shadow: 0 0 15px rgba(45,212,191,0.3);
+    border: 1px solid rgba(45,212,191,0.4);
+}
+
+/* Authentic System Stamp Effect */
+.authentic-stamp {
+    position: absolute;
+    bottom: -20px;
+    right: -20px;
+    font-size: 8rem;
+    color: #14b8a6;
+    opacity: 0.05;
+    transform: rotate(-25deg);
+    pointer-events: none;
+}
