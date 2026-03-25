@@ -63,4 +63,30 @@ router.put('/:id/profile', authenticateToken, async (req, res) => {
     }
 });
 
+// @route   GET /api/doctors
+// @desc    Get public directory of all certified doctors
+router.get('/', async (req, res) => {
+    try {
+        // Fetch all doctors, but hide their passwords and emails for security
+        const doctors = await User.find({ role: 'doctor' }).select('-password -email');
+        res.json(doctors);
+    } catch (err) {
+        res.status(500).json({ error: "Grid connection failed" });
+    }
+});
+
+// @route   GET /api/doctors/:id
+// @desc    Get a specific doctor's detailed profile and surgery log
+router.get('/:id', async (req, res) => {
+    try {
+        const doctor = await User.findById(req.params.id).select('-password -email');
+        if (!doctor || doctor.role !== 'doctor') {
+            return res.status(404).json({ msg: "Medical Professional not found" });
+        }
+        res.json(doctor);
+    } catch (err) {
+        res.status(500).json({ error: "Grid connection failed" });
+    }
+});
+
 module.exports = router;
