@@ -155,6 +155,7 @@
             e.preventDefault();
             const btn = document.getElementById('loginBtn');
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Authenticating...';
+        }
 
             const payload = {
                 role: document.getElementById('loginRole').value,
@@ -185,9 +186,11 @@
                 } else {
                     alert(data.msg || "Authentication Failed.");
                 }
-            } catch(err) { alert("Vault Connection Timeout."); }
+            } catch(err) { 
+                alert(`Grid Connection Interrupted: ${err.message}`); 
+                console.error(err);
+            }
             finally { btn.innerText = "Authenticate & Enter"; }
-        }
 
         async function handleRegister(e) {
             e.preventDefault();

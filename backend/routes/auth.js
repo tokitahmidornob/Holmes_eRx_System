@@ -1,95 +1,60 @@
 const express = require('express');
 const router = express.Router();
+const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 
-// Import your Models
-const Doctor = require('../models/Doctor');
-const Patient = require('../models/Patient');
-const Pharmacist = require('../models/Pharmacist');
-
-// --- 📝 REGISTRATION ROUTE ---
+// @route   POST /api/auth/register
 router.post('/register', async (req, res) => {
     try {
-        const { role, name, email, password } = req.body;
+        const { name, email, password, role } = req.body;
         
-        if (!role || !name || !email || !password) {
-            return res.status(400).json({ success: false, error: "Missing required fields." });
-        }
+        let user = await User.findOne({ email });
+        if (user) return res.status(400).json({ msg: "Citizen already exists in the Grid." });
 
-        let newUser;
-        const userId = 'USR-' + Date.now(); // Simple Unique ID
-
-        if (role === 'doctor') {
-            newUser = new Doctor({ doctorId: userId, name, email, password });
-        } else if (role === 'patient') {
-            newUser = new Patient({ patientId: userId, name, email, password });
-        } else if (role === 'pharmacist') {
-            newUser = new Pharmacist({ pharmacistId: userId, name, email, password });
-        }
-
-        await newUser.save();
-        res.status(201).json({ success: true, message: "User registered successfully!" });
-    } catch (error) {
-        console.error("Registration Error:", error);
-        res.status(500).json({ success: false, error: error.message });
+        user = new User({ name, email, password, role });
+        await user.save();
+        
+        res.status(201).json({ msg: "Profile Registered Successfully." });
+    } catch (err) {
+        console.error("Registration Crash:", err);
+        res.status(500).json({ msg: `Server Error: ${err.message}` });
     }
 });
 
-// --- 🔐 LOGIN ROUTE (SUPER-DEBUG VERSION) ---
+// @route   POST /api/auth/login
 router.post('/login', async (req, res) => {
     try {
-        const { role, email, password } = req.body;
-        console.log(`\n--- 🕵️‍♂️ Login Attempt Detected ---`);
-        console.log(`Role: ${role} | Email: ${email}`);
+        const { email, password, role } = req.body;
+        console.log(`🕵️‍♂️ Login Attempt: ${email} | Role: ${role}`);
+        
+        const user = await User.findOne({ email, role });
+        if (!user) return res.status(400).json({ msg: "Identity not found in the Grid." });
 
-        let user;
-        // 1. Determine which cabinet to look in
-        if (role === 'doctor') {
-            user = await Doctor.findOne({ email: email });
-        } else if (role === 'patient') {
-            user = await Patient.findOne({ email: email });
-        } else if (role === 'pharmacist') {
-            user = await Pharmacist.findOne({ email: email });
-        }
-
-        // 2. Check if user exists
-        if (!user) {
-            console.log("❌ Result: No user found in the database with that email/role combination.");
-            return res.status(401).json({ success: false, error: "Authentication failed. User not found." });
-        }
-
-        // 3. Compare Passwords (Temporary plain-text check for development)
-        console.log(`🔍 Comparing Passwords...`);
-        console.log(`Input Password: [${password}] | DB Password: [${user.password}]`);
-
+        // Simple password comparison (matching your current database setup)
         if (user.password !== password) {
-            console.log("❌ Result: Password mismatch.");
-            return res.status(401).json({ success: false, error: "Authentication failed. Incorrect password." });
+            return res.status(400).json({ msg: "Invalid Cryptographic Password." });
+        }
+        console.log("✅ Password Verified! Attempting Token Generation...");
+
+        // THE BULLETPROOF CHECK
+        if (!process.env.JWT_SECRET) {
+            console.error("❌ CRITICAL: JWT_SECRET is missing from Render Environment Variables!");
+            return res.status(500).json({ msg: "SERVER CONFIG ERROR: JWT_SECRET is missing." });
         }
 
-        // 4. Success! Generate Badge (Token)
-        console.log("✅ Result: Success! Generating secure token...");
         const token = jwt.sign(
-            { id: user._id, role: role },
-            process.env.JWT_SECRET || 'HOLMES_SECRET_KEY',
+            { id: user._id, name: user.name, role: user.role },
+            process.env.JWT_SECRET,
             { expiresIn: '1d' }
         );
 
-        // Replace the res.status(200) block with this:
-    res.status(200).json({
-    success: true,
-    token: token,
-    userData: { 
-        id: user._id, // 👈 ADD THIS LINE
-        name: user.name, 
-        role: role, 
-        email: user.email 
-    }
-});
+        console.log("✅ Token Forged! Transmitting to Gateway...");
+        res.json({ token, user: { id: user._id, name: user.name, role: user.role, email: user.email } });
 
-    } catch (error) {
-        console.error("🔥 Server Login Error:", error);
-        res.status(500).json({ success: false, error: "Internal Server Error" });
+    } catch (err) {
+        // This catches the silent crashes!
+        console.error("❌ FATAL LOGIN CRASH:", err);
+        res.status(500).json({ msg: `System Failure: ${err.message}` });
     }
 });
 
