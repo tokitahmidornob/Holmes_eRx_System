@@ -3,67 +3,176 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Holmes eRx | National Health Infrastructure</title>
+    <title>Holmes eRx | Secure Gateway</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
-    <style>body { font-family: 'Plus Jakarta Sans', sans-serif; }</style>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f0f4f3; }
+        .auth-card { animation: slideDown 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    </style>
 </head>
-<body class="bg-white text-slate-900 scroll-smooth">
+<body class="min-h-screen flex items-center justify-center p-6">
 
-    <nav class="fixed w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-100 px-8 py-5 flex justify-between items-center">
-        <div class="flex items-center gap-2">
-            <div class="bg-teal-700 p-2 rounded-lg text-white shadow-lg">
-                <i class="fa-solid fa-dna text-xl"></i>
-            </div>
-            <span class="text-2xl font-black tracking-tighter text-teal-900 uppercase">Holmes eRx</span>
-        </div>
+    <div class="auth-card bg-white w-full max-w-[550px] rounded-[40px] shadow-2xl border border-white overflow-hidden glass-panel">
         
-        <div class="flex items-center gap-4">
-            <a href="auth.html" class="text-sm font-bold text-slate-600 hover:text-teal-700 px-4 py-2 transition-all">Sign In</a>
-            <a href="auth.html" class="bg-teal-700 hover:bg-teal-900 text-white text-sm font-black px-8 py-3 rounded-full shadow-2xl shadow-teal-200 transition-all uppercase tracking-widest">Join the Grid</a>
+        <div class="p-10 text-center border-b border-slate-100">
+            <h1 class="text-4xl font-black text-slate-900 tracking-tighter mb-2">Holmes <span class="text-teal-600">eRx</span></h1>
+            <p class="text-[10px] uppercase tracking-[0.3em] font-black text-slate-400">Ecosystem Authentication Gateway</p>
         </div>
-    </nav>
 
-    <section class="pt-48 pb-20 px-8 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-        <div class="space-y-8">
-            <span class="bg-teal-50 text-teal-700 text-[10px] font-black px-4 py-2 rounded-full uppercase tracking-[0.3em]">Commercial Grade Health Architecture</span>
-            <h1 class="text-6xl lg:text-8xl font-black text-slate-900 leading-[1] tracking-tighter">
-                Redefining <span class="text-teal-700">Medical Trust.</span>
-            </h1>
-            <p class="text-xl text-slate-500 font-medium leading-relaxed max-w-lg">
-                The National Medical Grid of Bangladesh. A unified ecosystem connecting 21,714 medicines with certified professionals and citizens through encrypted cloud vaults.
-            </p>
-            <div class="flex flex-col sm:flex-row gap-4 pt-4">
-                <a href="auth.html" class="bg-slate-900 text-white px-10 py-5 rounded-3xl font-black text-center hover:bg-black transition-all shadow-2xl">Initialize Profile</a>
-                <a href="#infra" class="border-2 border-slate-100 text-slate-500 px-10 py-5 rounded-3xl font-black text-center hover:bg-slate-50 transition-all">Technical Specs</a>
-            </div>
+        <div class="flex border-b border-slate-100">
+            <button id="loginTab" onclick="switchTab('login')" class="flex-1 py-5 text-xs font-black uppercase tracking-widest border-b-4 border-teal-500 text-teal-600 transition-all">Secure Login</button>
+            <button id="registerTab" onclick="switchTab('register')" class="flex-1 py-5 text-xs font-black uppercase tracking-widest border-b-4 border-transparent text-slate-400 hover:text-slate-600 transition-all">Register Profile</button>
         </div>
-        <div class="relative">
-            <div class="absolute inset-0 bg-teal-400 blur-[120px] opacity-10 rounded-full"></div>
-            <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&q=80&w=800" class="relative rounded-[50px] shadow-2xl border-8 border-white z-10 grayscale hover:grayscale-0 transition-all duration-1000">
-        </div>
-    </section>
 
-    <section id="infra" class="bg-slate-50 py-20 px-8 border-y border-slate-100">
-        <div class="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-12">
-            <div class="text-center">
-                <h3 class="text-5xl font-black text-teal-900">21,714</h3>
-                <p class="text-xs font-black text-slate-400 uppercase tracking-widest mt-2">Verified Drug Records</p>
-            </div>
-            <div class="text-center">
-                <h3 class="text-5xl font-black text-teal-900">AES-256</h3>
-                <p class="text-xs font-black text-slate-400 uppercase tracking-widest mt-2">Vault Encryption</p>
-            </div>
-            <div class="text-center">
-                <h3 class="text-5xl font-black text-teal-900">0.02s</h3>
-                <p class="text-xs font-black text-slate-400 uppercase tracking-widest mt-2">Query Latency</p>
-            </div>
-            <div class="text-center">
-                <h3 class="text-5xl font-black text-teal-900">100%</h3>
-                <p class="text-xs font-black text-slate-400 uppercase tracking-widest mt-2">Digital Traceability</p>
-            </div>
+        <div class="p-10">
+            <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-6">
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-400 uppercase ml-1">Access Role</label>
+                    <select id="loginRole" class="premium-input w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-sm outline-none">
+                        <option value="patient">Patient (Citizen)</option>
+                        <option value="doctor">Doctor (Medical Officer)</option>
+                        <option value="pharmacist">Pharmacist (Dispensary)</option>
+                        <option value="pathologist">Pathologist (Diagnostic Center)</option>
+                    </select>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-400 uppercase ml-1">Email Address</label>
+                    <input type="email" id="loginEmail" required placeholder="name@grid.com" class="premium-input w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-sm outline-none">
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-400 uppercase ml-1">Master Password</label>
+                    <input type="password" id="loginPass" required placeholder="••••••••" class="premium-input w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-sm outline-none">
+                </div>
+
+                <button type="submit" id="loginBtn" class="btn-premium w-full bg-slate-900 text-white py-5 rounded-[25px] font-black text-xs uppercase tracking-widest shadow-xl shadow-slate-900/20">
+                    Authenticate & Enter
+                </button>
+            </form>
+
+            <form id="registerForm" onsubmit="handleRegister(event)" class="hidden space-y-5">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 uppercase ml-1">Full Name</label>
+                        <input type="text" id="regName" required placeholder="Sherlock Holmes" class="premium-input w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-sm outline-none">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 uppercase ml-1">Grid Role</label>
+                        <select id="regRole" class="premium-input w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-sm outline-none">
+                            <option value="patient">Citizen</option>
+                            <option value="doctor">Medical Officer</option>
+                            <option value="pharmacist">Dispensary Agent</option>
+                            <option value="pathologist">Pathologist</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-400 uppercase ml-1">Email Address</label>
+                    <input type="email" id="regEmail" required placeholder="contact@vault.com" class="premium-input w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-sm outline-none">
+                </div>
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-400 uppercase ml-1">Secure Password</label>
+                    <input type="password" id="regPass" required placeholder="Min 8 characters" class="premium-input w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-sm outline-none">
+                </div>
+                <button type="submit" id="regBtn" class="btn-premium w-full bg-teal-600 text-white py-5 rounded-[25px] font-black text-xs uppercase tracking-widest shadow-xl shadow-teal-500/20">
+                    Initialize Profile
+                </button>
+            </form>
         </div>
-    </section>
+    </div>
+
+    <script>
+        const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
+
+        function switchTab(tab) {
+            const loginForm = document.getElementById('loginForm');
+            const regForm = document.getElementById('registerForm');
+            const loginTab = document.getElementById('loginTab');
+            const registerTab = document.getElementById('registerTab');
+
+            if(tab === 'login') {
+                loginForm.classList.remove('hidden'); regForm.classList.add('hidden');
+                loginTab.classList.add('border-teal-500', 'text-teal-600');
+                registerTab.classList.remove('border-teal-500', 'text-teal-600');
+                registerTab.classList.add('border-transparent', 'text-slate-400');
+            } else {
+                regForm.classList.remove('hidden'); loginForm.classList.add('hidden');
+                registerTab.classList.add('border-teal-500', 'text-teal-600');
+                loginTab.classList.remove('border-teal-500', 'text-teal-600');
+                loginTab.classList.add('border-transparent', 'text-slate-400');
+            }
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const btn = document.getElementById('loginBtn');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Authenticating...';
+
+            const payload = {
+                role: document.getElementById('loginRole').value,
+                email: document.getElementById('loginEmail').value,
+                password: document.getElementById('loginPass').value
+            };
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                if(res.ok) {
+                    localStorage.setItem('eRx_Token', data.token);
+                    localStorage.setItem('eRx_UserId', data.user.id);
+                    localStorage.setItem('eRx_UserName', data.user.name);
+                    localStorage.setItem('eRx_UserRole', data.user.role);
+                    localStorage.setItem('eRx_UserEmail', data.user.email);
+
+                    // 🚪 GATEWAY REDIRECTION LOGIC
+                    if(data.user.role === 'doctor') window.location.href = 'dashboard.html';
+                    else if(data.user.role === 'patient') window.location.href = 'patient_app.html';
+                    else if(data.user.role === 'pharmacist') window.location.href = 'pharmacist_portal.html';
+                    else if(data.user.role === 'pathologist') window.location.href = 'pathology_portal.html';
+                } else {
+                    alert(data.msg || "Authentication Failed.");
+                }
+            } catch(err) { alert("Vault Connection Timeout."); }
+            finally { btn.innerText = "Authenticate & Enter"; }
+        }
+
+        async function handleRegister(e) {
+            e.preventDefault();
+            const btn = document.getElementById('regBtn');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Initializing...';
+
+            const payload = {
+                name: document.getElementById('regName').value,
+                email: document.getElementById('regEmail').value,
+                password: document.getElementById('regPass').value,
+                role: document.getElementById('regRole').value
+            };
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if(res.ok) {
+                    alert("Profile Registered to National Grid. You may now login.");
+                    switchTab('login');
+                } else {
+                    const data = await res.json();
+                    alert(data.msg || "Registration Failed.");
+                }
+            } catch(err) { alert("Grid Synchronisation Error."); }
+            finally { btn.innerText = "Initialize Profile"; }
+        }
+    </script>
 </body>
 </html>
