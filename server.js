@@ -54,8 +54,6 @@ mongoose.connect(process.env.MONGO_URI)
 // ==========================================
 // Define the port using Render's dynamic environment variable, defaulting to 10000
 const PORT = process.env.PORT || 10000;
-
-// Adding '0.0.0.0' exposes the port to Render's external scanner
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Master Engine running on port ${PORT}`);
 });
