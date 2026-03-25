@@ -3,87 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Holmes eRx | Secure Gateway</title>
+    <title>Holmes eRx | National Health Grid</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f0f4f3; }
-        .auth-card { animation: slideDown 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; }
+        .hero-gradient { background: radial-gradient(circle at top right, #ccfbf1 0%, #f8fafc 50%); }
+        .auth-section { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-6">
+<body class="antialiased">
 
-    <div class="auth-card bg-white w-full max-w-[550px] rounded-[40px] shadow-2xl border border-white overflow-hidden glass-panel">
-        
-        <div class="p-10 text-center border-b border-slate-100">
-            <h1 class="text-4xl font-black text-slate-900 tracking-tighter mb-2">Holmes <span class="text-teal-600">eRx</span></h1>
-            <p class="text-[10px] uppercase tracking-[0.3em] font-black text-slate-400">Ecosystem Authentication Gateway</p>
-        </div>
+    <header class="hero-gradient min-h-screen flex flex-col justify-center px-8 relative overflow-hidden">
+        <div class="absolute top-20 right-[-10%] w-96 h-96 bg-teal-200/30 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-10 left-[-5%] w-72 h-72 bg-indigo-200/20 rounded-full blur-3xl"></div>
 
-        <div class="flex border-b border-slate-100">
-            <button id="loginTab" onclick="switchTab('login')" class="flex-1 py-5 text-xs font-black uppercase tracking-widest border-b-4 border-teal-500 text-teal-600 transition-all">Secure Login</button>
-            <button id="registerTab" onclick="switchTab('register')" class="flex-1 py-5 text-xs font-black uppercase tracking-widest border-b-4 border-transparent text-slate-400 hover:text-slate-600 transition-all">Register Profile</button>
-        </div>
-
-        <div class="p-10">
-            <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-6">
-                <div class="space-y-2">
-                    <label class="text-[10px] font-black text-slate-400 uppercase ml-1">Access Role</label>
-                    <select id="loginRole" class="premium-input w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-sm outline-none">
-                        <option value="patient">Patient (Citizen)</option>
-                        <option value="doctor">Doctor (Medical Officer)</option>
-                        <option value="pharmacist">Pharmacist (Dispensary)</option>
-                        <option value="pathologist">Pathologist (Diagnostic Center)</option>
-                    </select>
+        <nav class="absolute top-0 left-0 w-full p-8 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="w-10 h-10 bg-teal-600 rounded-xl flex items-center justify-center text-white shadow-lg">
+                    <i class="fa-solid fa-microscope"></i>
                 </div>
+                <h1 class="text-2xl font-black text-slate-900 tracking-tighter">Holmes <span class="text-teal-600">eRx</span></h1>
+            </div>
+            <div class="hidden md:flex items-center gap-8 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                <span class="text-teal-600"><i class="fa-solid fa-circle-check mr-2"></i> Grid Online</span>
+                <span>Diagnostics</span>
+                <span>Pharmacy</span>
+                <span>Clinical</span>
+            </div>
+        </nav>
 
-                <div class="space-y-2">
-                    <label class="text-[10px] font-black text-slate-400 uppercase ml-1">Email Address</label>
-                    <input type="email" id="loginEmail" required placeholder="name@grid.com" class="premium-input w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-sm outline-none">
-                </div>
-
-                <div class="space-y-2">
-                    <label class="text-[10px] font-black text-slate-400 uppercase ml-1">Master Password</label>
-                    <input type="password" id="loginPass" required placeholder="••••••••" class="premium-input w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-sm outline-none">
-                </div>
-
-                <button type="submit" id="loginBtn" class="btn-premium w-full bg-slate-900 text-white py-5 rounded-[25px] font-black text-xs uppercase tracking-widest shadow-xl shadow-slate-900/20">
-                    Authenticate & Enter
-                </button>
-            </form>
-
-            <form id="registerForm" onsubmit="handleRegister(event)" class="hidden space-y-5">
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-black text-slate-400 uppercase ml-1">Full Name</label>
-                        <input type="text" id="regName" required placeholder="Sherlock Holmes" class="premium-input w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-sm outline-none">
+        <div class="max-w-4xl mx-auto text-center relative z-10">
+            <span class="bg-white border border-slate-200 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] text-teal-600 shadow-sm mb-8 inline-block animate-bounce">Version 2.0 Deployment</span>
+            <h2 class="text-5xl md:text-7xl font-black text-slate-900 tracking-tighter leading-tight mb-6">
+                The National <span class="text-teal-600">Health Grid</span> <br> of the Future.
+            </h2>
+            <p class="text-lg text-slate-500 font-medium max-w-2xl mx-auto mb-10 leading-relaxed">
+                A unified ecosystem connecting Doctors, Patients, Pharmacists, and Pathologists through a secure, cryptographic medical network.
+            </p>
+            <div class="flex flex-col md:flex-row items-center justify-center gap-4">
+                <a href="#gateway" class="btn-premium bg-slate-900 text-white px-10 py-5 rounded-[20px] font-black text-xs uppercase tracking-widest shadow-2xl flex items-center gap-3">
+                    Enter National Grid <i class="fa-solid fa-arrow-right"></i>
+                </a>
+                <div class="flex items-center gap-3 px-6 py-4 bg-white/50 backdrop-blur-md rounded-2xl border border-white">
+                    <div class="flex -space-x-3">
+                        <img src="https://ui-avatars.com/api/?name=D&background=0f766e&color=fff" class="w-8 h-8 rounded-full border-2 border-white">
+                        <img src="https://ui-avatars.com/api/?name=P&background=14b8a6&color=fff" class="w-8 h-8 rounded-full border-2 border-white">
+                        <img src="https://ui-avatars.com/api/?name=L&background=0d9488&color=fff" class="w-8 h-8 rounded-full border-2 border-white">
                     </div>
+                    <span class="text-[9px] font-black text-slate-400 uppercase">21,000+ Verified Modules</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section id="gateway" class="auth-section bg-slate-900 relative overflow-hidden py-20">
+        <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#14b8a6 1px, transparent 1px); background-size: 30px 30px;"></div>
+
+        <div class="auth-card bg-white w-full max-w-[550px] rounded-[40px] shadow-2xl border border-white overflow-hidden glass-panel relative z-10 m-6">
+            
+            <div class="p-10 text-center border-b border-slate-100 bg-slate-50/50">
+                <p class="text-[9px] uppercase tracking-[0.3em] font-black text-teal-600 mb-2">Secure Access Terminal</p>
+                <h3 class="text-3xl font-black text-slate-900 tracking-tighter">Grid Authentication</h3>
+            </div>
+
+            <div class="flex border-b border-slate-100">
+                <button id="loginTab" onclick="switchTab('login')" class="flex-1 py-5 text-xs font-black uppercase tracking-widest border-b-4 border-teal-500 text-teal-600 transition-all">Secure Login</button>
+                <button id="registerTab" onclick="switchTab('register')" class="flex-1 py-5 text-xs font-black uppercase tracking-widest border-b-4 border-transparent text-slate-400 hover:text-slate-600 transition-all">Register Profile</button>
+            </div>
+
+            <div class="p-10">
+                <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-6">
                     <div class="space-y-2">
-                        <label class="text-[10px] font-black text-slate-400 uppercase ml-1">Grid Role</label>
-                        <select id="regRole" class="premium-input w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-sm outline-none">
-                            <option value="patient">Citizen</option>
-                            <option value="doctor">Medical Officer</option>
-                            <option value="pharmacist">Dispensary Agent</option>
-                            <option value="pathologist">Pathologist</option>
+                        <label class="text-[10px] font-black text-slate-400 uppercase ml-1">Access Role</label>
+                        <select id="loginRole" class="premium-input w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-sm outline-none">
+                            <option value="patient">Patient (Citizen)</option>
+                            <option value="doctor">Doctor (Medical Officer)</option>
+                            <option value="pharmacist">Pharmacist (Dispensary)</option>
+                            <option value="pathologist">Pathologist (Diagnostic Center)</option>
                         </select>
                     </div>
-                </div>
-                <div class="space-y-2">
-                    <label class="text-[10px] font-black text-slate-400 uppercase ml-1">Email Address</label>
-                    <input type="email" id="regEmail" required placeholder="contact@vault.com" class="premium-input w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-sm outline-none">
-                </div>
-                <div class="space-y-2">
-                    <label class="text-[10px] font-black text-slate-400 uppercase ml-1">Secure Password</label>
-                    <input type="password" id="regPass" required placeholder="Min 8 characters" class="premium-input w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-sm outline-none">
-                </div>
-                <button type="submit" id="regBtn" class="btn-premium w-full bg-teal-600 text-white py-5 rounded-[25px] font-black text-xs uppercase tracking-widest shadow-xl shadow-teal-500/20">
-                    Initialize Profile
-                </button>
-            </form>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 uppercase ml-1">Email Address</label>
+                        <input type="email" id="loginEmail" required placeholder="name@grid.com" class="premium-input w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-sm outline-none">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 uppercase ml-1">Master Password</label>
+                        <input type="password" id="loginPass" required placeholder="••••••••" class="premium-input w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-sm outline-none">
+                    </div>
+                    <button type="submit" id="loginBtn" class="btn-premium w-full bg-slate-900 text-white py-5 rounded-[25px] font-black text-xs uppercase tracking-widest shadow-xl">
+                        Authenticate & Enter
+                    </button>
+                </form>
+
+                <form id="registerForm" onsubmit="handleRegister(event)" class="hidden space-y-5">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-black text-slate-400 uppercase ml-1">Full Name</label>
+                            <input type="text" id="regName" required placeholder="Dr. John Watson" class="premium-input w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-sm outline-none">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-black text-slate-400 uppercase ml-1">Grid Role</label>
+                            <select id="regRole" class="premium-input w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-sm outline-none">
+                                <option value="patient">Citizen</option>
+                                <option value="doctor">Medical Officer</option>
+                                <option value="pharmacist">Dispensary Agent</option>
+                                <option value="pathologist">Pathologist</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 uppercase ml-1">Email Address</label>
+                        <input type="email" id="regEmail" required placeholder="contact@vault.com" class="premium-input w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-sm outline-none">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 uppercase ml-1">Secure Password</label>
+                        <input type="password" id="regPass" required placeholder="Min 8 characters" class="premium-input w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-sm outline-none">
+                    </div>
+                    <button type="submit" id="regBtn" class="btn-premium w-full bg-teal-600 text-white py-5 rounded-[25px] font-black text-xs uppercase tracking-widest shadow-xl">
+                        Initialize Profile
+                    </button>
+                </form>
+            </div>
         </div>
-    </div>
+    </section>
 
     <script>
         const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
@@ -98,12 +144,10 @@
                 loginForm.classList.remove('hidden'); regForm.classList.add('hidden');
                 loginTab.classList.add('border-teal-500', 'text-teal-600');
                 registerTab.classList.remove('border-teal-500', 'text-teal-600');
-                registerTab.classList.add('border-transparent', 'text-slate-400');
             } else {
                 regForm.classList.remove('hidden'); loginForm.classList.add('hidden');
                 registerTab.classList.add('border-teal-500', 'text-teal-600');
                 loginTab.classList.remove('border-teal-500', 'text-teal-600');
-                loginTab.classList.add('border-transparent', 'text-slate-400');
             }
         }
 
@@ -133,7 +177,7 @@
                     localStorage.setItem('eRx_UserRole', data.user.role);
                     localStorage.setItem('eRx_UserEmail', data.user.email);
 
-                    // 🚪 GATEWAY REDIRECTION LOGIC
+                    // 🏁 REDIRECTION ENGINE
                     if(data.user.role === 'doctor') window.location.href = 'dashboard.html';
                     else if(data.user.role === 'patient') window.location.href = 'patient_app.html';
                     else if(data.user.role === 'pharmacist') window.location.href = 'pharmacist_portal.html';
@@ -149,14 +193,12 @@
             e.preventDefault();
             const btn = document.getElementById('regBtn');
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Initializing...';
-
             const payload = {
                 name: document.getElementById('regName').value,
                 email: document.getElementById('regEmail').value,
                 password: document.getElementById('regPass').value,
                 role: document.getElementById('regRole').value
             };
-
             try {
                 const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
                     method: 'POST',
