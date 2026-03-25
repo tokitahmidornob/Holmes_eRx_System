@@ -12,9 +12,19 @@ const UserSchema = new mongoose.Schema({
     degrees: [String],
     specialties: [String],
     experienceYears: Number,
-    visitingHours: String,
     biography: String,
-    licenseNumber: String, // For both Dr and Pharmacist
+    licenseNumber: String,
+
+    // --- NEW: CHAMBER MANAGEMENT ---
+    chambers: [{
+        hospitalName: String,
+        location: String,      // e.g., "Dhanmondi, Dhaka"
+        fullAddress: String,
+        roomNumber: String,
+        visitingDays: [String], // e.g., ["Monday", "Wednesday", "Friday"]
+        timeSlot: String,      // e.g., "5:00 PM - 9:00 PM"
+        maxPatients: { type: Number, default: 30 }
+    }],
 
     // Surgery Log (For Doctors)
     surgeryLog: [{

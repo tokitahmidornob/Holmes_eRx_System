@@ -1,23 +1,30 @@
 const mongoose = require('mongoose');
 
-const appointmentSchema = new mongoose.Schema({
-    appointmentId: { type: String, required: true, unique: true, index: true },
-    patientId: { type: String, required: true, index: true }, 
-    patientName: { type: String, required: true },
+const AppointmentSchema = new mongoose.Schema({
+    patientId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    doctorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     
-    doctorId: { type: String, required: true, index: true }, 
-    doctorName: { type: String, required: true },
+    // Where is the appointment?
+    chamberDetails: {
+        hospitalName: String,
+        location: String,
+        roomNumber: String
+    },
     
-    chamber: { type: String },
-    date: { type: String, required: true }, // Format: YYYY-MM-DD
+    // When is the appointment?
+    appointmentDate: { type: Date, required: true },
+    timeSlot: { type: String, required: true },
     
+    // The Astonishing Additions: Virtual Triage & Smart Queue
+    symptoms: { type: String, required: true },
+    tokenNumber: { type: Number, required: true },
+    
+    // Live Tracking Status
     status: { 
         type: String, 
-        enum: ['Scheduled', 'Completed', 'Cancelled', 'No-Show'], 
-        default: 'Scheduled' 
+        enum: ['Pending Review', 'Confirmed', 'Completed', 'Cancelled'], 
+        default: 'Pending Review' 
     }
-}, { 
-    timestamps: true 
-});
+}, { timestamps: true });
 
-module.exports = mongoose.model('Appointment', appointmentSchema);
+module.exports = mongoose.model('Appointment', AppointmentSchema);
