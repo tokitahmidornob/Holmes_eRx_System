@@ -15,7 +15,6 @@
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        /* Dropdown animations */
         .dropdown-menu { transform-origin: top; transition: transform 0.2s ease, opacity 0.2s ease; }
         .dropdown-menu.hidden { transform: scaleY(0.95); opacity: 0; pointer-events: none; }
     </style>
@@ -39,10 +38,14 @@
                 <span class="hidden lg:block font-bold text-sm">Rx History & Labs</span>
             </button>
         </nav>
+        
         <div class="p-4 border-t border-slate-800">
             <div class="hidden lg:block mb-4 px-4 text-center">
                 <p id="drNameDisplay" class="font-black text-sm text-white truncate">Loading...</p>
-                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Medical Officer</p>
+                <div class="bg-slate-800/50 border border-slate-700 rounded-lg mt-2 py-1">
+                    <p id="drGridIdDisplay" class="text-xs font-mono font-bold text-teal-400 tracking-wider">ID: PENDING</p>
+                </div>
+                <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-2">Medical Officer</p>
             </div>
             <button onclick="logout()" class="w-full flex items-center justify-center p-4 rounded-2xl hover:bg-rose-500/10 text-slate-400 hover:text-rose-500 transition-all group">
                 <i class="fa-solid fa-power-off text-xl lg:mr-3 group-hover:scale-110 transition-transform"></i>
@@ -75,9 +78,7 @@
                             <i class="fa-solid fa-magnifying-glass text-slate-400"></i>
                         </div>
                         <input type="text" id="patientSearchInput" onfocus="showPatientDropdown()" oninput="filterPatients()" placeholder="Search by Patient Name or Grid ID..." autocomplete="off" class="premium-input w-full bg-slate-50 p-4 pl-12 rounded-2xl border border-slate-200 font-bold text-slate-800 outline-none">
-                        
                         <input type="hidden" id="selectedPatientEmail">
-                        
                         <div id="patientDropdown" class="dropdown-menu hidden absolute z-[60] w-full mt-2 bg-white border border-slate-200 rounded-2xl shadow-2xl max-h-60 overflow-y-auto custom-scrollbar">
                             <div class="p-4 text-center text-sm text-slate-400 font-bold"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Loading Grid Citizens...</div>
                         </div>
@@ -94,12 +95,10 @@
                             <div class="grid grid-cols-12 gap-2 mb-4">
                                 <div class="col-span-4 relative" id="drugDropdownContainer">
                                     <input type="text" id="medName" onfocus="document.getElementById('drugDropdown').classList.remove('hidden')" oninput="searchDrugs(this.value)" placeholder="Search Drug..." autocomplete="off" class="premium-input w-full bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm font-bold outline-none">
-                                    
                                     <div id="drugDropdown" class="dropdown-menu hidden absolute z-[70] w-64 mt-2 left-0 bg-white border border-slate-200 rounded-2xl shadow-2xl max-h-48 overflow-y-auto custom-scrollbar">
                                         <div class="p-3 text-xs text-slate-400 font-bold text-center">Type to search Grid Database...</div>
                                     </div>
                                 </div>
-                                
                                 <input type="text" id="medDose" placeholder="e.g. 1+0+1" class="col-span-3 premium-input bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm font-bold outline-none text-center">
                                 <select id="medTiming" class="col-span-3 premium-input bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm font-bold outline-none text-center appearance-none">
                                     <option value="After Meal">After Meal</option>
@@ -260,7 +259,7 @@
         let medications = [];
         let investigations = [];
         let doctorPrescriptions = [];
-        let allPatients = []; // Holds the fetched directory of patients
+        let allPatients = []; 
 
         const token = localStorage.getItem('eRx_Token');
         const role = localStorage.getItem('eRx_UserRole');
@@ -269,29 +268,37 @@
 
         if (!token || role !== 'doctor') window.location.href = 'index.html';
 
+        // 🌟 NEW: CRYPTOGRAPHIC DECODER TO GET GRID ID 🌟
+        function parseJwt(jwtToken) {
+            try {
+                const base64Url = jwtToken.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                return JSON.parse(window.atob(base64));
+            } catch (e) { return {}; }
+        }
+        const decodedToken = parseJwt(token);
+        const gridIdentifier = decodedToken.gridId || 'ID-PENDING';
+
+        // Set UI Display
         document.getElementById('drNameDisplay').innerText = `Dr. ${drName}`;
+        document.getElementById('drGridIdDisplay').innerText = `${gridIdentifier}`;
         
-        // 🚀 INIT SEQUENCE
+        // Init Sequence
         fetchPatientsList();
         fetchHistory();
 
         function logout() { localStorage.clear(); window.location.href = 'index.html'; }
 
-        // 🌟 GLOBAL CLICK HANDLER TO CLOSE DROPDOWNS 🌟
         function closeAllDropdowns(event) {
             const pContainer = document.getElementById('patientDropdownContainer');
             const dContainer = document.getElementById('drugDropdownContainer');
             
-            if (!pContainer.contains(event.target)) {
-                document.getElementById('patientDropdown').classList.add('hidden');
-            }
-            if (!dContainer.contains(event.target)) {
-                document.getElementById('drugDropdown').classList.add('hidden');
-            }
+            if (!pContainer.contains(event.target)) document.getElementById('patientDropdown').classList.add('hidden');
+            if (!dContainer.contains(event.target)) document.getElementById('drugDropdown').classList.add('hidden');
         }
 
         // ==========================================
-        // 🧑‍🤝‍🧑 PATIENT DIRECTORY LOGIC
+        // 🧑‍🤝‍🧑 PATIENT DIRECTORY
         // ==========================================
         async function fetchPatientsList() {
             try {
@@ -304,7 +311,7 @@
 
         function showPatientDropdown() {
             document.getElementById('patientDropdown').classList.remove('hidden');
-            filterPatients(); // show all initially or filter current
+            filterPatients(); 
         }
 
         function filterPatients() {
@@ -317,7 +324,7 @@
             );
 
             if (filtered.length === 0) {
-                dropdown.innerHTML = '<div class="p-4 text-sm text-slate-400 text-center font-bold">No citizens found matching criteria.</div>';
+                dropdown.innerHTML = '<div class="p-4 text-sm text-slate-400 text-center font-bold">No citizens found.</div>';
                 return;
             }
 
@@ -334,12 +341,12 @@
 
         function selectPatient(email, name, gridId) {
             document.getElementById('patientSearchInput').value = `${name} (${gridId || email})`;
-            document.getElementById('selectedPatientEmail').value = email; // Backend needs the email!
+            document.getElementById('selectedPatientEmail').value = email; 
             document.getElementById('patientDropdown').classList.add('hidden');
         }
 
         // ==========================================
-        // 💊 DRUG DATABASE LOGIC
+        // 💊 UPGRADED DRUG SEARCH (WITH ERROR CATCHER)
         // ==========================================
         let searchTimeout;
         async function searchDrugs(query) {
@@ -349,19 +356,20 @@
                 return;
             }
 
-            // Debounce to prevent spamming the server
             clearTimeout(searchTimeout);
             dropdown.innerHTML = '<div class="p-3 text-xs text-slate-400 font-bold text-center"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Searching...</div>';
             
             searchTimeout = setTimeout(async () => {
                 try {
+                    // 🚨 IMPORTANT: If your backend route is actually /api/drugs, change the word "medicines" below to "drugs"!
                     const res = await fetch(`${API_BASE_URL}/api/medicines?search=${query}`, {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
+                    
                     if(res.ok) {
                         const drugs = await res.json();
                         if(drugs.length === 0) {
-                            dropdown.innerHTML = '<div class="p-3 text-xs text-slate-400 font-bold text-center">No drugs found in database.</div>';
+                            dropdown.innerHTML = '<div class="p-3 text-xs text-slate-400 font-bold text-center">No drugs found.</div>';
                             return;
                         }
                         dropdown.innerHTML = drugs.map(d => `
@@ -369,11 +377,14 @@
                                 <p class="font-black text-sm text-slate-800"><i class="fa-solid fa-pills text-teal-500 mr-2 text-xs"></i>${d.brandName}</p>
                             </div>
                         `).join('');
+                    } else {
+                        // THIS FIXES THE INFINITE SPINNER!
+                        dropdown.innerHTML = `<div class="p-3 text-xs text-amber-500 font-bold text-center">Route error. Check backend configuration.</div>`;
                     }
                 } catch(e) {
                     dropdown.innerHTML = '<div class="p-3 text-xs text-rose-400 font-bold text-center">Database connection failed.</div>';
                 }
-            }, 300); // 300ms delay
+            }, 400); 
         }
 
         function selectDrug(name) {
@@ -464,7 +475,6 @@
         // 🚀 MASTER TRANSMISSION
         // ==========================================
         async function generatePrescription() {
-            // Notice we use the hidden selectedPatientEmail field here!
             const patientEmail = document.getElementById('selectedPatientEmail').value;
             
             if (!patientEmail) return alert("Please search and select a Patient from the Dropdown directory.");
@@ -493,11 +503,9 @@
                 const data = await res.json();
                 
                 if (res.ok) {
-                    // Pass the visual display name/ID to the success modal
                     const visualPatientInfo = document.getElementById('patientSearchInput').value;
                     showSuccessModal(data, visualPatientInfo);
                     
-                    // Reset Pad
                     medications = [];
                     investigations = [];
                     document.getElementById('patientSearchInput').value = '';
