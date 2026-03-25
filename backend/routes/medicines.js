@@ -1,28 +1,28 @@
 const express = require('express');
 const router = express.Router();
-const Medicine = require('../models/Medicine');
+const mongoose = require('mongoose');
 
-// @route   GET /api/medicines/search
-// @desc    Search for medicines by brand or generic name
-// @route   GET /api/medicines/search
-// @route   GET /api/medicines/search
-router.get('/search', async (req, res) => {
-    const query = req.query.q;
-    if (!query || query.length < 2) return res.json([]);
+// We use a dynamic schema to talk to your existing 'medicines' collection
+const Medicine = mongoose.model('Medicine', new mongoose.Schema({
+    brandName: String,
+    genericName: String,
+    strength: String
+}), 'medicines'); // 'medicines' matches your MongoDB collection name
 
+router.get('/', async (req, res) => {
     try {
-        // MATCHING THE EXACT VAULT DNA
-        const results = await Medicine.find({
-            $or: [
-                { brandName: { $regex: query, $options: 'i' } },
-                { genericName: { $regex: query, $options: 'i' } }
-            ]
-        }).limit(15);
+        const query = req.query.search;
+        if (!query) return res.json([]);
 
-        res.json(results);
+        // Powerful regex search: looks for the name anywhere in the string, case-insensitive
+        const drugs = await Medicine.find({
+            brandName: { $regex: query, $options: 'i' }
+        }).limit(10); // Limit to top 10 for speed
+
+        res.json(drugs);
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Search failed" });
+        console.error("Drug Search Error:", err);
+        res.status(500).json({ msg: "Database connection failed." });
     }
 });
 

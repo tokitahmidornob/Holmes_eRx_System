@@ -42,10 +42,10 @@
         <div class="p-4 border-t border-slate-800">
             <div class="hidden lg:block mb-4 px-4 text-center">
                 <p id="drNameDisplay" class="font-black text-sm text-white truncate">Loading...</p>
-                <div class="bg-slate-800/50 border border-slate-700 rounded-lg mt-2 py-1">
-                    <p id="drGridIdDisplay" class="text-xs font-mono font-bold text-teal-400 tracking-wider">ID: PENDING</p>
+                <div class="inline-block bg-teal-500/10 border border-teal-500/20 rounded-lg px-3 py-1 mt-2">
+                    <p id="drGridIdDisplay" class="text-[10px] font-mono font-black text-teal-400 uppercase tracking-[0.2em]">PT-000000</p>
                 </div>
-                <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-2">Medical Officer</p>
+                <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-3">Medical Officer</p>
             </div>
             <button onclick="logout()" class="w-full flex items-center justify-center p-4 rounded-2xl hover:bg-rose-500/10 text-slate-400 hover:text-rose-500 transition-all group">
                 <i class="fa-solid fa-power-off text-xl lg:mr-3 group-hover:scale-110 transition-transform"></i>
@@ -268,7 +268,7 @@
 
         if (!token || role !== 'doctor') window.location.href = 'index.html';
 
-        // 🌟 NEW: CRYPTOGRAPHIC DECODER TO GET GRID ID 🌟
+        // 🌟 JWT DECODER (Extracts your Grid ID directly from your login)
         function parseJwt(jwtToken) {
             try {
                 const base64Url = jwtToken.split('.')[1];
@@ -279,11 +279,9 @@
         const decodedToken = parseJwt(token);
         const gridIdentifier = decodedToken.gridId || 'ID-PENDING';
 
-        // Set UI Display
         document.getElementById('drNameDisplay').innerText = `Dr. ${drName}`;
         document.getElementById('drGridIdDisplay').innerText = `${gridIdentifier}`;
         
-        // Init Sequence
         fetchPatientsList();
         fetchHistory();
 
@@ -292,21 +290,17 @@
         function closeAllDropdowns(event) {
             const pContainer = document.getElementById('patientDropdownContainer');
             const dContainer = document.getElementById('drugDropdownContainer');
-            
             if (!pContainer.contains(event.target)) document.getElementById('patientDropdown').classList.add('hidden');
             if (!dContainer.contains(event.target)) document.getElementById('drugDropdown').classList.add('hidden');
         }
 
-        // ==========================================
-        // 🧑‍🤝‍🧑 PATIENT DIRECTORY
-        // ==========================================
         async function fetchPatientsList() {
             try {
                 const res = await fetch(`${API_BASE_URL}/api/auth/patients`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if(res.ok) allPatients = await res.json();
-            } catch(e) { console.error("Failed to load patient directory.", e); }
+            } catch(e) { console.error("Patient directory failed.", e); }
         }
 
         function showPatientDropdown() {
@@ -317,24 +311,15 @@
         function filterPatients() {
             const query = document.getElementById('patientSearchInput').value.toLowerCase();
             const dropdown = document.getElementById('patientDropdown');
-            
-            const filtered = allPatients.filter(p => 
-                p.name.toLowerCase().includes(query) || 
-                (p.gridId && p.gridId.toLowerCase().includes(query))
-            );
-
+            const filtered = allPatients.filter(p => p.name.toLowerCase().includes(query) || (p.gridId && p.gridId.toLowerCase().includes(query)));
             if (filtered.length === 0) {
                 dropdown.innerHTML = '<div class="p-4 text-sm text-slate-400 text-center font-bold">No citizens found.</div>';
                 return;
             }
-
             dropdown.innerHTML = filtered.map(p => `
                 <div onclick="selectPatient('${p.email}', '${p.name}', '${p.gridId}')" class="p-4 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-0 flex items-center justify-between transition-colors">
-                    <div>
-                        <p class="font-black text-sm text-slate-800">${p.name}</p>
-                        <p class="text-[10px] font-bold text-slate-400 mt-1">${p.email}</p>
-                    </div>
-                    <span class="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-lg text-[9px] font-black tracking-widest uppercase border border-indigo-100">${p.gridId || 'NO-ID'}</span>
+                    <div><p class="font-black text-sm text-slate-800">${p.name}</p><p class="text-[10px] font-bold text-slate-400 mt-1">${p.email}</p></div>
+                    <span class="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-lg text-[9px] font-black uppercase border border-indigo-100">${p.gridId || 'NO-ID'}</span>
                 </div>
             `).join('');
         }
@@ -346,7 +331,7 @@
         }
 
         // ==========================================
-        // 💊 UPGRADED DRUG SEARCH (WITH ERROR CATCHER)
+        // 💊 MASTER DRUG SEARCH ENGINE
         // ==========================================
         let searchTimeout;
         async function searchDrugs(query) {
@@ -361,7 +346,6 @@
             
             searchTimeout = setTimeout(async () => {
                 try {
-                    // 🚨 IMPORTANT: If your backend route is actually /api/drugs, change the word "medicines" below to "drugs"!
                     const res = await fetch(`${API_BASE_URL}/api/medicines?search=${query}`, {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
@@ -369,7 +353,7 @@
                     if(res.ok) {
                         const drugs = await res.json();
                         if(drugs.length === 0) {
-                            dropdown.innerHTML = '<div class="p-3 text-xs text-slate-400 font-bold text-center">No drugs found.</div>';
+                            dropdown.innerHTML = '<div class="p-3 text-xs text-slate-400 font-bold text-center">No drugs found in database.</div>';
                             return;
                         }
                         dropdown.innerHTML = drugs.map(d => `
@@ -378,11 +362,11 @@
                             </div>
                         `).join('');
                     } else {
-                        // THIS FIXES THE INFINITE SPINNER!
-                        dropdown.innerHTML = `<div class="p-3 text-xs text-amber-500 font-bold text-center">Route error. Check backend configuration.</div>`;
+                        // CATCHES ROUTE ERRORS (e.g., 404)
+                        dropdown.innerHTML = `<div class="p-3 text-xs text-amber-500 font-bold text-center">Engine error (Status: ${res.status}). Verify medicines route.</div>`;
                     }
                 } catch(e) {
-                    dropdown.innerHTML = '<div class="p-3 text-xs text-rose-400 font-bold text-center">Database connection failed.</div>';
+                    dropdown.innerHTML = '<div class="p-3 text-xs text-rose-400 font-bold text-center">Master Grid Offline. Check backend.</div>';
                 }
             }, 400); 
         }
@@ -392,26 +376,19 @@
             document.getElementById('drugDropdown').classList.add('hidden');
         }
 
-        // ==========================================
-        // UI & CORE FUNCTIONS
-        // ==========================================
         function switchTab(tab) {
             document.getElementById('viewRxPad').classList.add('hidden');
             document.getElementById('viewHistory').classList.add('hidden');
-            document.getElementById('navRxPad').classList.remove('bg-teal-500/10', 'text-teal-400');
-            document.getElementById('navHistory').classList.remove('bg-teal-500/10', 'text-teal-400');
-            document.getElementById('navRxPad').classList.add('text-slate-400');
-            document.getElementById('navHistory').classList.add('text-slate-400');
+            document.getElementById('navRxPad').className = 'nav-btn flex items-center p-4 rounded-2xl text-slate-400 hover:bg-slate-800 hover:text-white transition-all';
+            document.getElementById('navHistory').className = 'nav-btn flex items-center p-4 rounded-2xl text-slate-400 hover:bg-slate-800 hover:text-white transition-all';
 
             if (tab === 'rxPad') {
                 document.getElementById('viewRxPad').classList.remove('hidden');
-                document.getElementById('navRxPad').classList.add('bg-teal-500/10', 'text-teal-400');
-                document.getElementById('navRxPad').classList.remove('text-slate-400');
+                document.getElementById('navRxPad').className = 'nav-btn active flex items-center p-4 rounded-2xl bg-teal-500/10 text-teal-400 transition-all';
                 document.getElementById('pageTitle').innerText = 'Clinical Pad';
             } else {
                 document.getElementById('viewHistory').classList.remove('hidden');
-                document.getElementById('navHistory').classList.add('bg-teal-500/10', 'text-teal-400');
-                document.getElementById('navHistory').classList.remove('text-slate-400');
+                document.getElementById('navHistory').className = 'nav-btn active flex items-center p-4 rounded-2xl bg-teal-500/10 text-teal-400 transition-all';
                 document.getElementById('pageTitle').innerText = 'Archive';
             }
         }
@@ -421,8 +398,7 @@
             const dose = document.getElementById('medDose').value;
             const timing = document.getElementById('medTiming').value;
             const duration = document.getElementById('medDuration').value;
-            if (!name || !dose || !duration) return alert("Incomplete Medicine details.");
-
+            if (!name || !dose || !duration) return alert("Incomplete details.");
             medications.push({ brandName: name, dosage: dose, timing, duration });
             renderMedications();
             document.getElementById('medName').value = '';
@@ -432,16 +408,10 @@
 
         function renderMedications() {
             const list = document.getElementById('medListDisplay');
-            if (medications.length === 0) {
-                list.innerHTML = '<div class="text-center text-slate-300 font-bold text-sm py-10">No medications added yet</div>';
-                return;
-            }
+            if (medications.length === 0) { list.innerHTML = '<div class="text-center text-slate-300 font-bold text-sm py-10">No medications added yet</div>'; return; }
             list.innerHTML = medications.map((m, index) => `
                 <div class="bg-white p-3 rounded-xl border border-slate-100 flex justify-between items-center shadow-sm">
-                    <div>
-                        <p class="font-black text-sm text-slate-800">${m.brandName}</p>
-                        <p class="text-[9px] uppercase text-slate-400 font-bold">${m.dosage} | ${m.timing}</p>
-                    </div>
+                    <div><p class="font-black text-sm text-slate-800">${m.brandName}</p><p class="text-[9px] uppercase text-slate-400 font-bold">${m.dosage} | ${m.timing}</p></div>
                     <div class="flex items-center gap-3">
                         <span class="text-[10px] font-black text-teal-600 bg-teal-50 px-2 py-1 rounded">${m.duration}</span>
                         <button onclick="removeMedication(${index})" class="text-rose-400 hover:text-rose-600 transition-colors"><i class="fa-solid fa-trash"></i></button>
@@ -462,196 +432,76 @@
 
         function renderTests() {
             const list = document.getElementById('testListDisplay');
-            list.innerHTML = investigations.map((t, i) => `
-                <span class="bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-lg text-xs font-black uppercase flex items-center gap-2 border border-indigo-100">
-                    ${t} <button onclick="removeTest(${i})" class="hover:text-rose-500 transition-colors"><i class="fa-solid fa-xmark"></i></button>
-                </span>
-            `).join('');
+            list.innerHTML = investigations.map((t, i) => `<span class="bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-lg text-xs font-black uppercase flex items-center gap-2 border border-indigo-100">${t} <button onclick="removeTest(${i})"><i class="fa-solid fa-xmark"></i></button></span>`).join('');
         }
 
         function removeTest(index) { investigations.splice(index, 1); renderTests(); }
 
-        // ==========================================
-        // 🚀 MASTER TRANSMISSION
-        // ==========================================
         async function generatePrescription() {
             const patientEmail = document.getElementById('selectedPatientEmail').value;
-            
-            if (!patientEmail) return alert("Please search and select a Patient from the Dropdown directory.");
-            if (medications.length === 0) return alert("At least 1 Medicine is required.");
-
+            if (!patientEmail) return alert("Select a Patient.");
+            if (medications.length === 0) return alert("Add medications.");
             const btn = document.getElementById('generateBtn');
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Encrypting...';
-
-            const payload = {
-                doctorId: drId,
-                patientId: patientEmail, 
-                medications: medications,
-                investigations: investigations
-            };
-
             try {
                 const res = await fetch(`${API_BASE_URL}/api/prescriptions`, {
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify(payload)
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ doctorId: drId, patientId: patientEmail, medications, investigations })
                 });
-                
                 const data = await res.json();
-                
                 if (res.ok) {
-                    const visualPatientInfo = document.getElementById('patientSearchInput').value;
-                    showSuccessModal(data, visualPatientInfo);
-                    
-                    medications = [];
-                    investigations = [];
-                    document.getElementById('patientSearchInput').value = '';
-                    document.getElementById('selectedPatientEmail').value = '';
-                    renderMedications();
-                    renderTests();
-                    fetchHistory(); 
-                } else {
-                    alert(data.msg || "Transmission Failed.");
-                }
-            } catch (err) {
-                alert(`Grid Error: ${err.message}`);
-            } finally {
-                btn.innerHTML = '<i class="fa-solid fa-lock"></i> Encrypt & Broadcast';
-            }
+                    showSuccessModal(data, document.getElementById('patientSearchInput').value);
+                    medications = []; investigations = []; renderMedications(); renderTests(); fetchHistory();
+                } else alert(data.msg);
+            } catch (err) { alert(err.message); }
+            finally { btn.innerHTML = '<i class="fa-solid fa-lock"></i> Encrypt & Broadcast'; }
         }
 
-        // ==========================================
-        // MODALS & ARCHIVES
-        // ==========================================
         function showSuccessModal(data, visualPatInfo) {
             document.getElementById('successDrName').innerText = `Dr. ${drName}`;
             document.getElementById('successPatientId').innerHTML = `<i class="fa-solid fa-user mr-1"></i> Patient: ${visualPatInfo}`;
-            
-            document.getElementById('successBroadcastId').innerText = data.broadcastId || "PENDING";
-            document.getElementById('successOtp').innerText = data.otp || "----";
+            document.getElementById('successBroadcastId').innerText = data.broadcastId;
+            document.getElementById('successOtp').innerText = data.otp;
             document.getElementById('successTimestamp').innerText = `Timestamp: ${new Date().toLocaleString()}`;
-
-            document.getElementById('successMedList').innerHTML = data.medications.map(m => `
-                <div class="flex justify-between items-end border-b border-slate-200 pb-2">
-                    <div>
-                        <p class="font-black text-sm text-slate-800">${m.brandName}</p>
-                        <p class="text-[9px] font-bold text-slate-400 uppercase">${m.dosage}</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-[9px] font-bold text-slate-400 uppercase">${m.timing}</p>
-                        <p class="text-[10px] font-black text-teal-600">${m.duration}</p>
-                    </div>
-                </div>
-            `).join('');
-
+            document.getElementById('successMedList').innerHTML = data.medications.map(m => `<div class="flex justify-between border-b pb-2"><div><p class="font-black text-sm">${m.brandName}</p></div><div class="text-right text-[10px] font-black text-teal-600">${m.duration}</div></div>`).join('');
             if(data.investigations.length > 0) {
                 document.getElementById('successTestSection').classList.remove('hidden');
                 document.getElementById('successTestList').innerHTML = data.investigations.map(t => `<span class="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full text-[9px] font-black uppercase border border-indigo-100">${t}</span>`).join('');
-            } else {
-                document.getElementById('successTestSection').classList.add('hidden');
-            }
-
-            const modal = document.getElementById('successModal');
-            const content = document.getElementById('successModalContent');
-            modal.classList.remove('opacity-0', 'pointer-events-none');
-            setTimeout(() => content.classList.remove('scale-95'), 50);
+            } else document.getElementById('successTestSection').classList.add('hidden');
+            document.getElementById('successModal').classList.remove('opacity-0', 'pointer-events-none');
+            setTimeout(() => document.getElementById('successModalContent').classList.remove('scale-95'), 50);
         }
 
         function closeSuccessAndRefresh() {
-            const modal = document.getElementById('successModal');
-            const content = document.getElementById('successModalContent');
-            content.classList.add('scale-95');
-            setTimeout(() => modal.classList.add('opacity-0', 'pointer-events-none'), 200);
+            document.getElementById('successModalContent').classList.add('scale-95');
+            setTimeout(() => document.getElementById('successModal').classList.add('opacity-0', 'pointer-events-none'), 200);
         }
 
         async function fetchHistory() {
             const list = document.getElementById('historyList');
             try {
-                const res = await fetch(`${API_BASE_URL}/api/prescriptions/doctor/${drId}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+                const res = await fetch(`${API_BASE_URL}/api/prescriptions/doctor/${drId}`, { headers: { 'Authorization': `Bearer ${token}` } });
                 doctorPrescriptions = await res.json();
-                
-                if (doctorPrescriptions.length === 0) {
-                    list.innerHTML = '<div class="p-10 text-center text-slate-400 font-bold">No archives found.</div>';
-                    return;
-                }
-
+                if (doctorPrescriptions.length === 0) { list.innerHTML = '<div class="p-10 text-center text-slate-400 font-bold">No archives.</div>'; return; }
                 list.innerHTML = doctorPrescriptions.map((rx, index) => {
                     const d = new Date(rx.createdAt).toLocaleDateString();
-                    let statusBadge = rx.status === 'Dispensed' 
-                        ? `<span class="bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest"><i class="fa-solid fa-check mr-1"></i> Dispensed</span>`
-                        : `<span class="bg-amber-50 text-amber-600 border border-amber-200 px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest">Active</span>`;
-                    
-                    return `
-                        <div class="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-slate-50 transition-colors">
-                            <div class="col-span-3 text-xs font-bold text-slate-500">${d}</div>
-                            <div class="col-span-4 text-sm font-black text-slate-800 truncate" title="${rx.patientId}">${rx.patientId}</div>
-                            <div class="col-span-3">${statusBadge}</div>
-                            <div class="col-span-2 text-right">
-                                <button onclick="openRxModal(${index})" class="text-[10px] font-black uppercase tracking-widest bg-slate-900 text-white hover:bg-teal-600 px-4 py-2 rounded-xl transition-colors shadow-md">Open</button>
-                            </div>
-                        </div>
-                    `;
+                    const statusBadge = rx.status === 'Dispensed' ? '<span class="bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest">Dispensed</span>' : '<span class="bg-amber-50 text-amber-600 border border-amber-200 px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest">Active</span>';
+                    return `<div class="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-slate-50 border-b last:border-0"><div class="col-span-3 text-xs font-bold">${d}</div><div class="col-span-4 text-sm font-black truncate">${rx.patientId}</div><div class="col-span-3">${statusBadge}</div><div class="col-span-2 text-right"><button onclick="openRxModal(${index})" class="text-[10px] font-black uppercase tracking-widest bg-slate-900 text-white px-4 py-2 rounded-xl">Open</button></div></div>`;
                 }).join('');
-            } catch (err) {
-                list.innerHTML = '<div class="p-10 text-center text-rose-500 font-bold">Failed to load archives.</div>';
-            }
+            } catch (err) { list.innerHTML = 'Error loading history.'; }
         }
 
         async function openRxModal(index) {
             const rx = doctorPrescriptions[index];
             document.getElementById('modalDrName').innerText = `Dr. ${drName}`;
-            
             document.getElementById('modalBroadcastId').innerText = rx.broadcastId || 'PENDING';
             document.getElementById('modalOtp').innerText = rx.otp || '----';
-            
-            document.getElementById('modalMedList').innerHTML = rx.medications.map(m => `
-                <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 flex justify-between items-center">
-                    <div><p class="font-black text-sm text-slate-800">${m.brandName}</p><p class="text-[9px] uppercase text-slate-500 font-bold">${m.dosage} | ${m.timing}</p></div>
-                    <p class="text-[10px] font-black text-indigo-600 bg-indigo-50 px-3 py-1 rounded-lg border border-indigo-100">${m.duration}</p>
-                </div>
-            `).join('');
-
-            if(rx.investigations && rx.investigations.length > 0) {
+            document.getElementById('modalMedList').innerHTML = rx.medications.map(m => `<div class="bg-slate-50 p-3 rounded-xl border flex justify-between"><div><p class="font-black text-sm">${m.brandName}</p><p class="text-[9px] uppercase">${m.dosage}</p></div><p class="text-[10px] font-black text-indigo-600">${m.duration}</p></div>`).join('');
+            if(rx.investigations.length > 0) {
                 document.getElementById('modalTestSection').classList.remove('hidden');
                 document.getElementById('modalTestList').innerHTML = rx.investigations.map(t => `<span class="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-[9px] font-black uppercase border border-indigo-100">${t}</span>`).join('');
-            } else { document.getElementById('modalTestSection').classList.add('hidden'); }
-
-            const labSec = document.getElementById('modalCompletedLabsSection');
-            const labList = document.getElementById('modalCompletedLabsList');
-            labSec.classList.add('hidden');
-            
-            if(rx.investigations && rx.investigations.length > 0) {
-                labSec.classList.remove('hidden');
-                labList.innerHTML = '<p class="text-xs text-slate-500 italic"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Fetching reports from National Grid...</p>';
-                try {
-                    const res = await fetch(`${API_BASE_URL}/api/labs/prescription/${rx._id}`, { headers: { 'Authorization': `Bearer ${token}` } });
-                    const labs = await res.json();
-                    
-                    if(labs.length > 0) {
-                        labList.innerHTML = labs.map(lab => `
-                            <div class="bg-cyan-50 p-4 rounded-xl border border-cyan-100 flex justify-between items-center">
-                                <div>
-                                    <p class="font-black text-sm text-slate-800">${lab.testName}</p>
-                                    <p class="text-[9px] uppercase text-slate-500 font-bold">Ref: ${lab.referenceRange}</p>
-                                </div>
-                                <div class="text-right">
-                                    <p class="text-lg font-black text-cyan-700">${lab.resultValue} <span class="text-[10px] text-cyan-600">${lab.unit}</span></p>
-                                </div>
-                            </div>
-                        `).join('');
-                    } else {
-                        labList.innerHTML = '<p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">No reports uploaded by Diagnostic Center yet.</p>';
-                    }
-                } catch(err) {
-                    labList.innerHTML = '<p class="text-xs text-rose-500">Failed to connect to Pathology sub-grid.</p>';
-                }
-            }
-
+            } else document.getElementById('modalTestSection').classList.add('hidden');
             document.getElementById('rxModal').classList.remove('opacity-0', 'pointer-events-none');
             document.getElementById('rxModalContent').classList.remove('scale-95');
         }
