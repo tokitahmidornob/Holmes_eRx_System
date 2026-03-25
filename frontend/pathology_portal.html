@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Holmes eRx | Diagnostic Terminal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased selection:bg-cyan-200 selection:text-cyan-900">
+
+    <nav class="sticky top-0 z-50 bg-gradient-to-r from-slate-900 via-cyan-900 to-slate-900 text-white shadow-lg border-b border-cyan-500/30">
+        <div class="flex justify-between items-center px-8 py-4">
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center border border-cyan-400/30 shadow-inner">
+                    <i class="fa-solid fa-microscope text-cyan-300"></i>
+                </div>
+                <div>
+                    <h1 class="font-black text-lg tracking-tight leading-none text-cyan-50">Diagnostic Command</h1>
+                    <p class="text-[9px] uppercase tracking-widest text-cyan-300 font-bold mt-1">Pathology Sub-Grid Terminal</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-6">
+                <span id="pathNameDisplay" class="text-xs font-black uppercase tracking-widest text-cyan-100">Loading...</span>
+                <button onclick="logout()" class="bg-white/10 hover:bg-rose-500/90 px-5 py-2 rounded-xl text-[10px] font-black transition-all uppercase tracking-widest border border-white/10">Disconnect</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-[1200px] mx-auto p-6 mt-8">
+        
+        <div class="bg-white rounded-[32px] shadow-2xl shadow-slate-200/60 border border-white overflow-hidden glass-panel relative">
+            <div class="absolute -top-32 -right-32 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl"></div>
+            
+            <div class="p-10 relative z-10 flex flex-col items-center border-b border-slate-100">
+                <h2 class="text-3xl font-black text-slate-900 tracking-tighter uppercase mb-2 text-center">Unlock Lab Orders</h2>
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-8 text-center max-w-md">Enter the Rx Broadcast ID and Patient OTP to access pending investigations.</p>
+                
+                <form onsubmit="event.preventDefault(); verifyForLabs();" class="w-full max-w-2xl space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="md:col-span-2 relative group">
+                            <label class="absolute -top-2 left-4 bg-white px-2 text-[9px] font-black text-slate-400 uppercase tracking-widest group-focus-within:text-cyan-600 transition-colors z-10">Broadcast ID</label>
+                            <input type="text" id="broadcastIdInput" required placeholder="e.g. HOLMES-RX-1234" class="premium-input w-full p-5 bg-slate-50 border-2 border-slate-100 rounded-[20px] font-bold text-slate-800 focus:border-cyan-500 focus:bg-white outline-none transition-all uppercase">
+                        </div>
+                        <div class="relative group">
+                            <label class="absolute -top-2 left-4 bg-white px-2 text-[9px] font-black text-slate-400 uppercase tracking-widest group-focus-within:text-cyan-600 transition-colors z-10">Patient OTP</label>
+                            <input type="text" id="otpInput" required maxlength="4" placeholder="----" class="premium-input w-full p-5 bg-slate-50 border-2 border-slate-100 rounded-[20px] font-black text-2xl tracking-[0.3em] text-center text-cyan-600 focus:border-cyan-500 focus:bg-white outline-none transition-all">
+                        </div>
+                    </div>
+                    <button type="submit" id="verifyBtn" class="btn-premium w-full bg-gradient-to-r from-slate-800 to-slate-900 text-white py-5 rounded-[20px] font-black text-xs uppercase tracking-widest shadow-xl shadow-slate-900/20 flex items-center justify-center gap-3">
+                        <i class="fa-solid fa-file-medical text-lg text-cyan-400"></i> Decrypt Pending Investigations
+                    </button>
+                </form>
+            </div>
+
+            <div id="labWorkspace" class="hidden p-10 bg-slate-50 animate-slide-down relative z-10">
+                
+                <div class="flex justify-between items-start mb-8">
+                    <div>
+                        <h3 class="text-xl font-black text-slate-900">Patient: <span id="labPatientId" class="text-cyan-700"></span></h3>
+                        <p class="text-xs text-slate-500 font-bold mt-1">Ordered by: <span id="labDrName" class="text-slate-700"></span></p>
+                    </div>
+                    <span class="bg-cyan-100 text-cyan-700 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-cyan-200 shadow-sm"><i class="fa-solid fa-lock-open mr-2"></i> Authorized</span>
+                </div>
+
+                <div id="testsContainer" class="space-y-6">
+                    </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
+        const token = localStorage.getItem('eRx_Token');
+        const pathologistId = localStorage.getItem('eRx_UserId');
+        
+        if(!token || !pathologistId) window.location.href = 'index.html';
+
+        document.getElementById('pathNameDisplay').innerText = `Tech. ${localStorage.getItem('eRx_UserName') || 'Terminal'}`;
+
+        let currentRxData = null;
+
+        async function verifyForLabs() {
+            const btn = document.getElementById('verifyBtn');
+            const broadcastId = document.getElementById('broadcastIdInput').value.trim();
+            const otp = document.getElementById('otpInput').value.trim();
+
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-cyan-400 text-lg"></i> DECRYPTING...';
+            document.getElementById('labWorkspace').classList.add('hidden');
+
+            try {
+                // We use the existing prescription verify route!
+                const res = await fetch(`${API_BASE_URL}/api/prescriptions/verify`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ broadcastId, otp })
+                });
+                
+                const data = await res.json();
+                
+                if(res.ok && data.success) {
+                    currentRxData = data.prescription;
+                    
+                    document.getElementById('labPatientId').innerText = currentRxData.patientId;
+                    document.getElementById('labDrName').innerText = `Dr. ${currentRxData.doctorId.name}`;
+
+                    if(!currentRxData.investigations || currentRxData.investigations.length === 0) {
+                        document.getElementById('testsContainer').innerHTML = '<div class="p-8 text-center text-slate-500 font-bold bg-white rounded-2xl border">No lab investigations were ordered for this prescription.</div>';
+                    } else {
+                        document.getElementById('testsContainer').innerHTML = currentRxData.investigations.map((test, idx) => `
+                            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm" id="test-card-${idx}">
+                                <h4 class="font-black text-slate-800 text-lg mb-4 flex items-center"><i class="fa-solid fa-vial mr-2 text-cyan-500"></i> ${test}</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                                    <input type="text" id="res-${idx}" placeholder="Result Value" class="premium-input bg-slate-50 p-3 border rounded-xl font-bold text-sm outline-none focus:border-cyan-400">
+                                    <input type="text" id="unit-${idx}" placeholder="Unit (e.g. mg/dL)" class="premium-input bg-slate-50 p-3 border rounded-xl font-bold text-sm outline-none focus:border-cyan-400">
+                                    <input type="text" id="ref-${idx}" placeholder="Reference Range" class="premium-input bg-slate-50 p-3 border rounded-xl font-bold text-sm outline-none focus:border-cyan-400">
+                                    <input type="text" id="note-${idx}" placeholder="Clinical Note" class="premium-input bg-slate-50 p-3 border rounded-xl font-bold text-sm outline-none focus:border-cyan-400">
+                                </div>
+                                <button onclick="uploadResult('${test}', ${idx})" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-md transition-all">Upload Result to Grid</button>
+                            </div>
+                        `).join('');
+                    }
+
+                    document.getElementById('labWorkspace').classList.remove('hidden');
+                } else { alert(data.error || "Decryption Failed."); }
+            } catch (err) { alert("Grid Connection Offline."); }
+            finally { btn.innerHTML = '<i class="fa-solid fa-file-medical text-lg text-cyan-400"></i> Decrypt Pending Investigations'; }
+        }
+
+        async function uploadResult(testName, idx) {
+            const resultVal = document.getElementById(`res-${idx}`).value;
+            if(!resultVal) return alert("Please enter a result value.");
+
+            const payload = {
+                prescriptionId: currentRxData._id,
+                patientId: currentRxData.patientId,
+                doctorId: currentRxData.doctorId._id,
+                pathologistId: pathologistId,
+                testName: testName,
+                resultValue: resultVal,
+                unit: document.getElementById(`unit-${idx}`).value,
+                referenceRange: document.getElementById(`ref-${idx}`).value,
+                clinicalNotes: document.getElementById(`note-${idx}`).value
+            };
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/labs/upload`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(payload)
+                });
+
+                if(res.ok) {
+                    document.getElementById(`test-card-${idx}`).innerHTML = `
+                        <div class="flex justify-between items-center bg-emerald-50 p-4 rounded-xl border border-emerald-200">
+                            <h4 class="font-black text-emerald-900"><i class="fa-solid fa-check-circle mr-2 text-emerald-500"></i> ${testName} - Uploaded</h4>
+                            <p class="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Secured in Vault</p>
+                        </div>
+                    `;
+                }
+            } catch (err) { alert("Upload Failed."); }
+        }
+
+        function logout() { localStorage.clear(); window.location.href = 'index.html'; }
+    </script>
+</body>
+</html>
