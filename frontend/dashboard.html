@@ -3,98 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Holmes eRx | Doctor Command Center</title>
+    <title>Holmes eRx | Professional Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="bg-slate-50 min-h-screen">
-    <nav class="bg-blue-900 text-white p-4 shadow-lg flex justify-between items-center">
-        <h1 class="text-xl font-bold tracking-tighter"><i class="fa-solid fa-microscope mr-2"></i>Holmes eRx Dashboard</h1>
-        <button onclick="logout()" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg text-sm font-bold transition-all">Logout</button>
+<body class="bg-slate-100 min-h-screen">
+    <nav class="bg-blue-900 text-white p-4 flex justify-between items-center shadow-xl">
+        <div class="flex items-center gap-4">
+            <img id="drAvatar" src="https://ui-avatars.com/api/?name=Dr+Holmes&background=random" class="w-10 h-10 rounded-full border-2 border-white">
+            <div>
+                <h1 id="drName" class="font-bold text-lg leading-tight">Dr. Sherlock Holmes</h1>
+                <p class="text-[10px] uppercase tracking-widest text-blue-300">Certified Medical Professional</p>
+            </div>
+        </div>
+        <button onclick="logout()" class="text-sm font-bold bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg transition-all">Logout</button>
     </nav>
 
-    <main class="max-w-6xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div class="lg:col-span-1 space-y-6">
-            <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200">
-                <h2 class="text-blue-900 font-bold mb-4 uppercase text-xs tracking-widest">Identify Patient</h2>
-                <div class="relative">
-                    <input type="text" id="patientSearch" placeholder="Search by Name or ID..." class="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-                    <i class="fa-solid fa-search absolute left-3 top-3 text-slate-400"></i>
-                </div>
-                <div id="patientResult" class="mt-4 p-3 bg-blue-50 rounded-lg hidden">
-                    <p id="targetPatientName" class="font-bold text-slate-800"></p>
-                    <p id="targetPatientID" class="text-xs text-slate-500"></p>
-                </div>
+    <main class="max-w-7xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div class="lg:col-span-1 space-y-4">
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                <h3 class="text-xs font-black text-slate-400 uppercase tracking-tighter mb-4">Patient Profile</h3>
+                <input type="text" id="patientID" placeholder="Scan or Enter Patient ID" class="w-full p-3 bg-slate-50 border rounded-lg text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none">
             </div>
         </div>
 
-        <div class="lg:col-span-2">
-            <div class="bg-white p-8 rounded-xl shadow-md border border-slate-200">
-                <h2 class="text-blue-900 font-bold mb-6 flex items-center">
-                    <i class="fa-solid fa-file-medical mr-2"></i> New Digital Prescription
-                </h2>
-                <form id="prescriptionForm" class="space-y-4" onsubmit="event.preventDefault(); submitPrescription();">
+        <div class="lg:col-span-3 space-y-6">
+            <div class="bg-white p-8 rounded-2xl shadow-lg border-t-4 border-blue-600 relative overflow-hidden">
+                <div class="flex justify-between items-start mb-8">
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Medication Name</label>
-                        <input type="text" id="medName" placeholder="e.g. Paracetamol 500mg" required class="w-full px-4 py-2 border rounded-lg">
+                        <h2 class="text-2xl font-black text-slate-800">Prescription Pad</h2>
+                        <p class="text-xs text-slate-500">ID: <span id="presID" class="font-mono">#GEN-2026-XXXX</span></p>
                     </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Dosage</label>
-                            <input type="text" id="dosage" placeholder="1+0+1" required class="w-full px-4 py-2 border rounded-lg">
+                    <div id="qrcode" class="p-2 bg-slate-50 border rounded-lg"></div>
+                </div>
+
+                <form id="advForm" class="space-y-6" onsubmit="event.preventDefault(); generatePrescription();">
+                    <div class="relative">
+                        <label class="block text-xs font-black text-slate-500 uppercase mb-2">Search Global Pharmacy (21k+)</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="medSearch" oninput="searchMedicines()" placeholder="Search Medicine/Generic..." class="flex-1 p-3 border rounded-xl font-bold">
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Duration</label>
-                            <input type="text" id="duration" placeholder="7 Days" required class="w-full px-4 py-2 border rounded-lg">
+                        <div id="searchSuggestions" class="absolute z-50 w-full bg-white shadow-2xl rounded-xl mt-1 max-h-60 overflow-y-auto hidden border"></div>
+                    </div>
+
+                    <div id="medDetailBox" class="p-4 bg-blue-50 rounded-xl border border-blue-200 hidden">
+                        <div class="flex justify-between items-center mb-3">
+                            <h4 id="selectedMedName" class="font-black text-blue-900"></h4>
+                            <span class="text-[10px] bg-blue-200 text-blue-800 px-2 py-1 rounded font-bold uppercase">Auto-Suggested</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-4">
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-400 uppercase">Dosage (Override)</label>
+                                <input type="text" id="dosage" value="1+0+1" class="w-full p-2 border rounded font-mono text-sm">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-400 uppercase">Timing</label>
+                                <select id="timing" class="w-full p-2 border rounded text-sm bg-white">
+                                    <option>After Meal</option>
+                                    <option>Before Meal</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-400 uppercase">Duration</label>
+                                <input type="text" id="duration" value="7 Days" class="w-full p-2 border rounded text-sm">
+                            </div>
                         </div>
                     </div>
+
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Special Instructions</label>
-                        <textarea id="instructions" rows="3" class="w-full px-4 py-2 border rounded-lg" placeholder="Take after meal..."></textarea>
+                        <label class="block text-xs font-black text-slate-500 uppercase mb-2">Investigations & Lab Tests</label>
+                        <textarea id="tests" placeholder="e.g. CBC, X-Ray Chest, Serum Creatinine..." class="w-full p-3 border rounded-xl text-sm italic"></textarea>
                     </div>
-                    <button type="submit" id="submitBtn" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 shadow-lg">
-                        Authorize & Broadcast
-                    </button>
+
+                    <div class="flex items-center justify-between pt-6 border-t">
+                        <div class="flex items-center gap-2">
+                            <div class="bg-blue-100 text-blue-700 p-2 rounded-lg font-mono font-bold text-lg" id="otpDisplay">----</div>
+                            <span class="text-[10px] text-slate-400 font-bold uppercase w-20">Secure Pharmacy OTP</span>
+                        </div>
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-800 text-white px-8 py-4 rounded-xl font-black shadow-xl transition-all flex items-center gap-2">
+                            <i class="fa-solid fa-stamp"></i> AUTHORIZE & SYNC
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
     </main>
 
     <script>
-        // --- 🌉 THE HYBRID BRIDGE ---
-        const API_BASE_URL = window.location.hostname === 'localhost' 
-            ? 'http://localhost:3000' 
-            : 'https://holmes-erx-system.onrender.com';
-
-        // Security Check
+        const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
         const token = localStorage.getItem('holmesToken');
-        if (!token) window.location.href = 'index.html';
+        if(!token) window.location.href = 'index.html';
 
-        async function submitPrescription() {
-            const btn = document.getElementById('submitBtn');
-            const pData = {
-                medication: document.getElementById('medName').value,
-                dosage: document.getElementById('dosage').value,
-                duration: document.getElementById('duration').value,
-                instructions: document.getElementById('instructions').value
-            };
+        // Load Doctor Profile on Startup
+        const user = JSON.parse(localStorage.getItem('holmesUser'));
+        if(user) document.getElementById('drName').innerText = user.name;
 
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Authorizing...';
+        // --- 🔍 ADVANCED SEARCH LOGIC ---
+        async function searchMedicines() {
+            const query = document.getElementById('medSearch').value;
+            const suggestions = document.getElementById('searchSuggestions');
+            if (query.length < 3) { suggestions.classList.add('hidden'); return; }
+
             try {
-                const response = await fetch(`${API_BASE_URL}/api/prescriptions`, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify(pData)
+                const res = await fetch(`${API_BASE_URL}/api/medicines/search?q=${query}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
-                if (response.ok) {
-                    alert("Prescription Broadcast Successfully!");
-                    document.getElementById('prescriptionForm').reset();
-                } else { alert("Authorization failed. Engine might be warming up."); }
-            } catch (err) { alert("National Grid Error. Retrying in 30s..."); }
-            finally { btn.innerHTML = 'Authorize & Broadcast'; }
+                const meds = await res.json();
+                
+                suggestions.innerHTML = meds.map(m => `
+                    <div onclick="selectMed('${m.brand_name}', '${m.generic}')" class="p-3 hover:bg-blue-50 cursor-pointer border-b last:border-0">
+                        <p class="font-bold text-slate-800">${m.brand_name}</p>
+                        <p class="text-[10px] text-slate-500 uppercase">${m.generic}</p>
+                    </div>
+                `).join('');
+                suggestions.classList.remove('hidden');
+            } catch (err) { console.error("Search engine disconnected."); }
+        }
+
+        function selectMed(name, generic) {
+            document.getElementById('selectedMedName').innerText = `${name} (${generic})`;
+            document.getElementById('medDetailBox').classList.remove('hidden');
+            document.getElementById('searchSuggestions').classList.add('hidden');
+            document.getElementById('medSearch').value = name;
+            
+            // Generate temporary OTP for the session
+            document.getElementById('otpDisplay').innerText = Math.floor(1000 + Math.random() * 9000);
+            
+            // Update QR Code
+            document.getElementById('qrcode').innerHTML = "";
+            new QRCode(document.getElementById("qrcode"), { text: `holmes-erx-${name}-${Date.now()}`, width: 64, height: 64 });
         }
 
         function logout() { localStorage.clear(); window.location.href = 'index.html'; }
