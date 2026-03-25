@@ -2,52 +2,125 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>National Admin Grid</title>
-    <style>
-        body { font-family: sans-serif; background: #1e293b; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .box { background: #334155; padding: 40px; border-radius: 12px; text-align: center; border-top: 5px solid #ef4444; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-        input[type="file"] { margin: 20px 0; background: #0f172a; padding: 10px; border-radius: 5px; }
-        button { background: #ef4444; color: white; border: none; padding: 12px 25px; font-weight: bold; cursor: pointer; border-radius: 5px; font-size: 1.1rem; }
-        button:hover { background: #dc2626; }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Holmes eRx | National Health Oversight</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body>
-    <div class="box">
-        <h2>H.O.L.M.E.S. National Grid Importer</h2>
-        <p>Upload a CSV file containing the National Drug Database.</p>
-        <p style="font-size: 0.8rem; color: #94a3b8; max-width: 400px; margin: 0 auto;">
-            CSV Headers must strictly be: brandName, genericName, strength, form, indications, defaultDose, childDose, renalDose, administration, sideEffects
-        </p>
+<body class="bg-slate-900 text-slate-100 min-h-screen font-sans">
+    
+    <nav class="border-b border-slate-800 p-6 flex justify-between items-center bg-slate-900/50 backdrop-blur-md sticky top-0 z-50">
+        <div class="flex items-center gap-3">
+            <div class="p-2 bg-blue-600 rounded-lg shadow-lg shadow-blue-500/20">
+                <i class="fa-solid fa-tower-broadcast text-xl text-white"></i>
+            </div>
+            <h1 class="text-xl font-black tracking-tighter uppercase">National Grid Oversight</h1>
+        </div>
+        <div class="flex items-center gap-4">
+            <span class="flex items-center gap-2 text-[10px] font-black text-green-400 bg-green-400/10 px-3 py-1 rounded-full uppercase">
+                <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span> Live Sync
+            </span>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto p-8 space-y-8">
         
-        <form id="uploadForm">
-            <input type="file" id="csvFile" accept=".csv" required><br>
-            <button type="submit">Inject into Iron Vault</button>
-        </form>
-        <p id="msg" style="margin-top: 20px; font-weight: bold; font-size: 1.1rem;"></p>
-    </div>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="bg-slate-800/50 p-6 rounded-3xl border border-slate-700">
+                <p class="text-[10px] font-black text-slate-500 uppercase mb-1">Total Prescriptions</p>
+                <h2 id="statPres" class="text-4xl font-black text-blue-400">--</h2>
+            </div>
+            <div class="bg-slate-800/50 p-6 rounded-3xl border border-slate-700">
+                <p class="text-[10px] font-black text-slate-500 uppercase mb-1">Active Doctors</p>
+                <h2 id="statDrs" class="text-4xl font-black text-emerald-400">--</h2>
+            </div>
+            <div class="bg-slate-800/50 p-6 rounded-3xl border border-slate-700">
+                <p class="text-[10px] font-black text-slate-500 uppercase mb-1">Registered Citizens</p>
+                <h2 id="statPts" class="text-4xl font-black text-purple-400">--</h2>
+            </div>
+            <div class="bg-slate-800/50 p-6 rounded-3xl border border-slate-700">
+                <p class="text-[10px] font-black text-slate-500 uppercase mb-1">Global Pharmacy Size</p>
+                <h2 id="statMeds" class="text-4xl font-black text-amber-400">--</h2>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-1 bg-slate-800/50 p-8 rounded-3xl border border-slate-700">
+                <h3 class="text-xs font-black uppercase text-slate-400 mb-6 tracking-widest">User Distribution</h3>
+                <canvas id="userChart" class="max-h-64"></canvas>
+            </div>
+            
+            <div class="lg:col-span-2 bg-slate-800/50 p-8 rounded-3xl border border-slate-700">
+                <h3 class="text-xs font-black uppercase text-slate-400 mb-6 tracking-widest">Real-Time Grid Activity</h3>
+                <div id="activityLog" class="space-y-4">
+                    </div>
+            </div>
+        </div>
+    </main>
 
     <script>
-        document.getElementById('uploadForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const msg = document.getElementById('msg');
-            msg.innerText = "Parsing spreadsheet and injecting...";
-            msg.style.color = "yellow";
+        const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
 
-            const formData = new FormData();
-            formData.append("csvFile", document.getElementById("csvFile").files[0]);
-
+        async function refreshIntelligence() {
             try {
-                const res = await fetch('https://holmes-erx-system.onrender.com/api/admin/upload-drugs', {
-                    method: 'POST', body: formData
-                });
+                const res = await fetch(`${API_BASE_URL}/api/analytics/stats`);
                 const data = await res.json();
-                msg.innerText = data.message || data.error;
-                msg.style.color = res.ok ? "#10b981" : "#ef4444";
-            } catch (err) {
-                msg.innerText = "Fatal connection error.";
-                msg.style.color = "#ef4444";
-            }
-        };
+                
+                if(data.success) {
+                    // Update Stat Cards
+                    document.getElementById('statPres').innerText = data.stats.prescriptions;
+                    document.getElementById('statDrs').innerText = data.stats.users.doctors;
+                    document.getElementById('statPts').innerText = data.stats.users.patients;
+                    document.getElementById('statMeds').innerText = (data.stats.medicines / 1000).toFixed(1) + 'K';
+
+                    // Update Chart
+                    updateChart(data.stats.users);
+
+                    // Update Activity Log
+                    const log = document.getElementById('activityLog');
+                    log.innerHTML = data.recentActivity.map(act => `
+                        <div class="flex items-center justify-between p-4 bg-slate-900/50 rounded-2xl border border-slate-700/50">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center text-blue-400">
+                                    <i class="fa-solid fa-file-signature text-xs"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-bold">${act.medication}</p>
+                                    <p class="text-[10px] text-slate-500 uppercase">Authorized Prescription Broadcast</p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-mono text-slate-600">${new Date(act.createdAt).toLocaleTimeString()}</span>
+                        </div>
+                    `).join('');
+                }
+            } catch (err) { console.error("Grid Intelligence Offline."); }
+        }
+
+        function updateChart(users) {
+            const ctx = document.getElementById('userChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Doctors', 'Patients', 'Pharmacists'],
+                    datasets: [{
+                        data: [users.doctors, users.patients, users.pharmacists],
+                        backgroundColor: ['#10b981', '#a855f7', '#f59e0b'],
+                        borderWidth: 0,
+                        hoverOffset: 20
+                    }]
+                },
+                options: {
+                    plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: { weight: 'bold', size: 10 } } } },
+                    cutout: '70%'
+                }
+            });
+        }
+
+        // Initial Load
+        refreshIntelligence();
+        // Auto-refresh every 30 seconds
+        setInterval(refreshIntelligence, 30000);
     </script>
 </body>
 </html>

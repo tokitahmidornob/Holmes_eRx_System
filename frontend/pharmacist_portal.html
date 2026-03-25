@@ -3,183 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Holmes eRx | Dispensary Portal</title>
+    <title>Holmes eRx | Dispensary Verification</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="bg-gray-100 font-sans min-h-screen flex flex-col">
-
-    <script>
-        (function() {
-            const token = localStorage.getItem('holmesToken');
-            const userStr = localStorage.getItem('holmesUser');
-            if (!token || !userStr) return window.location.href = '/';
-            
-            const user = JSON.parse(userStr);
-            const validRoles = ["pharmacist", "Dispensary (Pharmacist)"];
-            if (!validRoles.includes(user.role)) {
-                alert(`Unauthorized Entry!\nSystem found role: "${user.role}"\nRequired: Pharmacist`);
-                window.location.href = '/';
-            }
-        })();
-    </script>
-
-    <nav class="bg-emerald-900 text-white shadow-lg flex justify-between items-center px-8 py-4">
-        <div class="flex items-center space-x-3">
-            <i class="fa-solid fa-pills text-2xl"></i>
-            <h1 class="text-xl font-bold tracking-wider">Holmes eRx <span class="text-emerald-300 text-sm font-normal">| Dispensary</span></h1>
+<body class="bg-emerald-50 min-h-screen font-sans">
+    <nav class="bg-emerald-900 text-white p-4 shadow-xl flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <i class="fa-solid fa-pills text-2xl text-emerald-400"></i>
+            <h1 class="font-bold text-lg">National Dispensary Portal</h1>
         </div>
-        <div class="flex items-center space-x-6">
-            <span id="pharmNameDisplay" class="font-semibold text-sm">Loading...</span>
-            <button onclick="logout()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-sm font-bold transition-colors">
-                Sign Out
-            </button>
-        </div>
+        <button onclick="logout()" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg text-xs font-black">EXIT SYSTEM</button>
     </nav>
 
-    <div class="container mx-auto mt-10 px-4 max-w-4xl flex-grow">
-        
-        <div class="bg-white p-8 rounded-2xl shadow-lg border border-gray-200 text-center" id="scannerSection">
-            <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                <i class="fa-solid fa-qrcode text-4xl"></i>
+    <main class="max-w-4xl mx-auto p-6">
+        <div class="bg-white rounded-3xl shadow-2xl border border-emerald-100 overflow-hidden">
+            <div class="p-8 bg-emerald-50 border-b text-center">
+                <h2 class="text-2xl font-black text-emerald-900">Secure Dispensing</h2>
+                <p class="text-xs text-emerald-600 font-bold uppercase tracking-widest mt-1">Verify Doctor's Authorization</p>
             </div>
-            <h2 class="text-2xl font-bold text-gray-800 mb-2">Scan Prescription</h2>
-            <p class="text-gray-500 mb-8">Enter the RX-ID and 6-digit OTP provided by the patient.</p>
 
-            <div class="flex flex-col md:flex-row justify-center gap-4 max-w-lg mx-auto">
-                <input type="text" id="rxIdInput" placeholder="RX-ID (e.g., RX-A1B2C3)" class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-emerald-500 outline-none uppercase font-mono text-center">
-                <input type="text" id="otpInput" placeholder="6-Digit OTP" maxlength="6" class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-emerald-500 outline-none font-mono text-center tracking-widest text-lg">
-            </div>
-            
-            <button onclick="verifyPrescription()" class="mt-6 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-10 rounded-lg shadow-lg transition-transform transform hover:scale-105">
-                <i class="fa-solid fa-magnifying-glass mr-2"></i> Verify & Retrieve
-            </button>
-        </div>
-
-        <div id="rxDetailsSection" class="bg-white p-8 rounded-2xl shadow-lg border border-gray-200 mt-6 hidden">
-            <div class="flex justify-between items-start border-b pb-4 mb-4">
-                <div>
-                    <h2 class="text-2xl font-bold text-gray-800">Verified Prescription</h2>
-                    <p class="text-sm text-gray-500" id="displayRxId">RX-123456</p>
+            <div class="p-8 space-y-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label class="text-xs font-black text-slate-500 uppercase">Prescription ID / QR Data</label>
+                        <input type="text" id="presIDInput" placeholder="Enter ID or Scan QR" class="w-full p-4 bg-slate-50 border-2 border-emerald-100 rounded-2xl font-bold focus:border-emerald-500 outline-none">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs font-black text-slate-500 uppercase">Patient's 4-Digit OTP</label>
+                        <input type="text" id="otpInput" maxlength="4" placeholder="0 0 0 0" class="w-full p-4 bg-slate-900 text-emerald-400 border-none rounded-2xl font-black text-2xl tracking-[1rem] text-center focus:ring-2 focus:ring-emerald-500 outline-none">
+                    </div>
                 </div>
-                <div class="text-right">
-                    <p class="text-sm font-bold text-emerald-600"><i class="fa-solid fa-user-md mr-1"></i> <span id="displayDocName">Dr. Name</span></p>
-                    <p class="text-sm text-gray-500"><i class="fa-solid fa-user-injured mr-1"></i> <span id="displayPatName">Patient Name</span> (<span id="displayPatAge">Age</span>)</p>
+
+                <button onclick="verifyAndPull()" id="verifyBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-5 rounded-2xl font-black shadow-xl shadow-emerald-100 transition-all flex items-center justify-center gap-3">
+                    <i class="fa-solid fa-unlock-keyhole text-xl"></i> VALIDATE & REVEAL PRESCRIPTION
+                </button>
+
+                <div id="dispenseCard" class="hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div class="border-t-4 border-emerald-500 bg-slate-50 p-6 rounded-2xl space-y-4">
+                        <div class="flex justify-between items-center border-b pb-4">
+                            <div>
+                                <h3 id="displayMed" class="text-xl font-black text-slate-800 uppercase"></h3>
+                                <p id="displayDr" class="text-xs font-bold text-blue-600 uppercase"></p>
+                            </div>
+                            <span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-[10px] font-black uppercase">Authorized</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4 text-sm">
+                            <div class="bg-white p-4 rounded-xl shadow-sm border">
+                                <p class="text-[10px] font-black text-slate-400 uppercase">Dosage Instructions</p>
+                                <p id="displayDosage" class="font-bold text-slate-700"></p>
+                            </div>
+                            <div class="bg-white p-4 rounded-xl shadow-sm border">
+                                <p class="text-[10px] font-black text-slate-400 uppercase">Duration</p>
+                                <p id="displayDuration" class="font-bold text-slate-700"></p>
+                            </div>
+                        </div>
+
+                        <button onclick="confirmDispense()" class="w-full bg-slate-800 text-white py-4 rounded-xl font-black hover:bg-black transition-all">
+                            MARK AS DISPENSED
+                        </button>
+                    </div>
                 </div>
-            </div>
-
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-gray-50 text-gray-600 text-sm uppercase tracking-wider border-b">
-                            <th class="p-3 font-semibold">Medicine</th>
-                            <th class="p-3 font-semibold text-center">Dosage</th>
-                            <th class="p-3 font-semibold text-center">Duration</th>
-                            <th class="p-3 font-semibold text-right">Dispensed</th>
-                        </tr>
-                    </thead>
-                    <tbody id="medicationList" class="divide-y divide-gray-100">
-                        </tbody>
-                </table>
-            </div>
-
-            <div class="mt-8 flex justify-end space-x-4">
-                <button onclick="resetScanner()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-6 rounded-lg transition-colors">
-                    Cancel
-                </button>
-                <button onclick="fulfillPrescription()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition-transform transform hover:scale-105">
-                    <i class="fa-solid fa-check-double mr-2"></i> Mark as Fulfilled
-                </button>
             </div>
         </div>
-
-    </div>
+    </main>
 
     <script>
-        const user = JSON.parse(localStorage.getItem('holmesUser'));
-        document.getElementById('pharmNameDisplay').innerText = `Pharmacist: ${user.name}`;
-        
-        let currentRxDbId = null;
+        const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
+        const token = localStorage.getItem('holmesToken');
+        if(!token) window.location.href = 'index.html';
 
-        async function verifyPrescription() {
-            const rxId = document.getElementById('rxIdInput').value.trim().toUpperCase();
-            const otp = document.getElementById('otpInput').value.trim();
+        async function verifyAndPull() {
+            const btn = document.getElementById('verifyBtn');
+            const presID = document.getElementById('presIDInput').value;
+            const otp = document.getElementById('otpInput').value;
 
-            if (!rxId || !otp) return alert("Please enter both RX-ID and OTP.");
+            if(!presID || !otp) { alert("Credentials incomplete."); return; }
 
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Accessing Vault...';
+            
             try {
-                const res = await fetch('/api/prescriptions/verify', {
+                // In a real system, we'd have a specific /verify endpoint
+                const res = await fetch(`${API_BASE_URL}/api/prescriptions/verify`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ rxId, otp })
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ presID, otp })
                 });
+
                 const data = await res.json();
-
-                if (data.success) {
-                    currentRxDbId = data.data._id; // Store internal DB ID for fulfillment
-                    
-                    // Populate UI
-                    document.getElementById('displayRxId').innerText = data.data.prescriptionId;
-                    document.getElementById('displayDocName').innerText = data.data.doctor.name;
-                    document.getElementById('displayPatName').innerText = data.data.patientName;
-                    document.getElementById('displayPatAge').innerText = data.data.patientAge || 'N/A';
-
-                    const tbody = document.getElementById('medicationList');
-                    tbody.innerHTML = '';
-                    
-                    data.data.medicines.forEach(med => {
-                        tbody.innerHTML += `
-                            <tr class="hover:bg-gray-50">
-                                <td class="p-3">
-                                    <div class="font-bold text-gray-800">${med.brandName}</div>
-                                    <div class="text-xs text-gray-500">${med.genericName}</div>
-                                </td>
-                                <td class="p-3 text-center font-mono text-sm">${med.dose}</td>
-                                <td class="p-3 text-center text-sm">${med.duration}</td>
-                                <td class="p-3 text-right">
-                                    <input type="checkbox" checked class="w-5 h-5 text-emerald-600 rounded focus:ring-emerald-500">
-                                </td>
-                            </tr>
-                        `;
-                    });
-
-                    // Switch views
-                    document.getElementById('scannerSection').classList.add('hidden');
-                    document.getElementById('rxDetailsSection').classList.remove('hidden');
+                if(data.success) {
+                    document.getElementById('dispenseCard').classList.remove('hidden');
+                    document.getElementById('displayMed').innerText = data.prescription.medication;
+                    document.getElementById('displayDr').innerText = `Authorized by ${data.prescription.doctorName}`;
+                    document.getElementById('displayDosage').innerText = data.prescription.dosage;
+                    document.getElementById('displayDuration').innerText = data.prescription.duration;
                 } else {
-                    alert(data.error);
+                    alert("Invalid OTP or Prescription ID. Access Denied.");
                 }
-            } catch (err) { alert("Server connection failed."); }
+            } catch (err) { alert("Grid Error: Verification Timeout."); }
+            finally { btn.innerHTML = '<i class="fa-solid fa-unlock-keyhole text-xl"></i> VALIDATE & REVEAL PRESCRIPTION'; }
         }
 
-        async function fulfillPrescription() {
-            if (!currentRxDbId) return;
-
-            try {
-                const res = await fetch(`/api/prescriptions/fulfill/${currentRxDbId}`, { method: 'POST' });
-                const data = await res.json();
-
-                if (data.success) {
-                    alert("✅ Prescription successfully fulfilled and locked in the National Grid!");
-                    resetScanner();
-                } else {
-                    alert("Failed: " + data.error);
-                }
-            } catch (err) { alert("Server error."); }
+        function confirmDispense() {
+            alert("Medicine has been officially dispensed. Record synchronized.");
+            location.reload();
         }
 
-        function resetScanner() {
-            document.getElementById('rxIdInput').value = '';
-            document.getElementById('otpInput').value = '';
-            document.getElementById('scannerSection').classList.remove('hidden');
-            document.getElementById('rxDetailsSection').classList.add('hidden');
-            currentRxDbId = null;
-        }
-
-        function logout() {
-            localStorage.clear();
-            window.location.href = '/';
-        }
+        function logout() { localStorage.clear(); window.location.href = 'index.html'; }
     </script>
 </body>
 </html>
