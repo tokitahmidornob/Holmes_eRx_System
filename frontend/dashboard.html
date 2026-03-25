@@ -173,77 +173,89 @@
     </main>
 
     <script>
-        const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
-        const token = localStorage.getItem('eRx_Token');
-        if(!token) window.location.href = 'index.html';
+    const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
+    const token = localStorage.getItem('eRx_Token');
+    if(!token) window.location.href = 'index.html';
 
-        document.getElementById('drNameDisplay').innerText = `Dr. ${localStorage.getItem('eRx_UserName') || 'Unknown'}`;
+    document.getElementById('drNameDisplay').innerText = `Dr. ${localStorage.getItem('eRx_UserName') || 'Unknown'}`;
 
-        let globalSearchResults = [];
+    let globalSearchResults = [];
 
-        function findPatient() {
-            const query = document.getElementById('patientSearchInput').value;
-            if(!query) return;
-            document.getElementById('patientCard').classList.remove('hidden');
-            document.getElementById('pName').innerText = "Toki Tawsif";
-        }
+    function findPatient() {
+        const query = document.getElementById('patientSearchInput').value;
+        if(!query) return;
+        document.getElementById('patientCard').classList.remove('hidden');
+        document.getElementById('pName').innerText = "Toki Tawsif";
+    }
 
-        let searchTimeout;
-        async function searchMedicines() {
-            const query = document.getElementById('medSearch').value;
-            const suggestions = document.getElementById('searchSuggestions');
-            if (query.length < 2) { suggestions.classList.add('hidden'); return; }
+    let searchTimeout;
+    async function searchMedicines() {
+        const query = document.getElementById('medSearch').value;
+        const suggestions = document.getElementById('searchSuggestions');
+        if (query.length < 2) { suggestions.classList.add('hidden'); return; }
 
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(async () => {
-                try {
-                    const res = await fetch(`${API_BASE_URL}/api/medicines/search?q=${query}`, { headers: { 'Authorization': `Bearer ${token}` } });
-                    globalSearchResults = await res.json();
-                    
-                    if (globalSearchResults.length === 0) {
-                        suggestions.innerHTML = `<div class="p-6 text-center"><i class="fa-solid fa-capsules text-slate-300 text-2xl mb-2"></i><p class="text-xs font-bold text-slate-400">No database match found.</p></div>`;
-                    } else {
-                        // Apply CSS hover effect via JS mapping
-                        suggestions.innerHTML = globalSearchResults.map((m, index) => `
-                            <div onclick="selectMed(${index})" class="search-item p-4 cursor-pointer border-b border-slate-100 flex justify-between items-center group bg-white">
-                                <div>
-                                    <p class="font-black text-slate-800 text-sm">${m.brand_name} <span class="text-[10px] text-slate-400 font-bold ml-2 py-0.5 px-2 bg-slate-100 rounded-full group-hover:bg-teal-100">${m.strength || 'Std'}</span></p>
-                                    <p class="text-[9px] text-slate-400 uppercase font-black tracking-widest mt-1">${m.generic}</p>
-                                </div>
-                                <div class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-teal-500 group-hover:shadow-[0_0_10px_rgba(45,212,191,0.4)] transition-all">
-                                    <i class="fa-solid fa-plus text-slate-300 group-hover:text-white transition-colors"></i>
-                                </div>
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(async () => {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/medicines/search?q=${query}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                globalSearchResults = await res.json();
+                
+                if (globalSearchResults.length === 0) {
+                    suggestions.innerHTML = `<div class="p-6 text-center"><i class="fa-solid fa-capsules text-slate-300 text-2xl mb-2"></i><p class="text-xs font-bold text-slate-400">No database match found.</p></div>`;
+                } else {
+                    // UPDATED TO MATCH YOUR VAULT FIELD NAMES (brandName, genericName)
+                    suggestions.innerHTML = globalSearchResults.map((m, index) => `
+                        <div onclick="selectMed(${index})" class="search-item p-4 cursor-pointer border-b border-slate-100 flex justify-between items-center group bg-white">
+                            <div>
+                                <p class="font-black text-slate-800 text-sm">${m.brandName} <span class="text-[10px] text-slate-400 font-bold ml-2 py-0.5 px-2 bg-slate-100 rounded-full group-hover:bg-teal-100">${m.strength || 'Std'}</span></p>
+                                <p class="text-[9px] text-slate-400 uppercase font-black tracking-widest mt-1">${m.genericName}</p>
                             </div>
-                        `).join('');
-                    }
-                    suggestions.classList.remove('hidden');
-                } catch (err) { console.error("Search Failed."); }
-            }, 300);
-        }
+                            <div class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-teal-500 group-hover:shadow-[0_0_10px_rgba(45,212,191,0.4)] transition-all">
+                                <i class="fa-solid fa-plus text-slate-300 group-hover:text-white transition-colors"></i>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+                suggestions.classList.remove('hidden');
+            } catch (err) { console.error("Search Failed."); }
+        }, 300);
+    }
 
-        function selectMed(index) {
-            const med = globalSearchResults[index];
-            document.getElementById('searchSuggestions').classList.add('hidden');
-            document.getElementById('overridePanel').classList.remove('hidden');
-            document.getElementById('medSearch').value = med.brand_name;
+    function selectMed(index) {
+        const med = globalSearchResults[index];
+        document.getElementById('searchSuggestions').classList.add('hidden');
+        document.getElementById('overridePanel').classList.remove('hidden');
+        document.getElementById('medSearch').value = med.brandName; // UPDATED
 
-            document.getElementById('selectedBrand').innerText = `${med.brand_name} ${med.strength || ''}`;
-            document.getElementById('selectedGeneric').innerText = med.generic;
-            document.getElementById('metaIndications').innerText = med.indications || med.use_for || 'General clinical indication.';
-            document.getElementById('metaSideEffects').innerText = med.side_effects || 'Observe for standard contraindications.';
-            document.getElementById('overrideDosage').value = med.dosage || med.dosage_description || '1+0+1';
+        document.getElementById('selectedBrand').innerText = `${med.brandName} ${med.strength || ''}`;
+        document.getElementById('selectedGeneric').innerText = med.genericName;
+        
+        // UNPACKING THE ARRAYS FROM YOUR VAULT
+        const ind = (med.indications && med.indications.length > 0) ? med.indications.join(', ') : 'General clinical indication.';
+        const se = (med.sideEffects && med.sideEffects.length > 0) ? med.sideEffects.join(', ') : 'Observe for standard contraindications.';
+        
+        document.getElementById('metaIndications').innerText = ind;
+        document.getElementById('metaSideEffects').innerText = se;
+        
+        // GRABBING THE DEFAULT DOSE
+        document.getElementById('overrideDosage').value = med.defaultDose || '1+0+1';
 
-            const otp = Math.floor(1000 + Math.random() * 9000);
-            document.getElementById('otpCode').innerText = otp;
-            document.getElementById('qrcode').innerHTML = "";
-            new QRCode(document.getElementById("qrcode"), { text: `SH-ERX-${otp}`, width: 60, height: 60, colorDark: "#0f172a", colorLight: "#ffffff" });
-        }
+        const otp = Math.floor(1000 + Math.random() * 9000);
+        document.getElementById('otpCode').innerText = otp;
+        document.getElementById('qrcode').innerHTML = "";
+        new QRCode(document.getElementById("qrcode"), { text: `SH-ERX-${otp}`, width: 60, height: 60, colorDark: "#0f172a", colorLight: "#ffffff" });
+    }
 
-        async function submitPrescription() {
-            const btn = document.getElementById('authBtn');
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-lg"></i> TRANSMITTING...';
-            setTimeout(() => { alert("Prescription Broadcasted."); location.reload(); }, 1000);
-        }
+    async function submitPrescription() {
+        const btn = document.getElementById('authBtn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-lg"></i> TRANSMITTING...';
+        
+        setTimeout(() => {
+            alert("Prescription Broadcasted to National Grid.");
+            location.reload();
+        }, 1000);
+    }
 
         function logout() { localStorage.clear(); window.location.href = 'index.html'; }
     </script>
