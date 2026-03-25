@@ -1,7 +1,7 @@
 const express = require('express');
-const router = require('express').Router();
+const router = express.Router();
 const Prescription = require('../models/Prescription');
-const User = require('../models/User'); // 👈 THIS WAS LIKELY MISSING
+const User = require('../models/User'); // 👈 MUST BE HERE for .populate()
 
 // @route   POST /api/prescriptions
 // @desc    Broadcast a new Master Prescription to the Grid

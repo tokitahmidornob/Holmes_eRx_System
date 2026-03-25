@@ -1,59 +1,37 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const dotenv = require('dotenv');
 const cors = require('cors');
-const path = require('path');
-
-// Load Environment Variables
-dotenv.config();
+require('dotenv').config();
 
 const app = express();
 
-// Core Middleware
-app.use(express.json());
+// 1. GLOBAL MIDDLEWARE
 app.use(cors());
+app.use(express.json());
 
-// ==========================================
-// 1. FRONTEND SERVING LOGIC (The Master Stroke)
-// ==========================================
-// Serve all static files (CSS, JS, Images, HTML) from the 'frontend' folder
-app.use(express.static(path.join(__dirname, 'frontend')));
+// 2. THE RENDER HEALTH CHECK (Crucial for Deployment)
+app.get('/', (req, res) => {
+    res.status(200).send("🚀 National Grid Online and Operational.");
+});
 
-// ==========================================
-// 2. API ROUTES (The Internal Wiring)
-// ==========================================
+// 3. IRON VAULT CONNECTION
+mongoose.connect(process.env.MONGO_URI)
+    .then(() => console.log("✅ Iron Vault (MongoDB) Connected Successfully"))
+    .catch(err => console.error("❌ Vault Connection Error:", err));
+
+// 4. GRID ROUTE SYNAPSES
 app.use('/api/auth', require('./backend/routes/auth'));
-app.use('/api/prescriptions', require('./backend/routes/prescriptions'));
-app.use('/api/patients', require('./backend/routes/patients'));
-app.use('/api/doctors', require('./backend/routes/doctors'));
 app.use('/api/medicines', require('./backend/routes/medicines'));
-app.use('/api/pharmacists', require('./backend/routes/pharmacists'));
-app.use('/api/analytics', require('./backend/routes/analytics'));
+app.use('/api/prescriptions', require('./backend/routes/prescriptions'));
+app.use('/api/doctors', require('./backend/routes/doctors'));
 app.use('/api/appointments', require('./backend/routes/appointments'));
 app.use('/api/patients', require('./backend/routes/patients'));
 app.use('/api/labs', require('./backend/routes/labs'));
 
-
-// ==========================================
-// 3. MAIN GATEWAY ROUTER
-// ==========================================
-// If a user visits the root web address, send them to the Gateway
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
-});
-
-// ==========================================
-// 4. IRON VAULT DATABASE CONNECTION
-// ==========================================
-mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log('✅ Iron Vault (MongoDB) Connected Successfully'))
-    .catch((error) => console.error('🔥 Vault Connection Failed:', error.message));
-
-// ==========================================
-// 5. IGNITION
-// ==========================================
-// Define the port using Render's dynamic environment variable, defaulting to 10000
+// 5. HIGH-AVAILABILITY PORT BINDING
+// Render provides the PORT variable; we MUST use it exactly.
 const PORT = process.env.PORT || 10000;
+
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Master Engine running on port ${PORT}`);
 });
