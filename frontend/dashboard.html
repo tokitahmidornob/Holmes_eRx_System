@@ -15,7 +15,7 @@
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .dropdown-menu { transform-origin: top; transition: transform 0.2s ease, opacity 0.2s ease; }
+        .dropdown-menu { transform-origin: top; transition: transform 0.2s ease, opacity 0.2s ease; z-index: 100; }
         .dropdown-menu.hidden { transform: scaleY(0.95); opacity: 0; pointer-events: none; }
     </style>
 </head>
@@ -41,14 +41,13 @@
         
         <div class="p-4 border-t border-slate-800">
             <div class="hidden lg:block mb-4 px-4 text-center">
-                <p id="drNameDisplay" class="font-black text-sm text-white truncate">Loading...</p>
-                <div class="inline-block bg-teal-500/10 border border-teal-500/20 rounded-lg px-3 py-1 mt-2">
-                    <p id="drGridIdDisplay" class="text-[10px] font-mono font-black text-teal-400 uppercase tracking-[0.2em]">PT-000000</p>
+                <p id="drNameDisplay" class="font-black text-sm text-white truncate">Dr. Holmes</p>
+                <div class="bg-slate-800/50 border border-slate-700 rounded-lg mt-2 py-1">
+                    <p id="drGridIdDisplay" class="text-xs font-mono font-bold text-teal-400 tracking-wider">ID: PENDING</p>
                 </div>
-                <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-3">Medical Officer</p>
             </div>
-            <button onclick="logout()" class="w-full flex items-center justify-center p-4 rounded-2xl hover:bg-rose-500/10 text-slate-400 hover:text-rose-500 transition-all group">
-                <i class="fa-solid fa-power-off text-xl lg:mr-3 group-hover:scale-110 transition-transform"></i>
+            <button onclick="logout()" class="w-full flex items-center justify-center p-4 rounded-2xl hover:bg-rose-500/10 text-slate-400 hover:text-rose-500 transition-all">
+                <i class="fa-solid fa-power-off text-xl lg:mr-3"></i>
                 <span class="hidden lg:block font-bold text-sm uppercase tracking-widest">Disconnect</span>
             </button>
         </div>
@@ -62,8 +61,7 @@
             </div>
             <div class="flex items-center gap-4">
                 <span class="flex items-center gap-2 bg-emerald-50 text-emerald-600 px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest border border-emerald-100">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    System Online
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> System Online
                 </span>
             </div>
         </header>
@@ -74,442 +72,151 @@
                 <div class="bg-white rounded-[32px] p-8 shadow-sm border border-slate-200">
                     <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Select Patient</label>
                     <div class="relative w-full" id="patientDropdownContainer">
-                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <i class="fa-solid fa-magnifying-glass text-slate-400"></i>
-                        </div>
-                        <input type="text" id="patientSearchInput" onfocus="showPatientDropdown()" oninput="filterPatients()" placeholder="Search by Patient Name or Grid ID..." autocomplete="off" class="premium-input w-full bg-slate-50 p-4 pl-12 rounded-2xl border border-slate-200 font-bold text-slate-800 outline-none">
+                        <input type="text" id="patientSearchInput" onfocus="showPatientDropdown()" oninput="filterPatients()" placeholder="Search Patient..." autocomplete="off" class="premium-input w-full bg-slate-50 p-4 rounded-2xl border border-slate-200 font-bold text-slate-800 outline-none">
                         <input type="hidden" id="selectedPatientEmail">
-                        <div id="patientDropdown" class="dropdown-menu hidden absolute z-[60] w-full mt-2 bg-white border border-slate-200 rounded-2xl shadow-2xl max-h-60 overflow-y-auto custom-scrollbar">
-                            <div class="p-4 text-center text-sm text-slate-400 font-bold"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Loading Grid Citizens...</div>
-                        </div>
+                        <div id="patientDropdown" class="dropdown-menu hidden absolute z-[60] w-full mt-2 bg-white border border-slate-200 rounded-2xl shadow-2xl max-h-60 overflow-y-auto custom-scrollbar"></div>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="lg:col-span-2 bg-white rounded-[32px] shadow-sm border border-slate-200 overflow-hidden flex flex-col">
-                        <div class="p-6 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
-                            <h3 class="font-black text-slate-900 uppercase tracking-widest text-xs"><i class="fa-solid fa-capsules text-teal-500 mr-2"></i> Medications</h3>
-                        </div>
-                        <div class="p-6 flex-1 flex flex-col relative z-50">
-                            
-                            <div class="grid grid-cols-12 gap-2 mb-4">
-                                <div class="col-span-4 relative" id="drugDropdownContainer">
-                                    <input type="text" id="medName" onfocus="document.getElementById('drugDropdown').classList.remove('hidden')" oninput="searchDrugs(this.value)" placeholder="Search Drug..." autocomplete="off" class="premium-input w-full bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm font-bold outline-none">
-                                    <div id="drugDropdown" class="dropdown-menu hidden absolute z-[70] w-64 mt-2 left-0 bg-white border border-slate-200 rounded-2xl shadow-2xl max-h-48 overflow-y-auto custom-scrollbar">
-                                        <div class="p-3 text-xs text-slate-400 font-bold text-center">Type to search Grid Database...</div>
-                                    </div>
-                                </div>
-                                <input type="text" id="medDose" placeholder="e.g. 1+0+1" class="col-span-3 premium-input bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm font-bold outline-none text-center">
-                                <select id="medTiming" class="col-span-3 premium-input bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm font-bold outline-none text-center appearance-none">
-                                    <option value="After Meal">After Meal</option>
-                                    <option value="Before Meal">Before Meal</option>
-                                    <option value="Empty Stomach">Empty Stomach</option>
-                                </select>
-                                <input type="text" id="medDuration" placeholder="Days" class="col-span-2 premium-input bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm font-bold outline-none text-center">
+                    <div class="lg:col-span-2 bg-white rounded-[32px] shadow-sm border border-slate-200 p-6">
+                        <h3 class="font-black text-slate-900 uppercase tracking-widest text-xs mb-4">Medications</h3>
+                        <div class="grid grid-cols-12 gap-2 mb-4 relative">
+                            <div class="col-span-4" id="drugDropdownContainer">
+                                <input type="text" id="medName" oninput="searchDrugs(this.value)" placeholder="Search Drug..." class="premium-input w-full bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm font-bold outline-none">
+                                <div id="drugDropdown" class="dropdown-menu hidden absolute w-full mt-2 bg-white border border-slate-200 rounded-2xl shadow-2xl max-h-48 overflow-y-auto custom-scrollbar"></div>
                             </div>
-                            
-                            <button onclick="addMedication()" class="w-full bg-slate-100 hover:bg-teal-50 hover:text-teal-600 text-slate-600 font-black text-[10px] uppercase tracking-widest p-3 rounded-xl transition-colors mb-6 border border-transparent hover:border-teal-200">
-                                + Add to Prescription
-                            </button>
-                            
-                            <div id="medListDisplay" class="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar min-h-[150px]">
-                                <div class="text-center text-slate-300 font-bold text-sm py-10">No medications added yet</div>
-                            </div>
+                            <input type="text" id="medDose" placeholder="Dose" class="col-span-3 premium-input bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm font-bold outline-none">
+                            <select id="medTiming" class="col-span-3 premium-input bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm font-bold outline-none">
+                                <option value="After Meal">After Meal</option>
+                                <option value="Before Meal">Before Meal</option>
+                            </select>
+                            <input type="text" id="medDuration" placeholder="Days" class="col-span-2 premium-input bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm font-bold outline-none">
                         </div>
+                        <button onclick="addMedication()" class="w-full bg-slate-900 text-white p-3 rounded-xl text-xs font-black uppercase tracking-widest">+ Add Medication</button>
+                        <div id="medListDisplay" class="mt-4 space-y-2"></div>
                     </div>
 
-                    <div class="bg-white rounded-[32px] shadow-sm border border-slate-200 overflow-hidden flex flex-col relative z-40">
-                        <div class="p-6 border-b border-slate-100 bg-slate-50/50">
-                            <h3 class="font-black text-slate-900 uppercase tracking-widest text-xs"><i class="fa-solid fa-microscope text-indigo-500 mr-2"></i> Investigations</h3>
+                    <div class="bg-white rounded-[32px] shadow-sm border border-slate-200 p-6">
+                        <h3 class="font-black text-slate-900 uppercase tracking-widest text-xs mb-4">Investigations</h3>
+                        <div class="flex gap-2">
+                            <input type="text" id="testName" placeholder="Test Name" class="flex-1 premium-input bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm font-bold outline-none">
+                            <button onclick="addTest()" class="bg-indigo-600 text-white px-4 rounded-xl"><i class="fa-solid fa-plus"></i></button>
                         </div>
-                        <div class="p-6 flex-1 flex flex-col">
-                            <div class="flex gap-2 mb-6">
-                                <input type="text" id="testName" placeholder="e.g. CBC" class="flex-1 premium-input bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm font-bold outline-none">
-                                <button onclick="addTest()" class="w-12 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-xl transition-colors font-black"><i class="fa-solid fa-plus"></i></button>
-                            </div>
-                            <div id="testListDisplay" class="flex flex-wrap gap-2 content-start"></div>
-                        </div>
+                        <div id="testListDisplay" class="mt-4 flex flex-wrap gap-2"></div>
                     </div>
                 </div>
 
-                <div class="flex justify-end pt-4">
-                    <button onclick="generatePrescription()" id="generateBtn" class="bg-slate-900 hover:bg-teal-600 text-white px-10 py-5 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl hover:shadow-teal-500/30 transition-all flex items-center gap-3">
-                        <i class="fa-solid fa-lock"></i> Encrypt & Broadcast
-                    </button>
+                <div class="flex justify-end">
+                    <button onclick="generatePrescription()" id="generateBtn" class="bg-emerald-600 text-white px-10 py-5 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl">Encrypt & Broadcast</button>
                 </div>
             </div>
 
-            <div id="viewHistory" class="max-w-5xl mx-auto hidden">
-                <div class="bg-white rounded-[32px] shadow-sm border border-slate-200 overflow-hidden">
-                    <div class="p-8 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
-                        <h3 class="font-black text-slate-900 uppercase tracking-widest text-xs"><i class="fa-solid fa-vault text-slate-400 mr-2"></i> Master Rx Archive</h3>
-                        <button onclick="fetchHistory()" class="text-[10px] font-black uppercase tracking-widest bg-slate-200 hover:bg-slate-300 px-4 py-2 rounded-full transition-colors">Refresh</button>
-                    </div>
-                    <div class="p-4">
-                        <div class="grid grid-cols-12 gap-4 px-6 py-3 border-b border-slate-100">
-                            <div class="col-span-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Date</div>
-                            <div class="col-span-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Patient</div>
-                            <div class="col-span-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</div>
-                            <div class="col-span-2 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Action</div>
-                        </div>
-                        <div id="historyList" class="divide-y divide-slate-100 max-h-[60vh] overflow-y-auto custom-scrollbar">
-                            <div class="p-10 text-center text-slate-400 font-bold"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Connecting to Grid...</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <div id="viewHistory" class="hidden"><div id="historyList" class="bg-white rounded-[32px] p-6"></div></div>
         </div>
     </main>
 
-    <div id="rxModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 p-6 opacity-0 pointer-events-none transition-all duration-300">
-        <div class="bg-white rounded-[32px] w-full max-w-[800px] shadow-2xl relative overflow-hidden border border-slate-100 glass-panel transform scale-95 transition-transform duration-300" id="rxModalContent">
-            <div class="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                <div>
-                    <h3 class="text-xl font-black text-slate-900 uppercase tracking-tighter">Prescription Detail</h3>
-                    <p id="modalDrName" class="text-xs font-bold text-indigo-600 mt-1">Dr. Name</p>
-                </div>
-                <button onclick="closeRxModal()" class="w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center hover:bg-rose-500 hover:text-white transition-colors"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div class="p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
-                <div class="flex justify-between items-center bg-slate-900 p-6 rounded-[20px] shadow-inner border border-slate-800">
-                    <div>
-                        <p class="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-1">Broadcast ID (Rx No.)</p>
-                        <p id="modalBroadcastId" class="font-mono font-bold text-white text-lg tracking-wider">HOLMES-RX-...</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-[9px] font-black text-emerald-400 uppercase tracking-widest mb-1">Secret OTP</p>
-                        <p id="modalOtp" class="font-mono font-black text-emerald-400 text-3xl tracking-[0.2em] leading-none">----</p>
-                    </div>
-                </div>
-                <div>
-                    <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Medications Ordered</h4>
-                    <div id="modalMedList" class="space-y-2"></div>
-                </div>
-                <div id="modalTestSection">
-                    <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 border-t pt-6">Lab Investigations</h4>
-                    <div id="modalTestList" class="flex flex-wrap gap-2"></div>
-                </div>
-                <div id="modalCompletedLabsSection" class="hidden mt-6 border-t pt-6">
-                    <h4 class="text-[10px] font-black text-cyan-600 uppercase tracking-widest mb-3"><i class="fa-solid fa-microscope mr-1"></i> Diagnostic Reports</h4>
-                    <div id="modalCompletedLabsList" class="space-y-3"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <div id="successModal" class="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/90 p-4 opacity-0 pointer-events-none transition-opacity duration-300">
-        <div class="bg-[#115e59] rounded-[40px] w-full max-w-[900px] shadow-2xl relative overflow-hidden border border-teal-800 transform scale-95 transition-transform duration-500 flex flex-col" id="successModalContent">
-            <div class="p-8 border-b border-teal-700/50 flex justify-between items-center bg-[#134e4a]">
-                <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 bg-emerald-500/20 rounded-2xl flex items-center justify-center text-emerald-400">
-                        <i class="fa-solid fa-shield-check text-2xl"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-2xl font-black text-white tracking-tighter">AUTHENTICATION VERIFIED</h2>
-                        <p class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest mt-1">Authorized Record Broadcast to National Grid</p>
-                    </div>
-                </div>
-                <div class="text-right border border-teal-600 bg-teal-800/50 px-4 py-2 rounded-xl">
-                    <p class="text-[8px] font-black text-teal-300 uppercase tracking-widest mb-1">Broadcast Identity</p>
-                    <p id="successDrName" class="text-sm font-bold text-white">Dr. Name</p>
-                </div>
+        <div class="bg-white rounded-[40px] w-full max-w-lg p-10 text-center shadow-2xl transform scale-95 transition-transform duration-300" id="successModalContent">
+            <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl"><i class="fa-solid fa-check"></i></div>
+            <h2 class="text-3xl font-black text-slate-900 tracking-tighter mb-2">RECORD BROADCASTED</h2>
+            <div class="bg-slate-50 p-6 rounded-2xl mb-6">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Prescription Rx No.</p>
+                <p id="successBroadcastId" class="font-mono font-black text-2xl text-slate-800">HOLMES-RX-XXXX</p>
+                <div class="h-px bg-slate-200 my-4"></div>
+                <p class="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em] mb-2">Secure OTP Key</p>
+                <p id="successOtp" class="font-mono font-black text-5xl text-emerald-600 tracking-[0.1em]">0000</p>
             </div>
-            <div class="flex flex-col md:flex-row bg-[#f8fafc]">
-                <div class="flex-1 p-10 max-h-[50vh] overflow-y-auto custom-scrollbar">
-                    <div class="mb-8">
-                        <h4 class="text-[10px] font-black text-teal-600 uppercase tracking-widest mb-4 flex items-center"><i class="fa-solid fa-capsules mr-2"></i> Prescribed Medications</h4>
-                        <div id="successMedList" class="space-y-4"></div>
-                    </div>
-                    <div id="successTestSection">
-                        <h4 class="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-4 flex items-center border-t border-slate-200 pt-6"><i class="fa-solid fa-microscope mr-2"></i> Required Investigations</h4>
-                        <div id="successTestList" class="flex flex-wrap gap-2"></div>
-                    </div>
-                </div>
-                <div class="w-full md:w-1/3 border-l border-slate-200 p-10 bg-white text-center flex flex-col justify-center items-center">
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Verify at Dispensary</p>
-                    <p class="text-xs text-slate-500 mb-6 font-bold">Patient must provide this Token</p>
-                    <div class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-4">
-                        <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Prescription Rx No.</p>
-                        <p id="successBroadcastId" class="font-mono font-black text-lg text-slate-800 tracking-wider">HOLMES-RX-...</p>
-                    </div>
-                    <div id="successQr" class="w-32 h-32 bg-slate-50 p-2 rounded-2xl border-2 border-slate-100 shadow-sm mb-4 flex items-center justify-center">
-                        <i class="fa-solid fa-qrcode text-5xl text-slate-300"></i>
-                    </div>
-                    <div class="w-full bg-emerald-50 border border-emerald-100 rounded-2xl p-4">
-                        <p class="text-[9px] font-black text-emerald-600 uppercase tracking-widest mb-1">Secure OTP Key</p>
-                        <p id="successOtp" class="font-mono font-black text-4xl text-emerald-500 tracking-[0.2em]">----</p>
-                    </div>
-                </div>
-            </div>
-            <div class="p-6 border-t border-slate-200 bg-slate-50 flex justify-between items-center">
-                <p id="successPatientId" class="text-[10px] font-black text-slate-500 uppercase tracking-widest"><i class="fa-solid fa-user mr-1"></i> Patient ID: ---</p>
-                <div class="flex items-center gap-4">
-                    <p id="successTimestamp" class="text-[10px] font-bold text-slate-400"></p>
-                    <button onclick="closeSuccessAndRefresh()" class="bg-slate-900 hover:bg-slate-800 text-white px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-colors shadow-lg">
-                        Close & Refresh Pad
-                    </button>
-                </div>
-            </div>
+            <button onclick="location.reload()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-sm uppercase tracking-widest">Close Pad</button>
         </div>
     </div>
 
     <script>
         const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
-        
-        let medications = [];
-        let investigations = [];
-        let doctorPrescriptions = [];
-        let allPatients = []; 
-
         const token = localStorage.getItem('eRx_Token');
-        const role = localStorage.getItem('eRx_UserRole');
         const drId = localStorage.getItem('eRx_UserId');
         const drName = localStorage.getItem('eRx_UserName');
+        let medications = []; let investigations = []; let allPatients = [];
 
-        if (!token || role !== 'doctor') window.location.href = 'index.html';
-
-        // 🌟 JWT DECODER (Extracts your Grid ID directly from your login)
-        function parseJwt(jwtToken) {
-            try {
-                const base64Url = jwtToken.split('.')[1];
-                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-                return JSON.parse(window.atob(base64));
-            } catch (e) { return {}; }
-        }
-        const decodedToken = parseJwt(token);
-        const gridIdentifier = decodedToken.gridId || 'ID-PENDING';
-
+        // 🌟 JWT DECODER FOR SIDEBAR ID 🌟
+        function parseJwt(t) { try { return JSON.parse(atob(t.split('.')[1])); } catch(e) { return {}; } }
+        const decoded = parseJwt(token);
         document.getElementById('drNameDisplay').innerText = `Dr. ${drName}`;
-        document.getElementById('drGridIdDisplay').innerText = `${gridIdentifier}`;
-        
-        fetchPatientsList();
-        fetchHistory();
-
-        function logout() { localStorage.clear(); window.location.href = 'index.html'; }
-
-        function closeAllDropdowns(event) {
-            const pContainer = document.getElementById('patientDropdownContainer');
-            const dContainer = document.getElementById('drugDropdownContainer');
-            if (!pContainer.contains(event.target)) document.getElementById('patientDropdown').classList.add('hidden');
-            if (!dContainer.contains(event.target)) document.getElementById('drugDropdown').classList.add('hidden');
-        }
+        document.getElementById('drGridIdDisplay').innerText = decoded.gridId || 'ID-PENDING';
 
         async function fetchPatientsList() {
             try {
-                const res = await fetch(`${API_BASE_URL}/api/auth/patients`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+                const res = await fetch(`${API_BASE_URL}/api/auth/patients`, { headers: { 'Authorization': `Bearer ${token}` } });
                 if(res.ok) allPatients = await res.json();
-            } catch(e) { console.error("Patient directory failed.", e); }
+            } catch(e) {}
         }
+        fetchPatientsList();
 
-        function showPatientDropdown() {
-            document.getElementById('patientDropdown').classList.remove('hidden');
-            filterPatients(); 
-        }
-
+        function showPatientDropdown() { document.getElementById('patientDropdown').classList.remove('hidden'); filterPatients(); }
         function filterPatients() {
-            const query = document.getElementById('patientSearchInput').value.toLowerCase();
-            const dropdown = document.getElementById('patientDropdown');
-            const filtered = allPatients.filter(p => p.name.toLowerCase().includes(query) || (p.gridId && p.gridId.toLowerCase().includes(query)));
-            if (filtered.length === 0) {
-                dropdown.innerHTML = '<div class="p-4 text-sm text-slate-400 text-center font-bold">No citizens found.</div>';
-                return;
-            }
-            dropdown.innerHTML = filtered.map(p => `
-                <div onclick="selectPatient('${p.email}', '${p.name}', '${p.gridId}')" class="p-4 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-0 flex items-center justify-between transition-colors">
-                    <div><p class="font-black text-sm text-slate-800">${p.name}</p><p class="text-[10px] font-bold text-slate-400 mt-1">${p.email}</p></div>
-                    <span class="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-lg text-[9px] font-black uppercase border border-indigo-100">${p.gridId || 'NO-ID'}</span>
-                </div>
-            `).join('');
+            const q = document.getElementById('patientSearchInput').value.toLowerCase();
+            const filtered = allPatients.filter(p => p.name.toLowerCase().includes(q) || (p.gridId && p.gridId.toLowerCase().includes(q)));
+            document.getElementById('patientDropdown').innerHTML = filtered.map(p => `
+                <div onclick="selectPatient('${p.email}', '${p.name}', '${p.gridId}')" class="p-4 hover:bg-slate-50 cursor-pointer border-b last:border-0 flex justify-between items-center">
+                    <div><p class="font-black text-sm">${p.name}</p><p class="text-[10px] font-bold text-slate-400">${p.email}</p></div>
+                    <span class="text-[9px] font-black bg-indigo-50 text-indigo-600 px-2 py-1 rounded">${p.gridId || 'NO-ID'}</span>
+                </div>`).join('');
         }
-
-        function selectPatient(email, name, gridId) {
-            document.getElementById('patientSearchInput').value = `${name} (${gridId || email})`;
-            document.getElementById('selectedPatientEmail').value = email; 
+        function selectPatient(e, n, g) {
+            document.getElementById('patientSearchInput').value = `${n} (${g})`;
+            document.getElementById('selectedPatientEmail').value = e;
             document.getElementById('patientDropdown').classList.add('hidden');
         }
 
-        // ==========================================
-        // 💊 MASTER DRUG SEARCH ENGINE
-        // ==========================================
-        let searchTimeout;
         async function searchDrugs(query) {
             const dropdown = document.getElementById('drugDropdown');
-            if(query.length < 2) {
-                dropdown.innerHTML = '<div class="p-3 text-xs text-slate-400 font-bold text-center">Type at least 2 letters...</div>';
-                return;
-            }
-
-            clearTimeout(searchTimeout);
-            dropdown.innerHTML = '<div class="p-3 text-xs text-slate-400 font-bold text-center"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Searching...</div>';
-            
-            searchTimeout = setTimeout(async () => {
-                try {
-                    const res = await fetch(`${API_BASE_URL}/api/medicines?search=${query}`, {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
-                    
-                    if(res.ok) {
-                        const drugs = await res.json();
-                        if(drugs.length === 0) {
-                            dropdown.innerHTML = '<div class="p-3 text-xs text-slate-400 font-bold text-center">No drugs found in database.</div>';
-                            return;
-                        }
-                        dropdown.innerHTML = drugs.map(d => `
-                            <div onclick="selectDrug('${d.brandName}')" class="p-3 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-0 transition-colors">
-                                <p class="font-black text-sm text-slate-800"><i class="fa-solid fa-pills text-teal-500 mr-2 text-xs"></i>${d.brandName}</p>
-                            </div>
-                        `).join('');
-                    } else {
-                        // CATCHES ROUTE ERRORS (e.g., 404)
-                        dropdown.innerHTML = `<div class="p-3 text-xs text-amber-500 font-bold text-center">Engine error (Status: ${res.status}). Verify medicines route.</div>`;
-                    }
-                } catch(e) {
-                    dropdown.innerHTML = '<div class="p-3 text-xs text-rose-400 font-bold text-center">Master Grid Offline. Check backend.</div>';
-                }
-            }, 400); 
+            if(query.length < 2) return dropdown.classList.add('hidden');
+            dropdown.classList.remove('hidden');
+            dropdown.innerHTML = '<div class="p-3 text-xs text-slate-400">Searching...</div>';
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/medicines?search=${query}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const drugs = await res.json();
+                dropdown.innerHTML = drugs.map(d => `<div onclick="selectDrug('${d.brandName}')" class="p-3 hover:bg-slate-50 cursor-pointer border-b last:border-0 font-bold text-sm">${d.brandName}</div>`).join('');
+            } catch(e) { dropdown.innerHTML = 'Error searching.'; }
         }
-
-        function selectDrug(name) {
-            document.getElementById('medName').value = name;
-            document.getElementById('drugDropdown').classList.add('hidden');
-        }
-
-        function switchTab(tab) {
-            document.getElementById('viewRxPad').classList.add('hidden');
-            document.getElementById('viewHistory').classList.add('hidden');
-            document.getElementById('navRxPad').className = 'nav-btn flex items-center p-4 rounded-2xl text-slate-400 hover:bg-slate-800 hover:text-white transition-all';
-            document.getElementById('navHistory').className = 'nav-btn flex items-center p-4 rounded-2xl text-slate-400 hover:bg-slate-800 hover:text-white transition-all';
-
-            if (tab === 'rxPad') {
-                document.getElementById('viewRxPad').classList.remove('hidden');
-                document.getElementById('navRxPad').className = 'nav-btn active flex items-center p-4 rounded-2xl bg-teal-500/10 text-teal-400 transition-all';
-                document.getElementById('pageTitle').innerText = 'Clinical Pad';
-            } else {
-                document.getElementById('viewHistory').classList.remove('hidden');
-                document.getElementById('navHistory').className = 'nav-btn active flex items-center p-4 rounded-2xl bg-teal-500/10 text-teal-400 transition-all';
-                document.getElementById('pageTitle').innerText = 'Archive';
-            }
-        }
+        function selectDrug(n) { document.getElementById('medName').value = n; document.getElementById('drugDropdown').classList.add('hidden'); }
 
         function addMedication() {
-            const name = document.getElementById('medName').value;
-            const dose = document.getElementById('medDose').value;
-            const timing = document.getElementById('medTiming').value;
-            const duration = document.getElementById('medDuration').value;
-            if (!name || !dose || !duration) return alert("Incomplete details.");
-            medications.push({ brandName: name, dosage: dose, timing, duration });
+            const n = document.getElementById('medName').value; const ds = document.getElementById('medDose').value;
+            const t = document.getElementById('medTiming').value; const dr = document.getElementById('medDuration').value;
+            if(!n || !ds || !dr) return;
+            medications.push({ brandName: n, dosage: ds, timing: t, duration: dr });
             renderMedications();
-            document.getElementById('medName').value = '';
-            document.getElementById('medDose').value = '';
-            document.getElementById('medDuration').value = '';
         }
-
         function renderMedications() {
-            const list = document.getElementById('medListDisplay');
-            if (medications.length === 0) { list.innerHTML = '<div class="text-center text-slate-300 font-bold text-sm py-10">No medications added yet</div>'; return; }
-            list.innerHTML = medications.map((m, index) => `
-                <div class="bg-white p-3 rounded-xl border border-slate-100 flex justify-between items-center shadow-sm">
-                    <div><p class="font-black text-sm text-slate-800">${m.brandName}</p><p class="text-[9px] uppercase text-slate-400 font-bold">${m.dosage} | ${m.timing}</p></div>
-                    <div class="flex items-center gap-3">
-                        <span class="text-[10px] font-black text-teal-600 bg-teal-50 px-2 py-1 rounded">${m.duration}</span>
-                        <button onclick="removeMedication(${index})" class="text-rose-400 hover:text-rose-600 transition-colors"><i class="fa-solid fa-trash"></i></button>
-                    </div>
-                </div>
-            `).join('');
+            document.getElementById('medListDisplay').innerHTML = medications.map((m, i) => `<div class="bg-slate-50 p-3 rounded-xl flex justify-between items-center font-bold text-sm"><span>${m.brandName} (${m.dosage})</span><button onclick="medications.splice(${i},1);renderMedications()" class="text-rose-500"><i class="fa-solid fa-trash"></i></button></div>`).join('');
         }
-
-        function removeMedication(index) { medications.splice(index, 1); renderMedications(); }
-
-        function addTest() {
-            const test = document.getElementById('testName').value;
-            if (!test) return;
-            investigations.push(test);
-            renderTests();
-            document.getElementById('testName').value = '';
-        }
-
-        function renderTests() {
-            const list = document.getElementById('testListDisplay');
-            list.innerHTML = investigations.map((t, i) => `<span class="bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-lg text-xs font-black uppercase flex items-center gap-2 border border-indigo-100">${t} <button onclick="removeTest(${i})"><i class="fa-solid fa-xmark"></i></button></span>`).join('');
-        }
-
-        function removeTest(index) { investigations.splice(index, 1); renderTests(); }
+        function addTest() { const t = document.getElementById('testName').value; if(t) { investigations.push(t); renderTests(); document.getElementById('testName').value=''; } }
+        function renderTests() { document.getElementById('testListDisplay').innerHTML = investigations.map((t, i) => `<span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-lg text-xs font-black uppercase">${t}</span>`).join(''); }
 
         async function generatePrescription() {
-            const patientEmail = document.getElementById('selectedPatientEmail').value;
-            if (!patientEmail) return alert("Select a Patient.");
-            if (medications.length === 0) return alert("Add medications.");
-            const btn = document.getElementById('generateBtn');
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Encrypting...';
+            const pEmail = document.getElementById('selectedPatientEmail').value;
+            if(!pEmail) return alert("Select Patient");
             try {
                 const res = await fetch(`${API_BASE_URL}/api/prescriptions`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ doctorId: drId, patientId: patientEmail, medications, investigations })
+                    method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ doctorId: drId, patientId: pEmail, medications, investigations })
                 });
                 const data = await res.json();
-                if (res.ok) {
-                    showSuccessModal(data, document.getElementById('patientSearchInput').value);
-                    medications = []; investigations = []; renderMedications(); renderTests(); fetchHistory();
-                } else alert(data.msg);
-            } catch (err) { alert(err.message); }
-            finally { btn.innerHTML = '<i class="fa-solid fa-lock"></i> Encrypt & Broadcast'; }
+                if(res.ok) {
+                    document.getElementById('successBroadcastId').innerText = data.broadcastId;
+                    document.getElementById('successOtp').innerText = data.otp;
+                    document.getElementById('successModal').classList.remove('opacity-0', 'pointer-events-none');
+                    document.getElementById('successModalContent').classList.remove('scale-95');
+                }
+            } catch(e) { alert("Failed"); }
         }
 
-        function showSuccessModal(data, visualPatInfo) {
-            document.getElementById('successDrName').innerText = `Dr. ${drName}`;
-            document.getElementById('successPatientId').innerHTML = `<i class="fa-solid fa-user mr-1"></i> Patient: ${visualPatInfo}`;
-            document.getElementById('successBroadcastId').innerText = data.broadcastId;
-            document.getElementById('successOtp').innerText = data.otp;
-            document.getElementById('successTimestamp').innerText = `Timestamp: ${new Date().toLocaleString()}`;
-            document.getElementById('successMedList').innerHTML = data.medications.map(m => `<div class="flex justify-between border-b pb-2"><div><p class="font-black text-sm">${m.brandName}</p></div><div class="text-right text-[10px] font-black text-teal-600">${m.duration}</div></div>`).join('');
-            if(data.investigations.length > 0) {
-                document.getElementById('successTestSection').classList.remove('hidden');
-                document.getElementById('successTestList').innerHTML = data.investigations.map(t => `<span class="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full text-[9px] font-black uppercase border border-indigo-100">${t}</span>`).join('');
-            } else document.getElementById('successTestSection').classList.add('hidden');
-            document.getElementById('successModal').classList.remove('opacity-0', 'pointer-events-none');
-            setTimeout(() => document.getElementById('successModalContent').classList.remove('scale-95'), 50);
+        function closeAllDropdowns(e) {
+            if(!document.getElementById('patientDropdownContainer').contains(e.target)) document.getElementById('patientDropdown').classList.add('hidden');
+            if(!document.getElementById('drugDropdownContainer').contains(e.target)) document.getElementById('drugDropdown').classList.add('hidden');
         }
-
-        function closeSuccessAndRefresh() {
-            document.getElementById('successModalContent').classList.add('scale-95');
-            setTimeout(() => document.getElementById('successModal').classList.add('opacity-0', 'pointer-events-none'), 200);
-        }
-
-        async function fetchHistory() {
-            const list = document.getElementById('historyList');
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/prescriptions/doctor/${drId}`, { headers: { 'Authorization': `Bearer ${token}` } });
-                doctorPrescriptions = await res.json();
-                if (doctorPrescriptions.length === 0) { list.innerHTML = '<div class="p-10 text-center text-slate-400 font-bold">No archives.</div>'; return; }
-                list.innerHTML = doctorPrescriptions.map((rx, index) => {
-                    const d = new Date(rx.createdAt).toLocaleDateString();
-                    const statusBadge = rx.status === 'Dispensed' ? '<span class="bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest">Dispensed</span>' : '<span class="bg-amber-50 text-amber-600 border border-amber-200 px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest">Active</span>';
-                    return `<div class="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-slate-50 border-b last:border-0"><div class="col-span-3 text-xs font-bold">${d}</div><div class="col-span-4 text-sm font-black truncate">${rx.patientId}</div><div class="col-span-3">${statusBadge}</div><div class="col-span-2 text-right"><button onclick="openRxModal(${index})" class="text-[10px] font-black uppercase tracking-widest bg-slate-900 text-white px-4 py-2 rounded-xl">Open</button></div></div>`;
-                }).join('');
-            } catch (err) { list.innerHTML = 'Error loading history.'; }
-        }
-
-        async function openRxModal(index) {
-            const rx = doctorPrescriptions[index];
-            document.getElementById('modalDrName').innerText = `Dr. ${drName}`;
-            document.getElementById('modalBroadcastId').innerText = rx.broadcastId || 'PENDING';
-            document.getElementById('modalOtp').innerText = rx.otp || '----';
-            document.getElementById('modalMedList').innerHTML = rx.medications.map(m => `<div class="bg-slate-50 p-3 rounded-xl border flex justify-between"><div><p class="font-black text-sm">${m.brandName}</p><p class="text-[9px] uppercase">${m.dosage}</p></div><p class="text-[10px] font-black text-indigo-600">${m.duration}</p></div>`).join('');
-            if(rx.investigations.length > 0) {
-                document.getElementById('modalTestSection').classList.remove('hidden');
-                document.getElementById('modalTestList').innerHTML = rx.investigations.map(t => `<span class="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-[9px] font-black uppercase border border-indigo-100">${t}</span>`).join('');
-            } else document.getElementById('modalTestSection').classList.add('hidden');
-            document.getElementById('rxModal').classList.remove('opacity-0', 'pointer-events-none');
-            document.getElementById('rxModalContent').classList.remove('scale-95');
-        }
-
-        function closeRxModal() {
-            document.getElementById('rxModalContent').classList.add('scale-95');
-            setTimeout(() => document.getElementById('rxModal').classList.add('opacity-0', 'pointer-events-none'), 200);
-        }
+        function logout() { localStorage.clear(); window.location.href = 'index.html'; }
     </script>
 </body>
 </html>
