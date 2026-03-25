@@ -3,8 +3,7 @@ const router = express.Router();
 const Prescription = require('../models/Prescription');
 const jwt = require('jsonwebtoken');
 
-// 🛡️ INLINE SECURITY VAULT (Middleware)
-// This guarantees the routes are protected without relying on external files
+// 🛡️ SECURITY VAULT
 const authenticate = (req, res, next) => {
     const authHeader = req.header('Authorization');
     if (!authHeader) return res.status(401).json({ msg: 'Access Denied: No Cryptographic Token Provided' });
@@ -23,8 +22,14 @@ const authenticate = (req, res, next) => {
 // ==========================================
 router.post('/', authenticate, async (req, res) => {
     try {
+        // 🌟 FIXED: RESTORING THE MISSING IDENTIFIERS 🌟
+        const generatedBroadcastId = 'HOLMES-RX-' + Math.floor(1000 + Math.random() * 9000);
+        const generatedOtp = Math.floor(1000 + Math.random() * 9000).toString();
+
         const newRx = new Prescription({
             ...req.body,
+            broadcastId: generatedBroadcastId,
+            otp: generatedOtp,
             status: 'Active'
         });
         const savedRx = await newRx.save();
@@ -69,23 +74,16 @@ router.get('/verify', authenticate, async (req, res) => {
         const { broadcastId, otp } = req.query;
         if (!broadcastId || !otp) return res.status(400).json({ msg: "Missing Broadcast ID or OTP." });
 
-        // Search the vault for this exact ID and OTP combination
         const rx = await Prescription.findOne({ broadcastId, otp }).populate('doctorId', 'name email');
-        
         if (!rx) return res.status(404).json({ msg: "Invalid Broadcast ID or OTP." });
 
-        // Convert to standard object to safely modify for the frontend
         let formattedRx = rx.toObject();
-        
-        // Safety Check: Because your database stores patientId as an email string,
-        // we wrap it in a 'name' object here so the Pharmacist frontend doesn't crash!
         if (typeof formattedRx.patientId === 'string') {
             formattedRx.patientId = { name: formattedRx.patientId }; 
         }
 
         res.json(formattedRx);
     } catch (err) {
-        console.error("Verification Error:", err);
         res.status(500).json({ msg: `Server Error: ${err.message}` });
     }
 });
@@ -97,18 +95,12 @@ router.put('/:id/dispense', authenticate, async (req, res) => {
     try {
         const rx = await Prescription.findById(req.params.id);
         if (!rx) return res.status(404).json({ msg: "Prescription not found in the Grid." });
+        if (rx.status === 'Dispensed') return res.status(400).json({ msg: "This prescription has already been dispensed." });
 
-        if (rx.status === 'Dispensed') {
-            return res.status(400).json({ msg: "This prescription has already been dispensed." });
-        }
-
-        // Lock the prescription permanently
         rx.status = 'Dispensed';
         await rx.save();
-
         res.json({ msg: "Prescription locked and dispensed successfully." });
     } catch (err) {
-        console.error("Dispense Error:", err);
         res.status(500).json({ msg: `Server Error: ${err.message}` });
     }
 });

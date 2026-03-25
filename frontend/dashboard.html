@@ -26,7 +26,6 @@
             </div>
             <h1 class="hidden lg:block ml-4 text-xl font-black tracking-tighter">Holmes <span class="text-teal-400">eRx</span></h1>
         </div>
-
         <nav class="flex-1 py-8 flex flex-col gap-2 px-4">
             <button onclick="switchTab('rxPad')" id="navRxPad" class="nav-btn active flex items-center p-4 rounded-2xl bg-teal-500/10 text-teal-400 transition-all">
                 <i class="fa-solid fa-pen-nib text-xl lg:mr-4 w-6 text-center"></i>
@@ -37,7 +36,6 @@
                 <span class="hidden lg:block font-bold text-sm">Rx History & Labs</span>
             </button>
         </nav>
-
         <div class="p-4 border-t border-slate-800">
             <div class="hidden lg:block mb-4 px-4 text-center">
                 <p id="drNameDisplay" class="font-black text-sm text-white truncate">Loading...</p>
@@ -51,7 +49,6 @@
     </aside>
 
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative bg-slate-50">
-        
         <header class="h-24 glass-panel border-b border-slate-200 flex items-center justify-between px-8 shrink-0 z-10">
             <div>
                 <h2 id="pageTitle" class="text-2xl font-black text-slate-900 tracking-tighter">Clinical Pad</h2>
@@ -66,9 +63,7 @@
         </header>
 
         <div class="flex-1 overflow-y-auto custom-scrollbar p-8">
-            
             <div id="viewRxPad" class="max-w-5xl mx-auto space-y-6 block">
-                
                 <div class="bg-white rounded-[32px] p-8 shadow-sm border border-slate-200 flex flex-col md:flex-row gap-6">
                     <div class="flex-1">
                         <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Patient Grid ID (Email)</label>
@@ -77,14 +72,15 @@
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    
                     <div class="lg:col-span-2 bg-white rounded-[32px] shadow-sm border border-slate-200 overflow-hidden flex flex-col">
                         <div class="p-6 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
                             <h3 class="font-black text-slate-900 uppercase tracking-widest text-xs"><i class="fa-solid fa-capsules text-teal-500 mr-2"></i> Medications</h3>
                         </div>
                         <div class="p-6 flex-1 flex flex-col">
                             <div class="grid grid-cols-12 gap-2 mb-4">
-                                <input type="text" id="medName" placeholder="Brand Name" class="col-span-4 premium-input bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm font-bold outline-none">
+                                <input type="text" id="medName" list="drugDatabaseList" oninput="searchDrugs(this.value)" placeholder="Brand Name" class="col-span-4 premium-input bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm font-bold outline-none">
+                                <datalist id="drugDatabaseList"></datalist>
+                                
                                 <input type="text" id="medDose" placeholder="e.g. 1+0+1" class="col-span-3 premium-input bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm font-bold outline-none text-center">
                                 <select id="medTiming" class="col-span-3 premium-input bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm font-bold outline-none text-center appearance-none">
                                     <option value="After Meal">After Meal</option>
@@ -96,7 +92,6 @@
                             <button onclick="addMedication()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-black text-[10px] uppercase tracking-widest p-3 rounded-xl transition-colors mb-6">
                                 + Add to Prescription
                             </button>
-                            
                             <div id="medListDisplay" class="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar min-h-[150px]">
                                 <div class="text-center text-slate-300 font-bold text-sm py-10">No medications added yet</div>
                             </div>
@@ -143,13 +138,11 @@
                     </div>
                 </div>
             </div>
-
         </div>
     </main>
 
     <div id="rxModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 p-6 opacity-0 pointer-events-none transition-all duration-300">
         <div class="bg-white rounded-[32px] w-full max-w-[800px] shadow-2xl relative overflow-hidden border border-slate-100 glass-panel transform scale-95 transition-transform duration-300" id="rxModalContent">
-            
             <div class="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50">
                 <div>
                     <h3 class="text-xl font-black text-slate-900 uppercase tracking-tighter">Prescription Detail</h3>
@@ -157,9 +150,7 @@
                 </div>
                 <button onclick="closeRxModal()" class="w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center hover:bg-rose-500 hover:text-white transition-colors"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            
             <div class="p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
-
                 <div class="flex justify-between items-center bg-slate-900 p-6 rounded-[20px] shadow-inner border border-slate-800">
                     <div>
                         <p class="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-1">Broadcast ID (Rx No.)</p>
@@ -170,29 +161,24 @@
                         <p id="modalOtp" class="font-mono font-black text-emerald-400 text-3xl tracking-[0.2em] leading-none">----</p>
                     </div>
                 </div>
-
                 <div>
                     <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Medications Ordered</h4>
                     <div id="modalMedList" class="space-y-2"></div>
                 </div>
-                
                 <div id="modalTestSection">
                     <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 border-t pt-6">Lab Investigations</h4>
                     <div id="modalTestList" class="flex flex-wrap gap-2"></div>
                 </div>
-                
                 <div id="modalCompletedLabsSection" class="hidden mt-6 border-t pt-6">
                     <h4 class="text-[10px] font-black text-cyan-600 uppercase tracking-widest mb-3"><i class="fa-solid fa-microscope mr-1"></i> Diagnostic Reports</h4>
                     <div id="modalCompletedLabsList" class="space-y-3"></div>
                 </div>
-                
             </div>
         </div>
     </div>
 
     <div id="successModal" class="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/90 p-4 opacity-0 pointer-events-none transition-opacity duration-300">
         <div class="bg-[#115e59] rounded-[40px] w-full max-w-[900px] shadow-2xl relative overflow-hidden border border-teal-800 transform scale-95 transition-transform duration-500 flex flex-col" id="successModalContent">
-            
             <div class="p-8 border-b border-teal-700/50 flex justify-between items-center bg-[#134e4a]">
                 <div class="flex items-center gap-4">
                     <div class="w-12 h-12 bg-emerald-500/20 rounded-2xl flex items-center justify-center text-emerald-400">
@@ -208,9 +194,7 @@
                     <p id="successDrName" class="text-sm font-bold text-white">Dr. Name</p>
                 </div>
             </div>
-
             <div class="flex flex-col md:flex-row bg-[#f8fafc]">
-                
                 <div class="flex-1 p-10 max-h-[50vh] overflow-y-auto custom-scrollbar">
                     <div class="mb-8">
                         <h4 class="text-[10px] font-black text-teal-600 uppercase tracking-widest mb-4 flex items-center"><i class="fa-solid fa-capsules mr-2"></i> Prescribed Medications</h4>
@@ -221,27 +205,22 @@
                         <div id="successTestList" class="flex flex-wrap gap-2"></div>
                     </div>
                 </div>
-
                 <div class="w-full md:w-1/3 border-l border-slate-200 p-10 bg-white text-center flex flex-col justify-center items-center">
                     <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Verify at Dispensary</p>
                     <p class="text-xs text-slate-500 mb-6 font-bold">Patient must provide this Token</p>
-                    
                     <div class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-4">
                         <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Prescription Rx No.</p>
                         <p id="successBroadcastId" class="font-mono font-black text-lg text-slate-800 tracking-wider">HOLMES-RX-...</p>
                     </div>
-
                     <div id="successQr" class="w-32 h-32 bg-slate-50 p-2 rounded-2xl border-2 border-slate-100 shadow-sm mb-4 flex items-center justify-center">
                         <i class="fa-solid fa-qrcode text-5xl text-slate-300"></i>
                     </div>
-
                     <div class="w-full bg-emerald-50 border border-emerald-100 rounded-2xl p-4">
                         <p class="text-[9px] font-black text-emerald-600 uppercase tracking-widest mb-1">Secure OTP Key</p>
                         <p id="successOtp" class="font-mono font-black text-4xl text-emerald-500 tracking-[0.2em]">----</p>
                     </div>
                 </div>
             </div>
-
             <div class="p-6 border-t border-slate-200 bg-slate-50 flex justify-between items-center">
                 <p id="successPatientId" class="text-[10px] font-black text-slate-500 uppercase tracking-widest"><i class="fa-solid fa-user mr-1"></i> Patient ID: ---</p>
                 <div class="flex items-center gap-4">
@@ -251,36 +230,28 @@
                     </button>
                 </div>
             </div>
-
         </div>
     </div>
 
-
     <script>
+        // Note: Make sure the API route here matches your specific drug database route!
         const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
         
         let medications = [];
         let investigations = [];
         let doctorPrescriptions = [];
 
-        // Security Vault Check
         const token = localStorage.getItem('eRx_Token');
         const role = localStorage.getItem('eRx_UserRole');
         const drId = localStorage.getItem('eRx_UserId');
         const drName = localStorage.getItem('eRx_UserName');
 
-        if (!token || role !== 'doctor') {
-            window.location.href = 'index.html';
-        }
+        if (!token || role !== 'doctor') window.location.href = 'index.html';
 
-        // Init App
         document.getElementById('drNameDisplay').innerText = `Dr. ${drName}`;
         fetchHistory();
 
-        function logout() {
-            localStorage.clear();
-            window.location.href = 'index.html';
-        }
+        function logout() { localStorage.clear(); window.location.href = 'index.html'; }
 
         function switchTab(tab) {
             document.getElementById('viewRxPad').classList.add('hidden');
@@ -303,19 +274,34 @@
             }
         }
 
-        // BUILDER FUNCTIONS
+        // 🌟 RESTORED DRUG SEARCH ENGINE 🌟
+        async function searchDrugs(query) {
+            if(query.length < 2) return; // Only search if typing more than 1 letter
+            try {
+                // Adjust '/api/medicines' if your route was named differently!
+                const res = await fetch(`${API_BASE_URL}/api/medicines?search=${query}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if(res.ok) {
+                    const drugs = await res.json();
+                    const datalist = document.getElementById('drugDatabaseList');
+                    // Assumes the drug object has a 'brandName' field
+                    datalist.innerHTML = drugs.map(d => `<option value="${d.brandName}">`).join('');
+                }
+            } catch(e) {
+                console.error("Drug DB Offline:", e);
+            }
+        }
+
         function addMedication() {
             const name = document.getElementById('medName').value;
             const dose = document.getElementById('medDose').value;
             const timing = document.getElementById('medTiming').value;
             const duration = document.getElementById('medDuration').value;
-
             if (!name || !dose || !duration) return alert("Incomplete Medicine details.");
 
             medications.push({ brandName: name, dosage: dose, timing, duration });
             renderMedications();
-            
-            // Clear inputs
             document.getElementById('medName').value = '';
             document.getElementById('medDose').value = '';
             document.getElementById('medDuration').value = '';
@@ -341,10 +327,7 @@
             `).join('');
         }
 
-        function removeMedication(index) {
-            medications.splice(index, 1);
-            renderMedications();
-        }
+        function removeMedication(index) { medications.splice(index, 1); renderMedications(); }
 
         function addTest() {
             const test = document.getElementById('testName').value;
@@ -363,12 +346,8 @@
             `).join('');
         }
 
-        function removeTest(index) {
-            investigations.splice(index, 1);
-            renderTests();
-        }
+        function removeTest(index) { investigations.splice(index, 1); renderTests(); }
 
-        // GENERATE & TRANSMIT
         async function generatePrescription() {
             const patientId = document.getElementById('patientId').value;
             if (!patientId || medications.length === 0) return alert("Patient Email and at least 1 Medicine required.");
@@ -397,13 +376,12 @@
                 
                 if (res.ok) {
                     showSuccessModal(data, patientId);
-                    // Reset Pad
                     medications = [];
                     investigations = [];
                     document.getElementById('patientId').value = '';
                     renderMedications();
                     renderTests();
-                    fetchHistory(); // Background refresh
+                    fetchHistory(); 
                 } else {
                     alert(data.msg || "Transmission Failed.");
                 }
@@ -414,12 +392,10 @@
             }
         }
 
-        // SUCCESS UI
         function showSuccessModal(data, patId) {
             document.getElementById('successDrName').innerText = `Dr. ${drName}`;
             document.getElementById('successPatientId').innerHTML = `<i class="fa-solid fa-user mr-1"></i> Patient ID: ${patId}`;
             
-            // 🌟 THE MISSING LINK IS NOW HERE 🌟
             document.getElementById('successBroadcastId').innerText = data.broadcastId || "PENDING";
             document.getElementById('successOtp').innerText = data.otp || "----";
             
@@ -458,7 +434,6 @@
             setTimeout(() => modal.classList.add('opacity-0', 'pointer-events-none'), 200);
         }
 
-        // HISTORY VIEWER
         async function fetchHistory() {
             const list = document.getElementById('historyList');
             try {
@@ -494,7 +469,6 @@
             }
         }
 
-        // UNIFIED MASTER MODAL (KEYS + LABS)
         async function openRxModal(index) {
             const rx = doctorPrescriptions[index];
             document.getElementById('modalDrName').innerText = `Dr. ${drName}`;
