@@ -32,6 +32,9 @@ app.use('/api/labs', require('./backend/routes/labs'));
 // Render provides the PORT variable; we MUST use it exactly.
 const PORT = process.env.PORT || 10000;
 
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Master Engine running on port ${PORT}`);
+// Let Render decide the port dynamically. Fallback to 3000 for local testing.
+const server = app.listen(process.env.PORT || 3000, () => {
+    // This asks the server exactly which port it successfully opened
+    const actualPort = server.address().port;
+    console.log(`🚀 Master Engine is LIVE and bound to port: ${actualPort}`);
 });
