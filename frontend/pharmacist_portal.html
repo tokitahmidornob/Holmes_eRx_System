@@ -3,310 +3,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Holmes eRx | Dispensary Terminal</title>
-    
-    <script src="https://holmes-erx-system.onrender.com/socket.io/socket.io.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
-    <style>
-        :root { --primary: #047857; --primary-hover: #065f46; --bg-color: #ecfdf5; --card-bg: #ffffff; --text-main: #1f2937; --border-color: #a7f3d0; --danger: #ef4444; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 20px; display: flex; justify-content: center; }
-        
-        .dashboard-container { width: 100%; max-width: 900px; background: var(--card-bg); padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-top: 8px solid var(--primary); }
-        h1 { color: var(--primary); text-align: center; border-bottom: 2px solid var(--border-color); padding-bottom: 10px; margin-bottom: 30px; }
-        .section-title { font-size: 1.2rem; color: var(--primary); margin-bottom: 15px; font-weight: bold; }
-        
-        .search-box { display: flex; gap: 10px; margin-bottom: 30px; }
-        input[type="text"], input[type="number"] { padding: 12px; border: 2px solid var(--border-color); border-radius: 6px; font-size: 16px; outline: none; }
-        .search-box input { flex: 1; font-size: 18px; text-align: center; letter-spacing: 2px; font-weight: bold; }
-        
-        button { background-color: var(--primary); color: white; border: none; padding: 15px 30px; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; transition: background 0.3s; }
-        button:hover { background-color: var(--primary-hover); }
-        
-        #resultsArea { display: none; animation: fadeIn 0.5s; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .patient-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-bottom: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; font-size: 1.1rem; }
-        .record-badge { grid-column: span 2; background: #e0e7ff; color: #4338ca; padding: 8px; border-radius: 4px; font-size: 0.9rem; text-align: center; font-family: monospace; font-weight: bold;}
-        
-        /* 💸 BILLING TABLE STYLES */
-        .billing-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        .billing-table th, .billing-table td { text-align: left; padding: 12px; border-bottom: 1px solid #e2e8f0; }
-        .billing-table th { background-color: #f1f5f9; color: #475569; font-size: 0.9rem; text-transform: uppercase;}
-        .billing-table input { width: 70px; padding: 8px; font-size: 14px; text-align: center; border: 1px solid #cbd5e1;}
-        
-        .grand-total-box { background: #047857; color: white; padding: 15px 20px; border-radius: 8px; text-align: right; font-size: 1.5rem; font-weight: bold; margin-bottom: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        
-        .action-buttons { display: flex; gap: 15px; }
-        .action-buttons button { flex: 1; font-size: 1.2rem; }
-        .logout-btn { background-color: #ef4444; width: 100%; margin-top: 30px; }
-        .logout-btn:hover { background-color: #dc2626; }
-    </style>
+    <title>Holmes eRx | Dispensary Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body>
+<body class="bg-gray-100 font-sans min-h-screen flex flex-col">
 
-<div class="dashboard-container">
-    <h1>Holmes eRx | Dispensary Terminal</h1>
-
-    <div class="section-title">1. Verify Authorized OTP</div>
-    <div class="search-box">
-        <input type="text" id="otpInput" placeholder="Enter 6-Digit OTP" maxlength="6">
-        <button onclick="verifyAndFetch()">Decrypt Vault</button>
-    </div>
-
-    <div id="resultsArea">
-        <div class="section-title">2. Authorization Data</div>
-        <div class="patient-card">
-            <div class="record-badge" id="displayRecordId">Record ID: --</div>
-            <p><strong>Patient:</strong> <span id="pName" style="color: var(--primary); font-weight: bold;">--</span></p>
-            <p><strong>Patient ID:</strong> <span id="pId">--</span></p>
-            <p><strong>Age:</strong> <span id="pAge">--</span></p>
-            <p><strong>Blood Group:</strong> <span id="pBlood" style="color: var(--danger); font-weight: bold;">--</span></p>
-        </div>
-
-        <div class="section-title">3. Point of Sale (Billing)</div>
-        <table class="billing-table">
-            <thead>
-                <tr>
-                    <th>Medication</th>
-                    <th>Dosage</th>
-                    <th>Qty</th>
-                    <th>Unit Price (৳)</th>
-                    <th style="text-align: right;">Total (৳)</th>
-                </tr>
-            </thead>
-            <tbody id="medicationTableBody">
-                </tbody>
-        </table>
-
-        <div class="grand-total-box">
-            Grand Total: ৳ <span id="grandTotalDisplay">0.00</span>
-        </div>
-
-        <div class="action-buttons">
-            <button onclick="clearTerminal()" style="background-color: #64748b;">Cancel</button>
-            <button onclick="generateInvoicePDF()" style="background-color: #3b82f6;">🖨️ Print Invoice & Dispense</button>
-        </div>
-    </div>
-    
-    <button class="logout-btn" onclick="logout()">🚪 Secure Logout</button>
-</div>
-
-<script>
-    // 🔐 UPDATED SECURITY KEYS TO MATCH STEP 5.2
-    const pharmacistId = localStorage.getItem('userId');
-    const pharmacistName = "Pharmacist Desk"; // We can make this dynamic later
-    let activePrescriptionData = null; 
-
-    window.onload = function() {
-        const token = localStorage.getItem('token');
-        
-        // Check for the new token and ensure the ID starts with 'PH-' (Pharmacist)
-        if (!token || !pharmacistId || !pharmacistId.startsWith('PH-')) {
-            alert("🔒 ACCESS DENIED. Redirecting to Gateway.");
-            window.location.href = 'index.html'; // Redirects to the new Grand Lobby
-        }
-    };
-
-    function logout() { 
-        localStorage.clear(); 
-        window.location.href = 'index.html'; 
-    }
-
-    async function verifyAndFetch() {
-        const otp = document.getElementById("otpInput").value.trim();
-        if (!otp || otp.length < 5) return alert("Please enter a valid OTP.");
-
-        try {
-            const rxResponse = await fetch(`https://holmes-erx-system.onrender.com/api/prescriptions/${otp}`);
-            const rxData = await rxResponse.json();
-
-            if (!rxResponse.ok) {
-                alert("❌ ACCESS DENIED: " + (rxData.error || "Invalid OTP"));
-                clearTerminal();
-                return;
-            }
-
-            activePrescriptionData = rxData;
-            const patientId = rxData.patientId;
-            let patientName = "Unknown", patientAge = "Unknown", patientBlood = "Unknown";
-
-            try {
-                const ptResponse = await fetch(`https://holmes-erx-system.onrender.com/api/patients/${patientId}`);
-                const ptData = await ptResponse.json();
-                if (ptResponse.ok) {
-                    patientName = ptData.name; patientAge = ptData.age; patientBlood = ptData.bloodGroup;
-                    activePrescriptionData.patientName = patientName; 
-                }
-            } catch (ptError) { console.warn("Could not retrieve patient details."); }
-
-            document.getElementById("displayRecordId").innerText = `Vault Record ID: ${rxData.recordId}`;
-            document.getElementById("pName").innerText = patientName;
-            document.getElementById("pId").innerText = rxData.patientId;
-            document.getElementById("pAge").innerText = patientAge;
-            document.getElementById("pBlood").innerText = patientBlood;
-
-            const tableBody = document.getElementById("medicationTableBody");
-            tableBody.innerHTML = "";
+    <script>
+        (function() {
+            const token = localStorage.getItem('holmesToken');
+            const userStr = localStorage.getItem('holmesUser');
+            if (!token || !userStr) return window.location.href = '/';
             
-            rxData.medications.forEach((med, index) => {
-                const row = document.createElement("tr");
-                row.innerHTML = `
-                    <td><strong>${med.name}</strong></td>
-                    <td>${med.dosage}</td>
-                    <td><input type="number" min="0" value="0" class="qty-input" id="qty_${index}" oninput="calculateTotal()"></td>
-                    <td><input type="number" min="0" value="0" class="price-input" id="price_${index}" oninput="calculateTotal()"></td>
-                    <td style="text-align: right; font-weight: bold;">৳ <span class="row-total" id="total_${index}">0.00</span></td>
-                `;
-                tableBody.appendChild(row);
-            });
-
-            document.getElementById("resultsArea").style.display = "block";
-            calculateTotal(); 
-        } catch (error) { alert("Critical Error: Cannot connect to the Iron Vault."); }
-    }
-
-    function calculateTotal() {
-        if (!activePrescriptionData) return;
-        
-        let grandTotal = 0;
-        const totalRows = activePrescriptionData.medications.length;
-
-        for (let i = 0; i < totalRows; i++) {
-            const qty = parseFloat(document.getElementById(`qty_${i}`).value) || 0;
-            const price = parseFloat(document.getElementById(`price_${i}`).value) || 0;
-            const rowTotal = qty * price;
-            
-            document.getElementById(`total_${i}`).innerText = rowTotal.toFixed(2);
-            grandTotal += rowTotal;
-        }
-
-        document.getElementById("grandTotalDisplay").innerText = grandTotal.toFixed(2);
-    }
-
-    function clearTerminal() {
-        document.getElementById("resultsArea").style.display = "none";
-        document.getElementById("otpInput").value = "";
-        activePrescriptionData = null;
-    }
-
-    // --- 🖨️ THE DOCTOR'S WINNING PDF ENGINE REPLICATED ---
-    function generateInvoicePDF() {
-        if (!activePrescriptionData) return;
-
-        const ptName = activePrescriptionData.patientName || "Unknown Patient";
-        const dateStr = new Date().toLocaleString();
-        const grandTotal = document.getElementById("grandTotalDisplay").innerText;
-        const recordId = activePrescriptionData.recordId;
-
-        let billedItemsHTML = "";
-        const totalRows = activePrescriptionData.medications.length;
-        
-        for (let i = 0; i < totalRows; i++) {
-            const medName = activePrescriptionData.medications[i].name;
-            const qty = document.getElementById(`qty_${i}`).value || "0";
-            const price = document.getElementById(`price_${i}`).value || "0";
-            const rowTotal = document.getElementById(`total_${i}`).innerText;
-
-            if (parseFloat(qty) > 0) {
-                billedItemsHTML += `
-                    <tr>
-                        <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;"><strong>${medName}</strong></td>
-                        <td style="padding: 10px; border-bottom: 1px solid #e2e8f0; text-align: center;">${qty}</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #e2e8f0; text-align: center;">৳ ${price}</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #e2e8f0; text-align: right; font-weight: bold;">৳ ${rowTotal}</td>
-                    </tr>
-                `;
+            const user = JSON.parse(userStr);
+            const validRoles = ["pharmacist", "Dispensary (Pharmacist)"];
+            if (!validRoles.includes(user.role)) {
+                alert(`Unauthorized Entry!\nSystem found role: "${user.role}"\nRequired: Pharmacist`);
+                window.location.href = '/';
             }
-        }
+        })();
+    </script>
 
-        if (billedItemsHTML === "") {
-            alert("⚠️ Please enter a quantity for at least one medication to generate an invoice.");
-            return;
-        }
+    <nav class="bg-emerald-900 text-white shadow-lg flex justify-between items-center px-8 py-4">
+        <div class="flex items-center space-x-3">
+            <i class="fa-solid fa-pills text-2xl"></i>
+            <h1 class="text-xl font-bold tracking-wider">Holmes eRx <span class="text-emerald-300 text-sm font-normal">| Dispensary</span></h1>
+        </div>
+        <div class="flex items-center space-x-6">
+            <span id="pharmNameDisplay" class="font-semibold text-sm">Loading...</span>
+            <button onclick="logout()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-sm font-bold transition-colors">
+                Sign Out
+            </button>
+        </div>
+    </nav>
 
-        // 1. Create a completely detached, pristine container
-        const container = document.createElement('div');
+    <div class="container mx-auto mt-10 px-4 max-w-4xl flex-grow">
         
-        // 2. Lock the width strictly to 750px inside the container
-        container.innerHTML = `
-            <div style="width: 750px; padding: 40px; font-family: Arial, sans-serif; color: #1f2937; background: white; box-sizing: border-box;">
-                
-                <div style="border-bottom: 4px solid #047857; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end;">
-                    <div>
-                        <h1 style="color: #047857; margin: 0; font-size: 32px; letter-spacing: -1px;">Holmes eRx Pharmacy</h1>
-                        <p style="margin: 5px 0 0 0; font-size: 14px; color: #64748b;">Central Dhaka Dispensary Wing</p>
-                    </div>
-                    <div style="text-align: right;">
-                        <h2 style="margin: 0; color: #333;">OFFICIAL INVOICE</h2>
-                        <p style="margin: 5px 0 0 0; font-size: 14px;"><strong>Date:</strong> ${dateStr}</p>
-                    </div>
+        <div class="bg-white p-8 rounded-2xl shadow-lg border border-gray-200 text-center" id="scannerSection">
+            <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i class="fa-solid fa-qrcode text-4xl"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">Scan Prescription</h2>
+            <p class="text-gray-500 mb-8">Enter the RX-ID and 6-digit OTP provided by the patient.</p>
+
+            <div class="flex flex-col md:flex-row justify-center gap-4 max-w-lg mx-auto">
+                <input type="text" id="rxIdInput" placeholder="RX-ID (e.g., RX-A1B2C3)" class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-emerald-500 outline-none uppercase font-mono text-center">
+                <input type="text" id="otpInput" placeholder="6-Digit OTP" maxlength="6" class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-emerald-500 outline-none font-mono text-center tracking-widest text-lg">
+            </div>
+            
+            <button onclick="verifyPrescription()" class="mt-6 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-10 rounded-lg shadow-lg transition-transform transform hover:scale-105">
+                <i class="fa-solid fa-magnifying-glass mr-2"></i> Verify & Retrieve
+            </button>
+        </div>
+
+        <div id="rxDetailsSection" class="bg-white p-8 rounded-2xl shadow-lg border border-gray-200 mt-6 hidden">
+            <div class="flex justify-between items-start border-b pb-4 mb-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800">Verified Prescription</h2>
+                    <p class="text-sm text-gray-500" id="displayRxId">RX-123456</p>
                 </div>
-
-                <div style="display: flex; justify-content: space-between; background: #ecfdf5; padding: 20px; border-radius: 8px; margin-bottom: 30px; border: 1px solid #a7f3d0;">
-                    <div>
-                        <p style="margin: 0 0 5px 0;"><strong>Patient Name:</strong> ${ptName}</p>
-                        <p style="margin: 0;"><strong>Vault Record ID:</strong> ${recordId}</p>
-                    </div>
-                    <div style="text-align: right;">
-                        <p style="margin: 0 0 5px 0;"><strong>Dispensed By:</strong> ${pharmacistName}</p>
-                        <p style="margin: 0;"><strong>Pharmacist ID:</strong> ${pharmacistId}</p>
-                    </div>
-                </div>
-
-                <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px; min-height: 250px;">
-                    <thead>
-                        <tr style="background-color: #f1f5f9; text-transform: uppercase; font-size: 12px; color: #475569;">
-                            <th style="padding: 12px; text-align: left; border-bottom: 2px solid #cbd5e1;">Medication</th>
-                            <th style="padding: 12px; text-align: center; border-bottom: 2px solid #cbd5e1;">Qty</th>
-                            <th style="padding: 12px; text-align: center; border-bottom: 2px solid #cbd5e1;">Unit Price</th>
-                            <th style="padding: 12px; text-align: right; border-bottom: 2px solid #cbd5e1;">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody style="vertical-align: top;">
-                        ${billedItemsHTML}
-                    </tbody>
-                </table>
-
-                <div style="display: flex; justify-content: flex-end; margin-bottom: 60px;">
-                    <div style="background: #047857; color: white; padding: 15px 30px; border-radius: 8px; font-size: 24px; font-weight: bold; width: 300px; text-align: right;">
-                        Total: ৳ ${grandTotal}
-                    </div>
-                </div>
-
-                <div style="display: flex; justify-content: space-between; margin-top: 50px;">
-                    <div style="text-align: center; width: 250px;">
-                        <p style="border-top: 1px solid black; padding-top: 5px; margin: 0;">Customer Signature</p>
-                    </div>
-                    <div style="text-align: center; width: 250px;">
-                        <p style="border-top: 1px solid black; padding-top: 5px; margin: 0;">Authorized Dispenser</p>
-                    </div>
-                </div>
-
-                <div style="border-top: 1px solid #ccc; padding-top: 20px; text-align: center; color: #64748b; font-size: 12px; margin-top: 40px;">
-                    Thank you for trusting Holmes eRx Ecosystem. Wishing you a speedy recovery!
+                <div class="text-right">
+                    <p class="text-sm font-bold text-emerald-600"><i class="fa-solid fa-user-md mr-1"></i> <span id="displayDocName">Dr. Name</span></p>
+                    <p class="text-sm text-gray-500"><i class="fa-solid fa-user-injured mr-1"></i> <span id="displayPatName">Patient Name</span> (<span id="displayPatAge">Age</span>)</p>
                 </div>
             </div>
-        `;
 
-        // 3. Lock coordinates, pass the pristine unattached container directly!
-        const opt = {
-            margin:       0.3,
-            filename:     `Pharmacy_Invoice_${ptName.replace(/\s+/g, '_')}.pdf`,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { 
-                scale: 2, 
-                scrollX: 0, 
-                scrollY: 0 
-            }, 
-            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
-        };
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50 text-gray-600 text-sm uppercase tracking-wider border-b">
+                            <th class="p-3 font-semibold">Medicine</th>
+                            <th class="p-3 font-semibold text-center">Dosage</th>
+                            <th class="p-3 font-semibold text-center">Duration</th>
+                            <th class="p-3 font-semibold text-right">Dispensed</th>
+                        </tr>
+                    </thead>
+                    <tbody id="medicationList" class="divide-y divide-gray-100">
+                        </tbody>
+                </table>
+            </div>
 
-        html2pdf().set(opt).from(container).save().then(() => {
-            clearTerminal();
-            alert("✅ Invoice Generated & Medications Dispensed Successfully.");
-        });
-    }
-</script>
+            <div class="mt-8 flex justify-end space-x-4">
+                <button onclick="resetScanner()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-6 rounded-lg transition-colors">
+                    Cancel
+                </button>
+                <button onclick="fulfillPrescription()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition-transform transform hover:scale-105">
+                    <i class="fa-solid fa-check-double mr-2"></i> Mark as Fulfilled
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem('holmesUser'));
+        document.getElementById('pharmNameDisplay').innerText = `Pharmacist: ${user.name}`;
+        
+        let currentRxDbId = null;
+
+        async function verifyPrescription() {
+            const rxId = document.getElementById('rxIdInput').value.trim().toUpperCase();
+            const otp = document.getElementById('otpInput').value.trim();
+
+            if (!rxId || !otp) return alert("Please enter both RX-ID and OTP.");
+
+            try {
+                const res = await fetch('/api/prescriptions/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ rxId, otp })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    currentRxDbId = data.data._id; // Store internal DB ID for fulfillment
+                    
+                    // Populate UI
+                    document.getElementById('displayRxId').innerText = data.data.prescriptionId;
+                    document.getElementById('displayDocName').innerText = data.data.doctor.name;
+                    document.getElementById('displayPatName').innerText = data.data.patientName;
+                    document.getElementById('displayPatAge').innerText = data.data.patientAge || 'N/A';
+
+                    const tbody = document.getElementById('medicationList');
+                    tbody.innerHTML = '';
+                    
+                    data.data.medicines.forEach(med => {
+                        tbody.innerHTML += `
+                            <tr class="hover:bg-gray-50">
+                                <td class="p-3">
+                                    <div class="font-bold text-gray-800">${med.brandName}</div>
+                                    <div class="text-xs text-gray-500">${med.genericName}</div>
+                                </td>
+                                <td class="p-3 text-center font-mono text-sm">${med.dose}</td>
+                                <td class="p-3 text-center text-sm">${med.duration}</td>
+                                <td class="p-3 text-right">
+                                    <input type="checkbox" checked class="w-5 h-5 text-emerald-600 rounded focus:ring-emerald-500">
+                                </td>
+                            </tr>
+                        `;
+                    });
+
+                    // Switch views
+                    document.getElementById('scannerSection').classList.add('hidden');
+                    document.getElementById('rxDetailsSection').classList.remove('hidden');
+                } else {
+                    alert(data.error);
+                }
+            } catch (err) { alert("Server connection failed."); }
+        }
+
+        async function fulfillPrescription() {
+            if (!currentRxDbId) return;
+
+            try {
+                const res = await fetch(`/api/prescriptions/fulfill/${currentRxDbId}`, { method: 'POST' });
+                const data = await res.json();
+
+                if (data.success) {
+                    alert("✅ Prescription successfully fulfilled and locked in the National Grid!");
+                    resetScanner();
+                } else {
+                    alert("Failed: " + data.error);
+                }
+            } catch (err) { alert("Server error."); }
+        }
+
+        function resetScanner() {
+            document.getElementById('rxIdInput').value = '';
+            document.getElementById('otpInput').value = '';
+            document.getElementById('scannerSection').classList.remove('hidden');
+            document.getElementById('rxDetailsSection').classList.add('hidden');
+            currentRxDbId = null;
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/';
+        }
+    </script>
 </body>
 </html>

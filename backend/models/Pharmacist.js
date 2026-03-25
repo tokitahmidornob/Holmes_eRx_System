@@ -1,22 +1,22 @@
 const mongoose = require('mongoose');
 
 const pharmacistSchema = new mongoose.Schema({
-    pharmacistId: { type: String, required: true, unique: true, index: true }, 
-    name: { type: String, required: true, trim: true }, 
-    email: { type: String, required: true, unique: true, lowercase: true, trim: true }, 
+    pharmacistId: { type: String, required: true, unique: true },
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     
-    // Professional Details
-    employeeId: { type: String, trim: true }, 
-    contactNumber: { type: String, trim: true }, 
-    licenseNumber: { type: String, trim: true }, 
-    branchLocation: { type: String, trim: true }, 
+    // 💊 Dispensary Verification
+    pcbRegNumber: { type: String, default: "" }, // Pharmacy Council of Bangladesh
+    tradeLicense: { type: String, default: "" }, 
+    pharmacyName: { type: String, default: "" },
+    pharmacyAddress: { type: String, default: "" },
     
-    degrees: { type: [String], default: [] }, 
-    experienceYears: { type: Number, min: 0, default: 0 }, 
-    biography: { type: String, trim: true }
-}, { 
-    timestamps: true 
+    // 🏪 Operations
+    operatingHours: { type: String, default: "" },
+    emergencyAvailability: { type: Boolean, default: false },
+    
+    createdAt: { type: Date, default: Date.now }
 });
 
 module.exports = mongoose.model('Pharmacist', pharmacistSchema);

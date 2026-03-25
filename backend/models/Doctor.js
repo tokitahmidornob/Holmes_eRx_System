@@ -1,45 +1,26 @@
 const mongoose = require('mongoose');
 
 const doctorSchema = new mongoose.Schema({
-    doctorId: { 
-        type: String, 
-        required: true, 
-        unique: true,
-        index: true // ⚡ Speeds up directory searches dramatically
-    }, 
-    name: { type: String, required: true }, 
-    email: { 
-        type: String, 
-        required: true, 
-        unique: true,
-        lowercase: true,
-        trim: true
-    }, 
-    password: { type: String, required: true }, 
+    doctorId: { type: String, required: true, unique: true },
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
     
-    // Professional Details
-    contactNumber: { type: String, trim: true }, 
-    licenseNumber: { type: String, trim: true }, 
-    department: { type: String, trim: true }, 
-    designation: { type: String, trim: true }, 
+    // 🩺 Professional Bangladeshi Credentials
+    bmdcRegNumber: { type: String, default: "" }, // Bangladesh Medical and Dental Council
+    degrees: { type: [String], default: [] },
+    specialty: { type: String, default: "" },
+    designation: { type: String, default: "" },
+    workplace: { type: String, default: "" },
     
-    // Arrays for multiple qualifications
-    degrees: { type: [String], default: [] }, 
-    specialties: { type: [String], default: [] }, 
+    // 🏢 Logistics & Trust Markers
+    consultationHours: { type: String, default: "" },
+    chamberLocation: { type: String, default: "" },
+    surgicalLogCount: { type: Number, default: 0 }, // Public trust metric
+    digitalSignatureUrl: { type: String, default: "" }, // For stamping PDF prescriptions
     
-    experienceYears: { type: Number, min: 0, default: 0 }, 
-    biography: { type: String, trim: true }, 
-    profilePictureUrl: { type: String }, 
-    
-    isProfileComplete: { type: Boolean, default: false }, 
-    
-    // Practice Management
-    chambers: { type: Array, default: [] },    
-    consultationHours: { type: String },       
-    surgeryLogs: { type: Array, default: [] }
-    
-}, { 
-    timestamps: true // 🕒 Automatically manages createdAt and updatedAt
+    isProfileComplete: { type: Boolean, default: false },
+    createdAt: { type: Date, default: Date.now }
 });
 
 module.exports = mongoose.model('Doctor', doctorSchema);

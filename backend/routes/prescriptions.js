@@ -1,67 +1,70 @@
 const express = require('express');
 const router = express.Router();
-const jwt = require('jsonwebtoken');
 const Prescription = require('../models/Prescription');
 
-const JWT_SECRET = process.env.JWT_SECRET || "HolmesIronVaultSecretKey2026";
-
-// --- 🛑 SECURITY MIDDLEWARE ---
-const authenticateToken = (req, res, next) => {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1]; 
-    if (!token) return res.status(401).json({ success: false, error: "Access Denied. Digital badge required." });
-
-    jwt.verify(token, JWT_SECRET, (err, user) => {
-        if (err) return res.status(403).json({ success: false, error: "Invalid or expired badge." });
-        req.user = user; 
-        next();
-    });
-};
-
-// --- 📝 PRESCRIPTION ROUTES ---
-
-// 1. Issue a New Prescription (Secured - Doctors Only)
-router.post('/', authenticateToken, async (req, res) => {
-    // 🛡️ Extra Security: Ensure only logged-in doctors can create prescriptions
-    if (req.user.role !== 'doctor') {
-        return res.status(403).json({ success: false, error: "Unauthorized. Only physicians may issue prescriptions." });
-    }
-
-    const incomingData = req.body; 
-    const secureOTP = Math.floor(100000 + Math.random() * 900000).toString();
-    
+// --- 1. DOCTOR: Issue Prescription ---
+router.post('/issue', async (req, res) => {
     try {
-        const newRecord = new Prescription({ 
-            recordId: "RX-" + Date.now(), 
-            otp: secureOTP, 
-            ...incomingData, 
-            timestamp: new Date().toISOString() 
-        });
+        const { patientName, patientAge, patientGender, medicines, tests, doctorId, doctorName } = req.body;
         
-        await newRecord.save();
-        
-        // ⚡ REAL-TIME QUEUE: Broadcast to the pharmacist waiting room!
-        const io = req.app.get('io');
-        if (io) {
-            io.emit('new_prescription_alert', { message: "New prescription arrived!", recordId: newRecord.recordId });
-        }
+        const rxId = 'RX-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-        res.status(201).json({ success: true, message: "Prescription securely archived!", otp: secureOTP });
-    } catch (error) { 
-        console.error("Prescription Error:", error);
-        res.status(500).json({ success: false, error: "Vault lock failed." }); 
+        const newPrescription = new Prescription({
+            prescriptionId: rxId,
+            otp: otp,
+            doctorId: doctorId || 'UNKNOWN-DOC',
+            doctorName: doctorName || 'Doctor',
+            patientName, patientAge, patientGender, medicines,
+            tests: tests || [] 
+        });
+
+        await newPrescription.save();
+        res.status(201).json({ success: true, message: "Prescription secured!", rxId: rxId, otp: otp });
+    } catch (error) {
+        console.error("🔥 Issuance Database Error:", error);
+        res.status(500).json({ success: false, error: "Database rejected the save operation: " + error.message });
     }
 });
 
-// 2. Retrieve Prescription via OTP (Secured)
-router.get('/:otp', authenticateToken, async (req, res) => {
+// --- 2. PHARMACIST: Verify & Load Prescription ---
+router.post('/verify', async (req, res) => {
     try {
-        const foundRecord = await Prescription.findOne({ otp: req.params.otp });
-        if (!foundRecord) return res.status(404).json({ success: false, error: "Invalid OTP. Record not found." });
-        
-        res.status(200).json({ success: true, data: foundRecord });
-    } catch (error) { 
-        res.status(500).json({ success: false, error: "Vault search failed." }); 
+        const { rxId, otp } = req.body;
+        const rx = await Prescription.findOne({ prescriptionId: rxId, otp: otp });
+
+        if (!rx) return res.status(404).json({ success: false, error: "Invalid RX-ID or OTP." });
+        if (rx.status === 'Fulfilled') return res.status(400).json({ success: false, error: "Alert: Prescription already fulfilled!" });
+
+        res.status(200).json({ success: true, data: rx });
+    } catch (error) {
+        console.error("Verification Error:", error);
+        res.status(500).json({ success: false, error: "Server error during verification." });
+    }
+});
+
+// --- 3. PHARMACIST: Fulfill & Close Record ---
+router.post('/fulfill/:id', async (req, res) => {
+    try {
+        await Prescription.findByIdAndUpdate(req.params.id, { status: 'Fulfilled' });
+        res.status(200).json({ success: true, message: "Medications dispensed successfully!" });
+    } catch (error) {
+        res.status(500).json({ success: false, error: "Failed to fulfill." });
+    }
+});
+
+// --- 4. PATIENT: Get Prescription History ---
+router.get('/history/:patientName', async (req, res) => {
+    try {
+        const pName = decodeURIComponent(req.params.patientName);
+        const rxList = await Prescription.find({ 
+            patientName: new RegExp('^' + pName + '$', 'i') 
+        }).sort({ createdAt: -1 });
+
+        res.status(200).json({ success: true, data: rxList });
+    } catch (error) {
+        console.error("History Fetch Error:", error);
+        res.status(500).json({ success: false, error: "Failed to fetch patient history." });
     }
 });
 

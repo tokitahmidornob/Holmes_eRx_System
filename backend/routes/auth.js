@@ -1,89 +1,95 @@
 const express = require('express');
 const router = express.Router();
-const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-// Import our newly forged modular schemas!
+// Import your Models
 const Doctor = require('../models/Doctor');
 const Patient = require('../models/Patient');
 const Pharmacist = require('../models/Pharmacist');
 
-const JWT_SECRET = process.env.JWT_SECRET || "HolmesIronVaultSecretKey2026"; 
-
-// --- 🛡️ THE GATEWAY: REGISTRATION ---
+// --- 📝 REGISTRATION ROUTE ---
 router.post('/register', async (req, res) => {
-    const { role, email, password, name, ...otherData } = req.body;
-    
-    if (!role || !email || !password || !name) {
-        return res.status(400).json({ success: false, error: "Missing required fields." });
-    }
-
     try {
-        const hashedPassword = await bcrypt.hash(password, 10);
-        let newUser;
+        const { role, name, email, password } = req.body;
+        
+        if (!role || !name || !email || !password) {
+            return res.status(400).json({ success: false, error: "Missing required fields." });
+        }
 
-        // Route to the correct department based on role
-        if (role === 'patient') {
-            const patientId = "PT-" + Math.floor(10000 + Math.random() * 90000);
-            newUser = new Patient({ patientId, email, password: hashedPassword, name, ...otherData });
-        } else if (role === 'doctor') {
-            const doctorId = "DR-" + Math.floor(1000 + Math.random() * 9000);
-            newUser = new Doctor({ doctorId, email, password: hashedPassword, name, ...otherData });
+        let newUser;
+        const userId = 'USR-' + Date.now(); // Simple Unique ID
+
+        if (role === 'doctor') {
+            newUser = new Doctor({ doctorId: userId, name, email, password });
+        } else if (role === 'patient') {
+            newUser = new Patient({ patientId: userId, name, email, password });
         } else if (role === 'pharmacist') {
-            const pharmacistId = "PH-" + Math.floor(1000 + Math.random() * 9000);
-            newUser = new Pharmacist({ pharmacistId, email, password: hashedPassword, name, ...otherData });
-        } else {
-            return res.status(400).json({ success: false, error: "Invalid role specified." });
+            newUser = new Pharmacist({ pharmacistId: userId, name, email, password });
         }
 
         await newUser.save();
-        res.status(201).json({ success: true, message: `${role} registered successfully!` });
-        
-    } catch (error) { 
+        res.status(201).json({ success: true, message: "User registered successfully!" });
+    } catch (error) {
         console.error("Registration Error:", error);
-        // Specifically catch duplicate email errors (MongoDB error code 11000)
-        if (error.code === 11000) {
-            return res.status(400).json({ success: false, error: "Email is already registered." });
-        }
-        res.status(500).json({ success: false, error: "Registration failed. Please contact support." }); 
+        res.status(500).json({ success: false, error: error.message });
     }
 });
 
-// --- 🔐 THE GATEWAY: LOGIN ---
+// --- 🔐 LOGIN ROUTE (SUPER-DEBUG VERSION) ---
 router.post('/login', async (req, res) => {
-    const { role, email, password } = req.body;
-    
-    if (!role || !email || !password) {
-        return res.status(400).json({ success: false, error: "Missing login credentials." });
-    }
-
     try {
+        const { role, email, password } = req.body;
+        console.log(`\n--- 🕵️‍♂️ Login Attempt Detected ---`);
+        console.log(`Role: ${role} | Email: ${email}`);
+
         let user;
-        if (role === 'patient') user = await Patient.findOne({ email });
-        else if (role === 'doctor') user = await Doctor.findOne({ email });
-        else if (role === 'pharmacist') user = await Pharmacist.findOne({ email });
+        // 1. Determine which cabinet to look in
+        if (role === 'doctor') {
+            user = await Doctor.findOne({ email: email });
+        } else if (role === 'patient') {
+            user = await Patient.findOne({ email: email });
+        } else if (role === 'pharmacist') {
+            user = await Pharmacist.findOne({ email: email });
+        }
 
-        if (!user) return res.status(404).json({ success: false, error: "User not found." });
+        // 2. Check if user exists
+        if (!user) {
+            console.log("❌ Result: No user found in the database with that email/role combination.");
+            return res.status(401).json({ success: false, error: "Authentication failed. User not found." });
+        }
 
-        const isPasswordValid = await bcrypt.compare(password, user.password);
-        if (!isPasswordValid) return res.status(401).json({ success: false, error: "Incorrect password." });
+        // 3. Compare Passwords (Temporary plain-text check for development)
+        console.log(`🔍 Comparing Passwords...`);
+        console.log(`Input Password: [${password}] | DB Password: [${user.password}]`);
 
-        // Forge the digital ID badge
+        if (user.password !== password) {
+            console.log("❌ Result: Password mismatch.");
+            return res.status(401).json({ success: false, error: "Authentication failed. Incorrect password." });
+        }
+
+        // 4. Success! Generate Badge (Token)
+        console.log("✅ Result: Success! Generating secure token...");
         const token = jwt.sign(
-            { id: user._id, role: role, email: user.email }, 
-            JWT_SECRET, 
-            { expiresIn: '24h' }
+            { id: user._id, role: role },
+            process.env.JWT_SECRET || 'HOLMES_SECRET_KEY',
+            { expiresIn: '1d' }
         );
-        
-        // Strip the password before sending user data back to the frontend
-        const userObj = user.toObject(); 
-        delete userObj.password;
 
-        res.status(200).json({ success: true, message: "Login successful", token, userData: userObj });
-        
-    } catch (error) { 
-        console.error("Login Error:", error);
-        res.status(500).json({ success: false, error: "Internal server error." }); 
+        // Replace the res.status(200) block with this:
+    res.status(200).json({
+    success: true,
+    token: token,
+    userData: { 
+        id: user._id, // 👈 ADD THIS LINE
+        name: user.name, 
+        role: role, 
+        email: user.email 
+    }
+});
+
+    } catch (error) {
+        console.error("🔥 Server Login Error:", error);
+        res.status(500).json({ success: false, error: "Internal Server Error" });
     }
 });
 
