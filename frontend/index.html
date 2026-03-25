@@ -28,12 +28,6 @@
                 </div>
                 <h1 class="text-2xl font-black text-slate-900 tracking-tighter">Holmes <span class="text-teal-600">eRx</span></h1>
             </div>
-            <div class="hidden md:flex items-center gap-8 text-[10px] font-black uppercase tracking-widest text-slate-400">
-                <span class="text-teal-600"><i class="fa-solid fa-circle-check mr-2"></i> Grid Online</span>
-                <span>Diagnostics</span>
-                <span>Pharmacy</span>
-                <span>Clinical</span>
-            </div>
         </nav>
 
         <div class="max-w-4xl mx-auto text-center relative z-10">
@@ -42,21 +36,11 @@
                 The National <span class="text-teal-600">Health Grid</span> <br> of the Future.
             </h2>
             <p class="text-lg text-slate-500 font-medium max-w-2xl mx-auto mb-10 leading-relaxed">
-                A unified ecosystem connecting Doctors, Patients, Pharmacists, and Pathologists through a secure, cryptographic medical network.
+                A unified ecosystem connecting Doctors, Patients, Pharmacists, and Pathologists.
             </p>
-            <div class="flex flex-col md:flex-row items-center justify-center gap-4">
-                <a href="#gateway" class="btn-premium bg-slate-900 text-white px-10 py-5 rounded-[20px] font-black text-xs uppercase tracking-widest shadow-2xl flex items-center gap-3">
-                    Enter National Grid <i class="fa-solid fa-arrow-right"></i>
-                </a>
-                <div class="flex items-center gap-3 px-6 py-4 bg-white/50 backdrop-blur-md rounded-2xl border border-white">
-                    <div class="flex -space-x-3">
-                        <img src="https://ui-avatars.com/api/?name=D&background=0f766e&color=fff" class="w-8 h-8 rounded-full border-2 border-white">
-                        <img src="https://ui-avatars.com/api/?name=P&background=14b8a6&color=fff" class="w-8 h-8 rounded-full border-2 border-white">
-                        <img src="https://ui-avatars.com/api/?name=L&background=0d9488&color=fff" class="w-8 h-8 rounded-full border-2 border-white">
-                    </div>
-                    <span class="text-[9px] font-black text-slate-400 uppercase">21,000+ Verified Modules</span>
-                </div>
-            </div>
+            <a href="#gateway" class="btn-premium bg-slate-900 text-white px-10 py-5 rounded-[20px] font-black text-xs uppercase tracking-widest shadow-2xl inline-flex items-center gap-3">
+                Enter National Grid <i class="fa-solid fa-arrow-right"></i>
+            </a>
         </div>
     </header>
 
@@ -76,7 +60,7 @@
             </div>
 
             <div class="p-10">
-                <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-6">
+                <form id="loginForm" onsubmit="event.preventDefault(); handleLogin();" class="space-y-6">
                     <div class="space-y-2">
                         <label class="text-[10px] font-black text-slate-400 uppercase ml-1">Access Role</label>
                         <select id="loginRole" class="premium-input w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-sm outline-none">
@@ -99,7 +83,7 @@
                     </button>
                 </form>
 
-                <form id="registerForm" onsubmit="handleRegister(event)" class="hidden space-y-5">
+                <form id="registerForm" onsubmit="event.preventDefault(); handleRegister();" class="hidden space-y-5">
                     <div class="grid grid-cols-2 gap-4">
                         <div class="space-y-2">
                             <label class="text-[10px] font-black text-slate-400 uppercase ml-1">Full Name</label>
@@ -151,11 +135,9 @@
             }
         }
 
-        async function handleLogin(e) {
-            e.preventDefault();
+        async function handleLogin() {
             const btn = document.getElementById('loginBtn');
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Authenticating...';
-        }
 
             const payload = {
                 role: document.getElementById('loginRole').value,
@@ -172,28 +154,35 @@
                 const data = await res.json();
 
                 if(res.ok) {
+                    console.log("Login Success! Securing token...");
+                    
+                    // Securely storing the ID (Handling both virtual and real Mongo ID formats)
+                    const secureId = data.user.id || data.user._id;
+                    const secureRole = data.user.role.toLowerCase();
+
                     localStorage.setItem('eRx_Token', data.token);
-                    localStorage.setItem('eRx_UserId', data.user.id);
+                    localStorage.setItem('eRx_UserId', secureId);
                     localStorage.setItem('eRx_UserName', data.user.name);
-                    localStorage.setItem('eRx_UserRole', data.user.role);
+                    localStorage.setItem('eRx_UserRole', secureRole);
                     localStorage.setItem('eRx_UserEmail', data.user.email);
 
-                    // 🏁 REDIRECTION ENGINE
-                    if(data.user.role === 'doctor') window.location.href = 'dashboard.html';
-                    else if(data.user.role === 'patient') window.location.href = 'patient_app.html';
-                    else if(data.user.role === 'pharmacist') window.location.href = 'pharmacist_portal.html';
-                    else if(data.user.role === 'pathologist') window.location.href = 'pathology_portal.html';
+                    // REDIRECTION ENGINE
+                    if(secureRole === 'doctor') window.location.href = 'dashboard.html';
+                    else if(secureRole === 'patient') window.location.href = 'patient_app.html';
+                    else if(secureRole === 'pharmacist') window.location.href = 'pharmacist_portal.html';
+                    else if(secureRole === 'pathologist') window.location.href = 'pathology_portal.html';
+                    else alert("Unknown Role Detected.");
                 } else {
                     alert(data.msg || "Authentication Failed.");
                 }
             } catch(err) { 
-                alert(`Grid Connection Interrupted: ${err.message}`); 
-                console.error(err);
+                alert(`Network Error: ${err.message}`); 
+                console.error("Fetch Crash:", err);
             }
             finally { btn.innerText = "Authenticate & Enter"; }
+        }
 
-        async function handleRegister(e) {
-            e.preventDefault();
+        async function handleRegister() {
             const btn = document.getElementById('regBtn');
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Initializing...';
             const payload = {
@@ -215,7 +204,7 @@
                     const data = await res.json();
                     alert(data.msg || "Registration Failed.");
                 }
-            } catch(err) { alert("Grid Synchronisation Error."); }
+            } catch(err) { alert(`Registration Network Error: ${err.message}`); }
             finally { btn.innerText = "Initialize Profile"; }
         }
     </script>
