@@ -26,6 +26,15 @@ const UserSchema = new mongoose.Schema({
         maxPatients: { type: Number, default: 30 }
     }],
 
+    // --- NEW: CITIZEN HEALTH VAULT ---
+    patientDetails: {
+        weight: String,
+        bloodGroup: String,
+        bloodPressure: String,
+        phone: String,
+        allergies: String
+    },
+
     // Surgery Log (For Doctors)
     surgeryLog: [{
         title: String,

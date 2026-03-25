@@ -14,18 +14,22 @@
 
     <nav class="sticky top-0 z-40 bg-gradient-to-r from-slate-900 via-teal-900 to-slate-900 text-white shadow-lg border-b border-teal-500/30">
         <div class="flex justify-between items-center px-8">
-            <div class="flex items-center gap-8">
-                <div class="py-5 border-b-4 border-teal-400 font-black tracking-widest uppercase text-xs flex items-center text-teal-50 drop-shadow-[0_0_8px_rgba(45,212,191,0.5)]">
+            <div class="flex items-center gap-8 overflow-x-auto custom-scrollbar">
+                <div class="py-5 border-b-4 border-teal-400 font-black tracking-widest uppercase text-xs flex items-center text-teal-50 drop-shadow-[0_0_8px_rgba(45,212,191,0.5)] whitespace-nowrap">
                     <i class="fa-solid fa-file-prescription mr-3 text-lg"></i> Master Rx Pad
                 </div>
-                <a href="surgery_log.html" class="py-5 font-bold text-teal-100/50 hover:text-white transition-all tracking-widest uppercase text-xs flex items-center">
+                <a href="surgery_log.html" class="py-5 font-bold text-teal-100/50 hover:text-white transition-all tracking-widest uppercase text-xs flex items-center whitespace-nowrap">
                     <i class="fa-solid fa-scalpel-line mr-3 text-lg"></i> Surgery Archive
                 </a>
-                <a href="chamber_setup.html" class="py-5 font-bold text-teal-100/50 hover:text-white transition-all tracking-widest uppercase text-xs flex items-center">
+                <a href="chamber_setup.html" class="py-5 font-bold text-teal-100/50 hover:text-white transition-all tracking-widest uppercase text-xs flex items-center whitespace-nowrap">
                     <i class="fa-solid fa-house-medical mr-3 text-lg"></i> Chambers
                 </a>
+                <a href="waiting_room.html" class="py-5 font-bold text-teal-100/50 hover:text-white transition-all tracking-widest uppercase text-xs flex items-center whitespace-nowrap">
+                    <i class="fa-solid fa-users-viewfinder mr-3 text-lg"></i> Live Queue
+                </a>
             </div>
-            <div class="flex items-center gap-6 py-3">
+            
+            <div class="flex items-center gap-6 py-3 hidden md:flex">
                 <div class="flex items-center gap-3">
                     <div class="w-8 h-8 rounded-full bg-teal-500/20 flex items-center justify-center border border-teal-400/50 shadow-[0_0_10px_rgba(45,212,191,0.2)]">
                         <i class="fa-solid fa-user-doctor text-teal-300 text-xs"></i>
@@ -275,6 +279,16 @@
         let globalSearchResults = [];
         let tempSelectedMed = null; 
 
+        // Check if we arrived here from the Waiting Room Queue
+        window.onload = () => {
+            const queuedPatient = sessionStorage.getItem('Holmes_Target_Patient');
+            if (queuedPatient) {
+                document.getElementById('patientSearchInput').value = queuedPatient;
+                findPatient();
+                sessionStorage.removeItem('Holmes_Target_Patient'); // Clear it so it doesn't persist forever
+            }
+        };
+
         function findPatient() {
             const query = document.getElementById('patientSearchInput').value;
             if(!query) return alert("Please enter patient ID.");
@@ -415,7 +429,6 @@
             };
 
             try {
-                // Sending the payload directly to your Render backend
                 const res = await fetch(`${API_BASE_URL}/api/prescriptions`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -423,7 +436,6 @@
                 });
 
                 if(res.ok) {
-                    // Populate the beautiful receipt modal
                     document.getElementById('cardDrName').innerText = `Dr. ${doctorName}`;
                     document.getElementById('cardPatientId').innerText = currentRx.patientId;
                     document.getElementById('cardTime').innerText = new Date().toLocaleString();
@@ -452,7 +464,6 @@
                         `).join('');
                     } else { document.getElementById('cardTestSection').classList.add('hidden'); }
 
-                    // Trigger the animation
                     document.getElementById('completionModal').classList.add('modal-active');
                     document.getElementById('dashboardMain').classList.add('blur-sm', 'pointer-events-none');
                 } else {

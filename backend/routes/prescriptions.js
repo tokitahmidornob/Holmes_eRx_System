@@ -26,4 +26,17 @@ router.post('/', async (req, res) => {
     }
 });
 
+// @route   GET /api/prescriptions/patient/:patientEmailOrId
+// @desc    Get all prescriptions for a specific patient's Health Vault
+router.get('/patient/:patientId', async (req, res) => {
+    try {
+        const rxList = await Prescription.find({ patientId: req.params.patientId })
+            .populate('doctorId', 'name department')
+            .sort({ createdAt: -1 }); // Newest first
+        res.json(rxList);
+    } catch (err) {
+        res.status(500).json({ error: "Failed to access Health Vault." });
+    }
+});
+
 module.exports = router;

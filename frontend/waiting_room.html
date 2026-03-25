@@ -3,120 +3,151 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hospital Waiting Room</title>
-    <script src="https://holmes-erx-system.onrender.com/socket.io/socket.io.js"></script>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: #0f172a; /* Deep Slate TV Background */
-            color: white;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        .header {
-            background-color: #1e293b;
-            padding: 20px;
-            text-align: center;
-            font-size: 2rem;
-            font-weight: bold;
-            border-bottom: 4px solid #3b82f6;
-            letter-spacing: 2px;
-        }
-
-        .main-display {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            transition: background-color 0.3s;
-        }
-
-        /* The Flash Animation when a patient is called */
-        .flash-active {
-            animation: pulse-green 1.5s ease-out;
-        }
-
-        @keyframes pulse-green {
-            0% { background-color: #047857; }
-            100% { background-color: transparent; }
-        }
-
-        .now-serving-label {
-            font-size: 2.5rem;
-            color: #94a3b8;
-            margin-bottom: 20px;
-        }
-
-        .patient-name {
-            font-size: 6rem;
-            font-weight: 900;
-            color: #fbbf24; /* Bright Amber */
-            text-align: center;
-            text-transform: uppercase;
-            margin: 0;
-            text-shadow: 0 4px 10px rgba(0,0,0,0.5);
-        }
-
-        .room-number {
-            font-size: 4rem;
-            color: #38bdf8; /* Sky Blue */
-            margin-top: 20px;
-            font-weight: bold;
-        }
-
-        .footer {
-            background-color: #1e293b;
-            padding: 15px;
-            text-align: center;
-            color: #64748b;
-            font-size: 1.2rem;
-        }
-    </style>
+    <title>Holmes eRx | Live Waiting Room</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="bg-slate-50 text-slate-800 antialiased selection:bg-teal-200 selection:text-teal-900 overflow-x-hidden">
 
-    <div class="header">
-        HOLMES eRX MEDICAL CENTER
-    </div>
+    <nav class="sticky top-0 z-50 bg-gradient-to-r from-slate-900 via-teal-900 to-slate-900 text-white shadow-lg border-b border-teal-500/30">
+        <div class="flex justify-between items-center px-8">
+            <div class="flex items-center gap-8 overflow-x-auto custom-scrollbar">
+                <a href="dashboard.html" class="py-5 font-bold text-teal-100/50 hover:text-white transition-all tracking-widest uppercase text-xs flex items-center whitespace-nowrap">
+                    <i class="fa-solid fa-file-prescription mr-3 text-lg"></i> Master Rx Pad
+                </a>
+                <a href="surgery_log.html" class="py-5 font-bold text-teal-100/50 hover:text-white transition-all tracking-widest uppercase text-xs flex items-center whitespace-nowrap">
+                    <i class="fa-solid fa-scalpel-line mr-3 text-lg"></i> Surgery Archive
+                </a>
+                <a href="chamber_setup.html" class="py-5 font-bold text-teal-100/50 hover:text-white transition-all tracking-widest uppercase text-xs flex items-center whitespace-nowrap">
+                    <i class="fa-solid fa-house-medical mr-3 text-lg"></i> Chambers
+                </a>
+                <div class="py-5 border-b-4 border-teal-400 font-black tracking-widest uppercase text-xs flex items-center text-teal-50 drop-shadow-[0_0_8px_rgba(45,212,191,0.5)] whitespace-nowrap">
+                    <i class="fa-solid fa-users-viewfinder mr-3 text-lg"></i> Live Queue
+                </div>
+            </div>
+            <div class="flex items-center gap-6 py-3 hidden md:flex">
+                <span id="drNameDisplay" class="text-xs font-extrabold uppercase tracking-widest text-teal-50">Dr. Loading...</span>
+            </div>
+        </div>
+    </nav>
 
-    <div class="main-display" id="displayArea">
-        <div class="now-serving-label">PLEASE PROCEED TO DOCTOR:</div>
-        <div class="patient-name" id="currentPatient">-- WAITING --</div>
-        <div class="room-number" id="currentRoom">--</div>
-    </div>
+    <main class="max-w-[1400px] mx-auto p-6 mt-6">
+        
+        <div class="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
+            <div>
+                <h2 class="text-3xl font-black text-slate-900 tracking-tighter uppercase drop-shadow-sm flex items-center">
+                    <i class="fa-solid fa-satellite-dish text-teal-500 mr-3 animate-pulse"></i> Clinical Queue
+                </h2>
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Smart Token Management System</p>
+            </div>
+            <div class="flex gap-4">
+                <div class="bg-white px-6 py-3 rounded-2xl border border-slate-200 shadow-sm text-center">
+                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Total Waiting</p>
+                    <p id="totalWaiting" class="text-2xl font-black text-teal-600">0</p>
+                </div>
+            </div>
+        </div>
 
-    <div class="footer">
-        Please wait for your name to appear on the screen.
-    </div>
+        <div class="bg-white rounded-[32px] shadow-2xl shadow-slate-200/50 border border-slate-100 p-8 relative overflow-hidden glass-panel">
+            <div class="absolute -top-20 -left-20 w-64 h-64 bg-teal-500/5 rounded-full blur-3xl"></div>
+            
+            <div id="queueContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10">
+                <div class="col-span-full text-center py-20">
+                    <i class="fa-solid fa-circle-notch fa-spin text-4xl text-teal-300 mb-4"></i>
+                    <p class="text-sm font-bold text-slate-400 uppercase tracking-widest">Syncing with National Grid...</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
 
     <script>
-        // ⚡ Connect to the Central Server ⚡
-        const socket = io("https://holmes-erx-system.onrender.com");
+        const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
+        const token = localStorage.getItem('eRx_Token');
+        const userId = localStorage.getItem('eRx_UserId');
+        
+        if(!token || !userId) window.location.href = 'index.html';
 
-        // Listen for the 'queue_update' broadcast from the server
-        socket.on('queue_update', (data) => {
-            console.log("Signal received!", data);
-            
-            // Update the giant TV text
-            document.getElementById('currentPatient').innerText = data.name;
-            document.getElementById('currentRoom').innerText = "Please proceed to: " + data.room;
+        document.getElementById('drNameDisplay').innerText = `Dr. ${localStorage.getItem('eRx_UserName') || 'Unknown'}`;
 
-            // Trigger the visual flash animation
-            const displayArea = document.getElementById('displayArea');
-            displayArea.classList.remove('flash-active');
+        async function fetchQueue() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/appointments/doctor/${userId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const appointments = await res.json();
+                renderQueue(appointments);
+            } catch (err) {
+                document.getElementById('queueContainer').innerHTML = `
+                    <div class="col-span-full text-center py-20">
+                        <i class="fa-solid fa-triangle-exclamation text-4xl text-rose-300 mb-4"></i>
+                        <p class="text-sm font-bold text-slate-400 uppercase tracking-widest">Grid Connection Failed</p>
+                    </div>`;
+            }
+        }
+
+        function renderQueue(appointments) {
+            const container = document.getElementById('queueContainer');
             
-            // Magic trick to restart CSS animation instantly
-            void displayArea.offsetWidth; 
+            // Filter only pending appointments for today/future
+            const pendingList = appointments.filter(app => app.status === 'Pending Review');
+            document.getElementById('totalWaiting').innerText = pendingList.length;
+
+            if(pendingList.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full text-center py-20">
+                        <i class="fa-solid fa-mug-hot text-4xl text-slate-200 mb-4"></i>
+                        <p class="text-sm font-bold text-slate-400 uppercase tracking-widest">The queue is currently empty.</p>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = pendingList.map(app => `
+                <div class="bg-slate-50 rounded-[24px] p-6 border border-slate-200 hover:border-teal-400 hover:shadow-xl hover:shadow-teal-500/10 transition-all group animate-slide-down relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-teal-400 to-emerald-400 opacity-50 group-hover:opacity-100 transition-opacity"></div>
+                    
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="bg-white border border-slate-200 text-teal-700 px-4 py-2 rounded-xl text-center shadow-sm">
+                            <p class="text-[8px] font-black uppercase tracking-widest mb-0.5">Token</p>
+                            <p class="text-xl font-black leading-none">#${app.tokenNumber.toString().padStart(2, '0')}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">${new Date(app.appointmentDate).toLocaleDateString()}</p>
+                            <p class="text-xs font-bold text-slate-600">${app.timeSlot}</p>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h4 class="font-black text-slate-800 text-lg group-hover:text-teal-700 transition-colors">${app.patientId ? app.patientId.name : 'Unknown Patient'}</h4>
+                        <p class="text-[10px] font-bold text-indigo-500 uppercase tracking-widest mt-1"><i class="fa-solid fa-hospital mr-1"></i> ${app.chamberDetails.hospitalName}</p>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-xl border border-slate-100 mb-5 shadow-inner">
+                        <p class="text-[9px] font-black text-rose-400 uppercase tracking-widest mb-1"><i class="fa-solid fa-notes-medical mr-1"></i> Virtual Triage</p>
+                        <p class="text-xs font-bold text-slate-600 italic">"${app.symptoms}"</p>
+                    </div>
+
+                    <button onclick="callPatient('${app.patientId ? app.patientId._id : ''}', '${app.patientId ? app.patientId.email : ''}')" class="btn-premium w-full bg-slate-900 hover:bg-black text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-slate-900/20 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-stethoscope"></i> Call to Chamber
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // When the doctor clicks "Call to Chamber", we pass the patient data back to the Rx Pad
+        function callPatient(patientDbId, patientEmail) {
+            if(!patientEmail) return alert("Patient data incomplete.");
             
-            displayArea.classList.add('flash-active');
-        });
+            // We use sessionStorage to temporarily hold the patient ID we want to treat
+            sessionStorage.setItem('Holmes_Target_Patient', patientEmail);
+            
+            // Redirect to the Master Rx Pad
+            window.location.href = 'dashboard.html';
+        }
+
+        fetchQueue();
     </script>
-
 </body>
 </html>
