@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Holmes eRx | Chamber Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased selection:bg-teal-200 selection:text-teal-900">
+
+    <nav class="sticky top-0 z-50 bg-gradient-to-r from-slate-900 via-teal-900 to-slate-900 text-white shadow-lg border-b border-teal-500/30">
+        <div class="flex justify-between items-center px-8">
+            <div class="flex items-center gap-8">
+                <a href="dashboard.html" class="py-5 font-bold text-teal-100/50 hover:text-white transition-all tracking-widest uppercase text-xs flex items-center">
+                    <i class="fa-solid fa-arrow-left mr-3 text-lg"></i> Back to Pad
+                </a>
+                <div class="py-5 border-b-4 border-teal-400 font-black tracking-widest uppercase text-xs flex items-center text-teal-50 drop-shadow-[0_0_8px_rgba(45,212,191,0.5)]">
+                    <i class="fa-solid fa-house-medical mr-3 text-lg"></i> Chamber Settings
+                </div>
+            </div>
+            <div class="flex items-center gap-6 py-3">
+                <span id="drNameDisplay" class="text-xs font-extrabold uppercase tracking-widest text-teal-50">Dr. Loading...</span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-[1200px] mx-auto p-6 grid grid-cols-1 lg:grid-cols-2 gap-8 mt-6">
+        
+        <div class="bg-white p-8 rounded-[32px] shadow-2xl shadow-slate-200/50 border border-white glass-panel relative overflow-hidden h-fit">
+            <div class="absolute -top-10 -right-10 w-32 h-32 bg-teal-500/10 rounded-full blur-2xl"></div>
+            
+            <h2 class="text-2xl font-black text-gradient tracking-tighter uppercase mb-6">Register New Chamber</h2>
+            
+            <form onsubmit="event.preventDefault(); addChamber();" class="space-y-5 relative z-10">
+                <div class="relative group">
+                    <label class="text-[9px] font-black text-slate-400 uppercase mb-2 block ml-1 group-focus-within:text-teal-600 transition-colors">Hospital / Clinic Name</label>
+                    <input type="text" id="hospitalName" required placeholder="e.g. Labaid Specialized Hospital" class="premium-input w-full bg-slate-50 p-4 border border-slate-200 rounded-xl font-bold text-slate-700 text-sm outline-none">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="relative group">
+                        <label class="text-[9px] font-black text-slate-400 uppercase mb-2 block ml-1 group-focus-within:text-teal-600">Location Area</label>
+                        <input type="text" id="location" required placeholder="e.g. Dhanmondi" class="premium-input w-full bg-slate-50 p-4 border border-slate-200 rounded-xl font-bold text-slate-700 text-sm outline-none">
+                    </div>
+                    <div class="relative group">
+                        <label class="text-[9px] font-black text-slate-400 uppercase mb-2 block ml-1 group-focus-within:text-teal-600">Room Number</label>
+                        <input type="text" id="roomNumber" required placeholder="e.g. 402, Block B" class="premium-input w-full bg-slate-50 p-4 border border-slate-200 rounded-xl font-bold text-slate-700 text-sm outline-none">
+                    </div>
+                </div>
+
+                <div class="relative group">
+                    <label class="text-[9px] font-black text-slate-400 uppercase mb-2 block ml-1 group-focus-within:text-teal-600">Full Address</label>
+                    <textarea id="fullAddress" rows="2" placeholder="Complete street address..." class="premium-input w-full bg-slate-50 p-4 border border-slate-200 rounded-xl font-bold text-slate-700 text-sm outline-none resize-none"></textarea>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="relative group">
+                        <label class="text-[9px] font-black text-slate-400 uppercase mb-2 block ml-1 group-focus-within:text-teal-600">Visiting Days (Comma Separated)</label>
+                        <input type="text" id="visitingDays" required placeholder="Mon, Wed, Fri" class="premium-input w-full bg-slate-50 p-4 border border-slate-200 rounded-xl font-bold text-slate-700 text-sm outline-none">
+                    </div>
+                    <div class="relative group">
+                        <label class="text-[9px] font-black text-slate-400 uppercase mb-2 block ml-1 group-focus-within:text-teal-600">Time Slot</label>
+                        <input type="text" id="timeSlot" required placeholder="5:00 PM - 9:00 PM" class="premium-input w-full bg-slate-50 p-4 border border-slate-200 rounded-xl font-bold text-slate-700 text-sm outline-none">
+                    </div>
+                </div>
+
+                <button type="submit" id="addBtn" class="btn-premium w-full bg-gradient-to-r from-teal-500 to-emerald-500 text-white mt-4 py-5 rounded-[20px] font-black text-xs uppercase tracking-widest shadow-lg shadow-teal-500/30">
+                    <i class="fa-solid fa-plus-circle mr-2"></i> Add to Grid Profile
+                </button>
+            </form>
+        </div>
+
+        <div class="space-y-6">
+            <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center pl-2">
+                <i class="fa-solid fa-network-wired mr-2 text-teal-500"></i> Active Grid Chambers
+            </h3>
+            
+            <div id="chamberList" class="space-y-4">
+                <div class="text-center py-10 text-slate-400 text-xs font-bold"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Syncing with Vault...</div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
+        const token = localStorage.getItem('eRx_Token');
+        const userId = localStorage.getItem('eRx_UserId');
+        
+        if(!token || !userId) window.location.href = 'index.html';
+
+        document.getElementById('drNameDisplay').innerText = `Dr. ${localStorage.getItem('eRx_UserName') || 'Unknown'}`;
+
+        async function fetchChambers() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/doctors/${userId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const doctor = await res.json();
+                renderChambers(doctor.chambers || []);
+            } catch (err) {
+                document.getElementById('chamberList').innerHTML = '<p class="text-red-500 text-xs text-center">Failed to load chambers.</p>';
+            }
+        }
+
+        function renderChambers(chambers) {
+            const list = document.getElementById('chamberList');
+            if(chambers.length === 0) {
+                list.innerHTML = `
+                <div class="bg-white p-8 rounded-[24px] border border-slate-100 text-center shadow-sm">
+                    <i class="fa-solid fa-hospital text-4xl text-slate-200 mb-3"></i>
+                    <p class="text-sm font-bold text-slate-400">No chambers registered yet.</p>
+                </div>`;
+                return;
+            }
+
+            list.innerHTML = chambers.map(chamber => `
+                <div class="bg-white p-6 rounded-[24px] shadow-lg shadow-slate-200/40 border border-slate-100 hover:border-teal-300 transition-all animate-slide-down group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-2 h-full bg-teal-400 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h4 class="font-black text-slate-800 text-lg">${chamber.hospitalName}</h4>
+                            <p class="text-[10px] text-teal-600 font-bold uppercase tracking-widest mt-1"><i class="fa-solid fa-location-dot mr-1"></i> ${chamber.location} — Room ${chamber.roomNumber}</p>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Schedule</span>
+                            <span class="text-xs font-bold text-slate-700">${chamber.timeSlot}</span>
+                        </div>
+                        <p class="text-[10px] font-bold text-indigo-500 uppercase">${chamber.visitingDays.join(', ')}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function addChamber() {
+            const btn = document.getElementById('addBtn');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> SYNCING...';
+            
+            // Split string into array and trim spaces
+            const daysArray = document.getElementById('visitingDays').value.split(',').map(d => d.trim());
+
+            const chamberData = {
+                hospitalName: document.getElementById('hospitalName').value,
+                location: document.getElementById('location').value,
+                roomNumber: document.getElementById('roomNumber').value,
+                fullAddress: document.getElementById('fullAddress').value,
+                visitingDays: daysArray,
+                timeSlot: document.getElementById('timeSlot').value
+            };
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/appointments/add-chamber`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ doctorId: userId, chamberData })
+                });
+
+                if(res.ok) {
+                    // Clear form
+                    document.querySelectorAll('input, textarea').forEach(input => input.value = '');
+                    fetchChambers(); // Reload list
+                } else {
+                    alert("System rejected the data.");
+                }
+            } catch (err) {
+                alert("Grid Offline.");
+            } finally {
+                btn.innerHTML = '<i class="fa-solid fa-plus-circle mr-2"></i> Add to Grid Profile';
+            }
+        }
+
+        // Boot
+        fetchChambers();
+    </script>
+</body>
+</html>

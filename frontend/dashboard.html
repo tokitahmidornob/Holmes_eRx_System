@@ -21,6 +21,9 @@
                 <a href="surgery_log.html" class="py-5 font-bold text-teal-100/50 hover:text-white transition-all tracking-widest uppercase text-xs flex items-center">
                     <i class="fa-solid fa-scalpel-line mr-3 text-lg"></i> Surgery Archive
                 </a>
+                <a href="chamber_setup.html" class="py-5 font-bold text-teal-100/50 hover:text-white transition-all tracking-widest uppercase text-xs flex items-center">
+                    <i class="fa-solid fa-house-medical mr-3 text-lg"></i> Chambers
+                </a>
             </div>
             <div class="flex items-center gap-6 py-3">
                 <div class="flex items-center gap-3">
@@ -177,7 +180,7 @@
                     </div>
 
                     <div class="pt-8 border-t border-slate-100 mt-8">
-                        <button type="button" onclick="submitFinalPrescription()" class="btn-premium w-full bg-gradient-to-r from-teal-500 to-emerald-500 text-white px-10 py-5 rounded-[20px] font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 shadow-lg shadow-emerald-500/30">
+                        <button type="button" onclick="submitFinalPrescription()" id="authBtn" class="btn-premium w-full bg-gradient-to-r from-teal-500 to-emerald-500 text-white px-10 py-5 rounded-[20px] font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 shadow-lg shadow-emerald-500/30">
                             <i class="fa-solid fa-satellite-dish text-lg"></i> BROADCAST & SEAL MASTER RX
                         </button>
                     </div>
@@ -261,9 +264,11 @@
     <script>
         const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
         const token = localStorage.getItem('eRx_Token');
-        if(!token) window.location.href = 'index.html';
-
+        const userId = localStorage.getItem('eRx_UserId');
         const doctorName = localStorage.getItem('eRx_UserName') || 'Unknown';
+        
+        if(!token || !userId) window.location.href = 'index.html';
+
         document.getElementById('drNameDisplay').innerText = `Dr. ${doctorName}`;
 
         let currentRx = { patientId: null, medications: [], investigations: [] };
@@ -367,6 +372,7 @@
         }
 
         function handleTestEnter(e) { if(e.key === 'Enter') addTest(); }
+        
         function addTest() {
             const input = document.getElementById('testInput');
             const val = input.value.trim();
@@ -376,7 +382,9 @@
                 renderTests();
             }
         }
+        
         function removeTest(index) { currentRx.investigations.splice(index, 1); renderTests(); }
+        
         function renderTests() {
             const container = document.getElementById('testTags');
             container.innerHTML = currentRx.investigations.map((test, idx) => `
@@ -387,6 +395,7 @@
             `).join('');
         }
 
+        // --- THE LIVE RENDER CONNECTION ---
         async function submitFinalPrescription() {
             if(currentRx.medications.length === 0) return alert("Please add medications.");
             if(!currentRx.patientId) return alert("Verify target patient identity.");
@@ -398,7 +407,6 @@
             
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-lg"></i> TRANSMITTING...';
 
-            // 1. Pack the payload
             const payload = {
                 ...currentRx,
                 otp: masterOtp.toString(),
@@ -407,7 +415,7 @@
             };
 
             try {
-                // 2. Transmit to the Iron Vault (Render Backend)
+                // Sending the payload directly to your Render backend
                 const res = await fetch(`${API_BASE_URL}/api/prescriptions`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -415,7 +423,7 @@
                 });
 
                 if(res.ok) {
-                    // 3. If successful, trigger the beautiful Modal!
+                    // Populate the beautiful receipt modal
                     document.getElementById('cardDrName').innerText = `Dr. ${doctorName}`;
                     document.getElementById('cardPatientId').innerText = currentRx.patientId;
                     document.getElementById('cardTime').innerText = new Date().toLocaleString();
@@ -444,7 +452,7 @@
                         `).join('');
                     } else { document.getElementById('cardTestSection').classList.add('hidden'); }
 
-                    // Lock the screen and show the receipt
+                    // Trigger the animation
                     document.getElementById('completionModal').classList.add('modal-active');
                     document.getElementById('dashboardMain').classList.add('blur-sm', 'pointer-events-none');
                 } else {
