@@ -15,11 +15,8 @@
             <p class="text-sm text-gray-500 mt-1 font-semibold tracking-wide">National Medical Archive Gateway</p>
         </div>
 
-        <div id="errorBanner" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6 text-center text-sm font-bold shadow-sm">
-            </div>
-
-        <div id="successBanner" class="hidden bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6 text-center text-sm font-bold shadow-sm">
-            </div>
+        <div id="errorBanner" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6 text-center text-sm font-bold shadow-sm"></div>
+        <div id="successBanner" class="hidden bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6 text-center text-sm font-bold shadow-sm"></div>
 
         <div class="flex space-x-2 mb-6 bg-gray-100 p-1 rounded-lg">
             <button id="tabLogin" onclick="switchTab('login')" class="flex-1 py-2 text-sm font-bold rounded-md bg-white shadow text-blue-900 transition-all">Sign In</button>
@@ -37,21 +34,19 @@
             </div>
             <div>
                 <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Email Address</label>
-                <input type="email" id="loginEmail" placeholder="name@example.com" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                <input type="email" id="loginEmail" placeholder="name@example.com" required class="w-full px-4 py-3 border border-gray-300 rounded-lg">
             </div>
             <div>
                 <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Password</label>
-                <input type="password" id="loginPassword" placeholder="••••••••" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                <input type="password" id="loginPassword" placeholder="••••••••" required class="w-full px-4 py-3 border border-gray-300 rounded-lg">
             </div>
-            <button type="submit" id="loginBtn" class="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition-transform transform hover:scale-[1.02]">
-                Secure Login
-            </button>
+            <button type="submit" id="loginBtn" class="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg">Secure Login</button>
         </form>
 
         <form id="registerForm" class="space-y-4 hidden" onsubmit="event.preventDefault(); registerUser();">
             <div>
                 <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Registering As</label>
-                <select id="regRole" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none bg-white font-medium text-gray-700">
+                <select id="regRole" class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white font-medium text-gray-700">
                     <option value="doctor">Medical Professional (Doctor)</option>
                     <option value="pharmacist">Dispensary (Pharmacist)</option>
                     <option value="patient">Citizen (Patient)</option>
@@ -59,70 +54,49 @@
             </div>
             <div>
                 <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Full Legal Name</label>
-                <input type="text" id="regName" placeholder="John Doe" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
+                <input type="text" id="regName" placeholder="John Doe" required class="w-full px-4 py-3 border border-gray-300 rounded-lg">
             </div>
             <div>
                 <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Email Address</label>
-                <input type="email" id="regEmail" placeholder="name@example.com" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
+                <input type="email" id="regEmail" placeholder="name@example.com" required class="w-full px-4 py-3 border border-gray-300 rounded-lg">
             </div>
             <div>
                 <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Create Password</label>
-                <input type="password" id="regPassword" placeholder="••••••••" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
+                <input type="password" id="regPassword" placeholder="••••••••" required class="w-full px-4 py-3 border border-gray-300 rounded-lg">
             </div>
-            <button type="submit" id="regBtn" class="w-full mt-6 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition-transform transform hover:scale-[1.02]">
-                Register New ID
-            </button>
+            <button type="submit" id="regBtn" class="w-full mt-6 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg">Register New ID</button>
         </form>
-
     </div>
 
     <script>
-        // --- UI TAB SWITCHING LOGIC ---
+        // --- 🌉 THE HYBRID BRIDGE ---
+        // This connects your frontend (Vercel) to your backend (Render)
+        const API_BASE_URL = window.location.hostname === 'localhost' 
+            ? 'http://localhost:3000' 
+            : 'https://holmes-erx-system.onrender.com';
+
         function switchTab(tab) {
             const loginForm = document.getElementById('loginForm');
             const registerForm = document.getElementById('registerForm');
             const tabLogin = document.getElementById('tabLogin');
             const tabRegister = document.getElementById('tabRegister');
             
-            document.getElementById('errorBanner').classList.add('hidden');
-            document.getElementById('successBanner').classList.add('hidden');
-
             if (tab === 'login') {
-                loginForm.classList.remove('hidden');
-                registerForm.classList.add('hidden');
-                
+                loginForm.classList.remove('hidden'); registerForm.classList.add('hidden');
                 tabLogin.classList.add('bg-white', 'shadow', 'text-blue-900');
-                tabLogin.classList.remove('text-gray-500', 'hover:text-gray-700');
-                
                 tabRegister.classList.remove('bg-white', 'shadow', 'text-blue-900');
-                tabRegister.classList.add('text-gray-500', 'hover:text-gray-700');
             } else {
-                loginForm.classList.add('hidden');
-                registerForm.classList.remove('hidden');
-                
+                loginForm.classList.add('hidden'); registerForm.classList.remove('hidden');
                 tabRegister.classList.add('bg-white', 'shadow', 'text-blue-900');
-                tabRegister.classList.remove('text-gray-500', 'hover:text-gray-700');
-                
                 tabLogin.classList.remove('bg-white', 'shadow', 'text-blue-900');
-                tabLogin.classList.add('text-gray-500', 'hover:text-gray-700');
             }
         }
 
         function showError(msg) {
             const banner = document.getElementById('errorBanner');
-            banner.innerText = msg;
-            banner.classList.remove('hidden');
-            document.getElementById('successBanner').classList.add('hidden');
+            banner.innerText = msg; banner.classList.remove('hidden');
         }
 
-        function showSuccess(msg) {
-            const banner = document.getElementById('successBanner');
-            banner.innerText = msg;
-            banner.classList.remove('hidden');
-            document.getElementById('errorBanner').classList.add('hidden');
-        }
-
-        // --- 📝 REGISTRATION LOGIC ---
         async function registerUser() {
             const role = document.getElementById('regRole').value;
             const name = document.getElementById('regName').value;
@@ -131,80 +105,46 @@
             const btn = document.getElementById('regBtn');
 
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Registering...';
-            btn.disabled = true;
-
             try {
-                const response = await fetch('/api/auth/register', {
+                const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ role, name, email, password })
                 });
-                
                 const data = await response.json();
-                
                 if (data.success) {
-                    showSuccess("Registration successful! Please sign in.");
-                    document.getElementById('registerForm').reset();
-                    setTimeout(() => switchTab('login'), 2000);
-                } else {
-                    showError(data.error || "Registration failed.");
-                }
-            } catch (err) {
-                showError("Server offline. Cannot connect to Holmes Engine.");
-            } finally {
-                btn.innerHTML = 'Register New ID';
-                btn.disabled = false;
-            }
+                    alert("Registration successful!"); switchTab('login');
+                } else { showError(data.error); }
+            } catch (err) { showError("National Grid engine is warming up. Please wait 30 seconds."); }
+            finally { btn.innerHTML = 'Register New ID'; }
         }
 
-        // --- 🔐 SECURE LOGIN LOGIC ---
         async function loginUser() {
             const role = document.getElementById('loginRole').value;
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
             const btn = document.getElementById('loginBtn');
 
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Authenticating...';
-            btn.disabled = true;
-
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Connecting...';
             try {
-                const response = await fetch('/api/auth/login', {
+                const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ role, email, password })
                 });
-                
                 const data = await response.json();
-                
                 if (data.success) {
-                    // 🧹 Deep Clean: Wipe old badges from memory
-                    localStorage.clear(); 
-                    
-                    // 🔑 Save new secure credentials
                     localStorage.setItem('holmesToken', data.token);
                     localStorage.setItem('holmesUser', JSON.stringify(data.userData));
-
-                    const payload = data.userData;
-
-                    // 🚀 BULLETPROOF ROUTING LOGIC
-                    if (payload.role === 'doctor' || payload.role === 'Medical Professional (Doctor)') {
-                        window.location.href = 'dashboard.html';
-                    } else if (payload.role === 'pharmacist' || payload.role === 'Dispensary (Pharmacist)') {
-                        window.location.href = 'pharmacist_portal.html';
-                    } else if (payload.role === 'patient' || payload.role === 'Citizen (Patient)') {
-                        window.location.href = 'patient_portal.html'; // 👈 THE CRITICAL FIX
-                    } else {
-                        showError("Unknown role assigned. Contact system administrator.");
-                    }
-                } else {
-                    showError(data.error || "Authentication failed.");
-                }
-            } catch (err) {
-                showError("Server offline. Cannot connect to Holmes Engine.");
-            } finally {
-                btn.innerHTML = 'Secure Login';
-                btn.disabled = false;
-            }
+                    
+                    // Route to local files (since they are in the same folder on Vercel)
+                    const userRole = data.userData.role;
+                    if (userRole.includes('doctor')) window.location.href = 'dashboard.html';
+                    else if (userRole.includes('pharmacist')) window.location.href = 'pharmacist_portal.html';
+                    else window.location.href = 'patient_portal.html';
+                } else { showError(data.error); }
+            } catch (err) { showError("National Grid engine is warming up. Please wait 30 seconds."); }
+            finally { btn.innerHTML = 'Secure Login'; }
         }
     </script>
 </body>
