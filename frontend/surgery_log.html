@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Holmes eRx | Surgery Archive</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>body { font-family: 'Plus Jakarta Sans', sans-serif; }</style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-900">
+
+    <nav class="sticky top-0 z-50 bg-teal-900 text-white shadow-md flex justify-between items-center px-6">
+        <div class="flex items-center gap-6">
+            <a href="dashboard.html" class="py-4 font-bold text-teal-400/50 hover:text-teal-400 transition-all tracking-widest uppercase text-sm">
+                <i class="fa-solid fa-file-prescription mr-2"></i> Rx Pad
+            </a>
+            <div class="py-4 border-b-4 border-teal-400 font-black tracking-widest uppercase text-sm">
+                <i class="fa-solid fa-scalpel-line mr-2"></i> Surgery Archive
+            </div>
+        </div>
+        <div class="flex items-center gap-4 py-2">
+            <button onclick="window.location.href='index.html'" class="bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-lg text-[10px] font-black shadow-lg transition-all uppercase tracking-widest">Logout</button>
+        </div>
+    </nav>
+
+    <main class="max-w-[1000px] mx-auto p-6 grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
+        
+        <div class="bg-slate-900 text-white p-8 rounded-2xl shadow-2xl border border-slate-800 h-fit">
+            <h2 class="text-xl font-black mb-1 tracking-tighter uppercase"><i class="fa-solid fa-plus-circle mr-2 text-teal-400"></i> New Record</h2>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-6">Append to your Professional File</p>
+            
+            <form onsubmit="event.preventDefault(); logSurgery();" class="space-y-4">
+                <div>
+                    <label class="text-[10px] uppercase font-bold text-slate-400 block mb-1">Operation Title</label>
+                    <input type="text" id="surgeryTitle" required class="w-full p-3 bg-slate-800 border border-slate-700 rounded-lg text-sm font-bold text-white outline-none focus:border-teal-400">
+                </div>
+                <div>
+                    <label class="text-[10px] uppercase font-bold text-slate-400 block mb-1">Clinical Outcome</label>
+                    <select id="surgeryOutcome" class="w-full p-3 bg-slate-800 border border-slate-700 rounded-lg text-sm font-bold text-white outline-none">
+                        <option value="Successful">Successful</option>
+                        <option value="Complicated">Complicated</option>
+                        <option value="Critical">Critical</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-[10px] uppercase font-bold text-slate-400 block mb-1">Detailed Post-Op Notes</label>
+                    <textarea id="surgeryNotes" rows="4" class="w-full p-3 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white outline-none focus:border-teal-400"></textarea>
+                </div>
+                <button type="submit" id="logBtn" class="w-full bg-teal-600 hover:bg-teal-500 text-white py-4 rounded-lg font-black text-xs uppercase tracking-widest transition-all mt-4">Commit to Archive</button>
+            </form>
+        </div>
+
+        <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+            <h2 class="text-xl font-black mb-1 tracking-tighter uppercase text-slate-800">Operational History</h2>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-6">Grid Verified Data</p>
+            
+            <div id="recentSurgeries" class="space-y-4 overflow-y-auto max-h-[500px] pr-2">
+                <div class="text-center py-10 text-slate-400 text-xs font-bold"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Connecting to Vault...</div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
+        const token = localStorage.getItem('eRx_Token');
+        const userId = localStorage.getItem('eRx_UserId');
+        
+        if(!token || !userId) window.location.href = 'index.html';
+
+        async function fetchLogs() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/doctors/${userId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const doc = await res.json();
+                renderLogs(doc.surgeryLog || []);
+            } catch (err) { document.getElementById('recentSurgeries').innerHTML = '<p class="text-red-500 text-xs">Failed to load archive.</p>'; }
+        }
+
+        function renderLogs(logs) {
+            const container = document.getElementById('recentSurgeries');
+            if(logs.length === 0) {
+                container.innerHTML = '<p class="text-slate-400 text-xs text-center p-6 bg-slate-50 rounded-lg">No records found.</p>';
+                return;
+            }
+            
+            const recent = logs.sort((a,b) => new Date(b.date) - new Date(a.date));
+            container.innerHTML = recent.map(log => {
+                let color = log.outcome === 'Successful' ? 'emerald' : (log.outcome === 'Critical' ? 'red' : 'amber');
+                return `
+                <div class="p-4 rounded-xl border border-slate-100 bg-slate-50 shadow-sm">
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="font-black text-slate-800 text-sm">${log.title}</h4>
+                        <span class="bg-${color}-100 text-${color}-700 px-2 py-1 rounded text-[8px] font-black uppercase tracking-widest">${log.outcome}</span>
+                    </div>
+                    <p class="text-xs text-slate-600 italic mb-3">${log.notes || 'No notes provided.'}</p>
+                    <p class="text-[9px] text-slate-400 font-mono text-right border-t pt-2">${new Date(log.date).toLocaleString()}</p>
+                </div>`;
+            }).join('');
+        }
+
+        async function logSurgery() {
+            const btn = document.getElementById('logBtn');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> COMMITTING...';
+            
+            const payload = {
+                doctorId: userId,
+                surgeryTitle: document.getElementById('surgeryTitle').value,
+                outcome: document.getElementById('surgeryOutcome').value,
+                notes: document.getElementById('surgeryNotes').value
+            };
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/doctors/surgery-log`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(payload)
+                });
+                if(res.ok) {
+                    document.getElementById('surgeryTitle').value = '';
+                    document.getElementById('surgeryNotes').value = '';
+                    fetchLogs(); // Refresh list immediately
+                }
+            } catch (err) { alert("Vault offline."); }
+            finally { btn.innerText = "COMMIT TO ARCHIVE"; }
+        }
+
+        fetchLogs();
+    </script>
+</body>
+</html>
