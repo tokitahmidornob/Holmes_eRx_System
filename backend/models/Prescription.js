@@ -1,31 +1,27 @@
 const mongoose = require('mongoose');
 
-const prescriptionSchema = new mongoose.Schema({
-    prescriptionId: { type: String, required: true, unique: true }, 
-    otp: { type: String, required: true }, 
+const PrescriptionSchema = new mongoose.Schema({
+    doctorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    patientId: { type: String, required: true }, // Using String since we are using Email/National ID for now
+    broadcastId: { type: String, required: true, unique: true },
+    otp: { type: String, required: true },
     
-    doctorId: { type: String, required: true }, 
-    doctorName: { type: String, default: "Medical Professional" },
-    
-    patientName: { type: String, required: true },
-    patientAge: { type: Number },
-    patientGender: { type: String },
-    
-    medicines: [{
+    // The Staging Area Arrays
+    medications: [{
         brandName: String,
-        genericName: String,
-        dosageForm: String,
-        dose: String,        
-        duration: String,    
-        instruction: String  
+        generic: String,
+        dosage: String,
+        timing: String,
+        duration: String,
+        instruction: String
     }],
-
-    tests: [{
-        testName: String
-    }],
+    investigations: [String],
     
-    status: { type: String, enum: ['Issued', 'Fulfilled'], default: 'Issued' },
-    createdAt: { type: Date, default: Date.now }
-});
+    // State of the Prescription
+    status: { type: String, enum: ['Active', 'Dispensed', 'Expired'], default: 'Active' },
+    dispensedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    dispensedAt: Date
 
-module.exports = mongoose.model('Prescription', prescriptionSchema);
+}, { timestamps: true });
+
+module.exports = mongoose.model('Prescription', PrescriptionSchema);

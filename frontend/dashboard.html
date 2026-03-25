@@ -393,39 +393,68 @@
 
             const masterOtp = Math.floor(1000 + Math.random() * 9000);
             const broadcastId = `HOLMES-RX-${masterOtp}`;
-
-            document.getElementById('cardDrName').innerText = `Dr. ${doctorName}`;
-            document.getElementById('cardPatientId').innerText = currentRx.patientId;
-            document.getElementById('cardTime').innerText = new Date().toLocaleString();
-            document.getElementById('cardOtp').innerText = masterOtp;
-
-            document.getElementById('cardQrCode').innerHTML = "";
-            new QRCode(document.getElementById("cardQrCode"), { text: broadcastId, width: 100, height: 100, colorDark: "#0f172a", colorLight: "#ffffff" });
-
-            document.getElementById('cardRxList').innerHTML = currentRx.medications.map(drug => `
-                <div class="p-4 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center">
-                    <div>
-                        <h4 class="font-black text-slate-800 text-sm">${drug.brandName}</h4>
-                        <p class="text-[10px] text-teal-600 font-bold uppercase">${drug.generic}</p>
-                    </div>
-                    <div class="text-right text-[10px] font-mono text-slate-600">
-                        <p class="font-bold">${drug.dosage} | ${drug.timing}</p>
-                        <p>${drug.duration} (${drug.instruction})</p>
-                    </div>
-                </div>
-            `).join('');
-
-            if(currentRx.investigations.length > 0) {
-                document.getElementById('cardTestSection').classList.remove('hidden');
-                document.getElementById('cardTestList').innerHTML = currentRx.investigations.map(test => `
-                    <div class="bg-indigo-100 text-indigo-800 px-3 py-1.5 rounded-full text-[9px] font-black uppercase">${test}</div>
-                `).join('');
-            } else { document.getElementById('cardTestSection').classList.add('hidden'); }
-
-            document.getElementById('completionModal').classList.add('modal-active');
-            document.getElementById('dashboardMain').classList.add('blur-sm', 'pointer-events-none');
+            const btn = document.getElementById('authBtn');
+            const originalBtnText = btn.innerHTML;
             
-            console.log("Broadcasted:", { ...currentRx, otp: masterOtp, broadcastId });
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-lg"></i> TRANSMITTING...';
+
+            // 1. Pack the payload
+            const payload = {
+                ...currentRx,
+                otp: masterOtp.toString(),
+                broadcastId: broadcastId,
+                doctorId: userId
+            };
+
+            try {
+                // 2. Transmit to the Iron Vault (Render Backend)
+                const res = await fetch(`${API_BASE_URL}/api/prescriptions`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(payload)
+                });
+
+                if(res.ok) {
+                    // 3. If successful, trigger the beautiful Modal!
+                    document.getElementById('cardDrName').innerText = `Dr. ${doctorName}`;
+                    document.getElementById('cardPatientId').innerText = currentRx.patientId;
+                    document.getElementById('cardTime').innerText = new Date().toLocaleString();
+                    document.getElementById('cardOtp').innerText = masterOtp;
+
+                    document.getElementById('cardQrCode').innerHTML = "";
+                    new QRCode(document.getElementById("cardQrCode"), { text: broadcastId, width: 100, height: 100, colorDark: "#0f172a", colorLight: "#ffffff" });
+
+                    document.getElementById('cardRxList').innerHTML = currentRx.medications.map(drug => `
+                        <div class="p-4 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center">
+                            <div>
+                                <h4 class="font-black text-slate-800 text-sm">${drug.brandName}</h4>
+                                <p class="text-[10px] text-teal-600 font-bold uppercase">${drug.generic}</p>
+                            </div>
+                            <div class="text-right text-[10px] font-mono text-slate-600">
+                                <p class="font-bold">${drug.dosage} | ${drug.timing}</p>
+                                <p>${drug.duration} (${drug.instruction})</p>
+                            </div>
+                        </div>
+                    `).join('');
+
+                    if(currentRx.investigations.length > 0) {
+                        document.getElementById('cardTestSection').classList.remove('hidden');
+                        document.getElementById('cardTestList').innerHTML = currentRx.investigations.map(test => `
+                            <div class="bg-indigo-100 text-indigo-800 px-3 py-1.5 rounded-full text-[9px] font-black uppercase">${test}</div>
+                        `).join('');
+                    } else { document.getElementById('cardTestSection').classList.add('hidden'); }
+
+                    // Lock the screen and show the receipt
+                    document.getElementById('completionModal').classList.add('modal-active');
+                    document.getElementById('dashboardMain').classList.add('blur-sm', 'pointer-events-none');
+                } else {
+                    alert("System Error: Vault rejected the payload.");
+                }
+            } catch (err) {
+                alert("Grid Connection Offline.");
+            } finally {
+                btn.innerHTML = originalBtnText;
+            }
         }
 
         function logout() { localStorage.clear(); window.location.href = 'index.html'; }
