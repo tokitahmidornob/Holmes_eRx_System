@@ -29,12 +29,9 @@ app.use('/api/patients', require('./backend/routes/patients'));
 app.use('/api/labs', require('./backend/routes/labs'));
 
 // 5. HIGH-AVAILABILITY PORT BINDING
-// Render provides the PORT variable; we MUST use it exactly.
+// Render provides process.env.PORT. We MUST bind it to '0.0.0.0' so the external scanner can see it.
 const PORT = process.env.PORT || 10000;
 
-// Let Render decide the port dynamically. Fallback to 3000 for local testing.
-const server = app.listen(process.env.PORT || 3000, () => {
-    // This asks the server exactly which port it successfully opened
-    const actualPort = server.address().port;
-    console.log(`🚀 Master Engine is LIVE and bound to port: ${actualPort}`);
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Master Engine is LIVE and bound to port: ${PORT}`);
 });
