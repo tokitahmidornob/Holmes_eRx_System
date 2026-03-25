@@ -3,163 +3,203 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Holmes eRx | Dispensary Command</title>
+    <title>Dispensary Terminal | Holmes eRx</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; }
+        .glass-panel { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(12px); }
+        .emerald-gradient { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+    </style>
 </head>
-<body class="bg-slate-50 text-slate-800 antialiased selection:bg-emerald-200 selection:text-emerald-900">
+<body class="antialiased text-slate-800">
 
-    <nav class="sticky top-0 z-50 bg-gradient-to-r from-slate-900 via-emerald-900 to-slate-900 text-white shadow-lg border-b border-emerald-500/30">
-        <div class="flex justify-between items-center px-8 py-4">
-            <div class="flex items-center gap-4">
-                <div class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center border border-emerald-400/30 shadow-inner">
-                    <i class="fa-solid fa-pills text-emerald-300"></i>
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 emerald-gradient rounded-xl flex items-center justify-center text-white shadow-lg">
+                    <i class="fa-solid fa-pills"></i>
                 </div>
                 <div>
-                    <h1 class="font-black text-lg tracking-tight leading-none text-emerald-50">National Dispensary</h1>
-                    <p class="text-[9px] uppercase tracking-widest text-emerald-300 font-bold mt-1">Pharmacist Verification Terminal</p>
+                    <h1 class="text-xl font-black text-slate-900 tracking-tighter leading-none">Dispensary <span class="text-emerald-600">Terminal</span></h1>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">National Health Grid</p>
                 </div>
             </div>
             <div class="flex items-center gap-6">
-                <span id="pharmNameDisplay" class="text-xs font-black uppercase tracking-widest text-emerald-100">Loading...</span>
-                <button onclick="logout()" class="bg-white/10 hover:bg-rose-500/90 px-5 py-2 rounded-xl text-[10px] font-black transition-all uppercase tracking-widest border border-white/10">Disconnect</button>
+                <div class="text-right hidden md:block">
+                    <p id="pharmacistNameDisplay" class="text-sm font-black text-slate-900">Loading Agent...</p>
+                    <p class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Licensed Pharmacist</p>
+                </div>
+                <button onclick="logout()" class="bg-slate-100 hover:bg-rose-100 hover:text-rose-600 text-slate-600 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-colors">
+                    <i class="fa-solid fa-power-off mr-1"></i> Disconnect
+                </button>
             </div>
         </div>
     </nav>
 
-    <main class="max-w-[1000px] mx-auto p-6 mt-8">
+    <main class="max-w-4xl mx-auto px-6 py-12">
         
-        <div class="bg-white rounded-[32px] shadow-2xl shadow-slate-200/60 border border-white overflow-hidden glass-panel relative">
-            <div class="absolute -top-32 -right-32 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl"></div>
+        <div class="bg-slate-900 rounded-[32px] p-8 shadow-2xl border border-slate-800 relative overflow-hidden mb-8">
+            <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#10b981 1px, transparent 1px); background-size: 30px 30px;"></div>
             
-            <div class="p-10 relative z-10 flex flex-col items-center border-b border-slate-100">
-                <h2 class="text-3xl font-black text-slate-900 tracking-tighter uppercase mb-2 text-center">Cryptographic Decryption</h2>
-                <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-8 text-center max-w-md">Enter the Broadcast ID (or scan QR) and the 4-digit patient OTP to unlock the Vault.</p>
+            <div class="relative z-10">
+                <h2 class="text-white text-2xl font-black tracking-tighter mb-6"><i class="fa-solid fa-shield-halved text-emerald-500 mr-2"></i> Verify Grid Prescription</h2>
                 
-                <form onsubmit="event.preventDefault(); verifyPrescription();" class="w-full max-w-2xl space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div class="md:col-span-2 relative group">
-                            <label class="absolute -top-2 left-4 bg-white px-2 text-[9px] font-black text-slate-400 uppercase tracking-widest group-focus-within:text-emerald-600 transition-colors z-10">Broadcast ID / QR Data</label>
-                            <input type="text" id="broadcastIdInput" required placeholder="e.g. HOLMES-RX-1234" class="premium-input w-full p-5 bg-slate-50 border-2 border-slate-100 rounded-[20px] font-bold text-slate-800 focus:border-emerald-500 focus:bg-white outline-none transition-all uppercase">
-                            <i class="fa-solid fa-qrcode absolute right-5 top-5 text-slate-300 text-xl"></i>
-                        </div>
-                        <div class="relative group">
-                            <label class="absolute -top-2 left-4 bg-white px-2 text-[9px] font-black text-slate-400 uppercase tracking-widest group-focus-within:text-emerald-600 transition-colors z-10">Patient OTP</label>
-                            <input type="text" id="otpInput" required maxlength="4" placeholder="----" class="premium-input w-full p-5 bg-slate-50 border-2 border-slate-100 rounded-[20px] font-black text-2xl tracking-[0.3em] text-center text-emerald-600 focus:border-emerald-500 focus:bg-white outline-none transition-all">
-                        </div>
+                <form id="searchForm" onsubmit="event.preventDefault(); verifyPrescription();" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="md:col-span-2">
+                        <label class="text-[10px] font-black text-emerald-400 uppercase tracking-widest ml-2 mb-1 block">Broadcast ID</label>
+                        <input type="text" id="searchBroadcastId" required placeholder="HOLMES-RX-..." class="w-full bg-slate-800 border border-slate-700 text-white p-4 rounded-2xl font-mono text-lg outline-none focus:border-emerald-500 transition-colors uppercase">
                     </div>
-                    <button type="submit" id="verifyBtn" class="btn-premium w-full bg-gradient-to-r from-slate-800 to-slate-900 text-white py-5 rounded-[20px] font-black text-xs uppercase tracking-widest shadow-xl shadow-slate-900/20 flex items-center justify-center gap-3">
-                        <i class="fa-solid fa-unlock-keyhole text-lg text-emerald-400"></i> Decrypt & Access Record
-                    </button>
+                    <div>
+                        <label class="text-[10px] font-black text-emerald-400 uppercase tracking-widest ml-2 mb-1 block">Secret OTP</label>
+                        <input type="text" id="searchOtp" required placeholder="----" maxlength="4" class="w-full bg-slate-800 border border-slate-700 text-white p-4 rounded-2xl font-mono text-center text-2xl tracking-[0.5em] outline-none focus:border-emerald-500 transition-colors">
+                    </div>
+                    <div class="md:col-span-3 mt-2">
+                        <button type="submit" id="searchBtn" class="w-full emerald-gradient text-white py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-lg hover:shadow-emerald-500/30 transition-all">
+                            Authenticate & Fetch Data
+                        </button>
+                    </div>
                 </form>
             </div>
+        </div>
 
-            <div id="decryptedRecord" class="hidden p-10 bg-slate-50 animate-slide-down relative z-10">
-                <div class="bg-white border-2 border-emerald-400 rounded-[24px] p-8 shadow-lg shadow-emerald-500/10">
-                    
-                    <div class="flex justify-between items-start border-b border-slate-100 pb-6 mb-6">
-                        <div>
-                            <span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border border-emerald-200 mb-3 inline-block">Signature Verified</span>
-                            <h3 id="rxDrName" class="text-xl font-black text-slate-900">Dr. Name</h3>
-                            <p id="rxDrCreds" class="text-xs text-slate-500 font-bold mt-1">Credentials</p>
-                        </div>
-                        <div class="text-right">
-                            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Patient Profile</p>
-                            <p id="rxPatientId" class="text-sm font-bold text-slate-800 bg-slate-100 px-4 py-2 rounded-xl border border-slate-200"></p>
-                        </div>
-                    </div>
-
-                    <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4"><i class="fa-solid fa-capsules mr-2 text-emerald-500"></i> Authorized Medications</h4>
-                    <div id="rxMedList" class="space-y-4 mb-8">
-                        </div>
-
-                    <button onclick="dispenseMeds()" id="dispenseBtn" class="btn-premium w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white py-5 rounded-[20px] font-black text-sm uppercase tracking-widest shadow-lg shadow-emerald-500/40 border border-emerald-400/50 flex items-center justify-center gap-3">
-                        <i class="fa-solid fa-box-open text-xl"></i> Mark as Dispensed (Seal Record)
-                    </button>
+        <div id="resultsViewer" class="hidden bg-white rounded-[32px] shadow-xl border border-slate-200 overflow-hidden">
+            <div class="p-8 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                <div>
+                    <p class="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">Grid Record Found</p>
+                    <h3 id="resPatientName" class="text-2xl font-black text-slate-900 tracking-tighter">Patient Name</h3>
+                </div>
+                <div class="text-right">
+                    <span id="resStatusBadge" class="px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest border">Status</span>
                 </div>
             </div>
 
+            <div class="p-8">
+                <p id="resDoctorInfo" class="text-sm font-bold text-slate-500 mb-6 pb-6 border-b border-slate-100">Prescribed by: Dr. Unknown</p>
+                
+                <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Authorized Medications</h4>
+                <div id="resMedList" class="space-y-3 mb-8">
+                    </div>
+
+                <div id="dispenseActionArea" class="bg-emerald-50 border border-emerald-100 p-6 rounded-[24px] text-center">
+                    <p class="text-xs font-bold text-emerald-700 mb-4">Warning: Dispensing this medication will lock this prescription permanently.</p>
+                    <button onclick="dispenseMedication()" id="dispenseBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-xl font-black text-sm uppercase tracking-widest shadow-lg transition-colors inline-flex items-center gap-2">
+                        <i class="fa-solid fa-check-double"></i> Mark as Dispensed
+                    </button>
+                </div>
+            </div>
         </div>
+
     </main>
 
     <script>
         const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
         const token = localStorage.getItem('eRx_Token');
-        const pharmId = localStorage.getItem('eRx_UserId');
-        
-        if(!token || !pharmId) window.location.href = 'index.html';
+        const role = localStorage.getItem('eRx_UserRole');
+        let currentRxId = null; // Store the ID of the fetched prescription
 
-        document.getElementById('pharmNameDisplay').innerText = `Pharm. ${localStorage.getItem('eRx_UserName') || 'Terminal'}`;
+        // Security Check
+        if (!token || role !== 'pharmacist') {
+            window.location.href = 'index.html';
+        }
 
-        let currentPrescriptionId = null;
+        // Initialize UI
+        document.getElementById('pharmacistNameDisplay').innerText = localStorage.getItem('eRx_UserName') || 'Licensed Pharmacist';
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = 'index.html';
+        }
 
         async function verifyPrescription() {
-            const btn = document.getElementById('verifyBtn');
-            const broadcastId = document.getElementById('broadcastIdInput').value.trim();
-            const otp = document.getElementById('otpInput').value.trim();
+            const btn = document.getElementById('searchBtn');
+            const bId = document.getElementById('searchBroadcastId').value.trim().toUpperCase();
+            const otp = document.getElementById('searchOtp').value.trim();
+            const viewer = document.getElementById('resultsViewer');
+            
+            if(!bId || !otp) return alert("Enter both ID and OTP.");
 
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-emerald-400 text-lg"></i> DECRYPTING...';
-            document.getElementById('decryptedRecord').classList.add('hidden');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Decrypting...';
+            viewer.classList.add('hidden');
 
             try {
-                const res = await fetch(`${API_BASE_URL}/api/prescriptions/verify`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ broadcastId, otp })
+                // Fetch prescription securely using ID and OTP
+                const res = await fetch(`${API_BASE_URL}/api/prescriptions/verify?broadcastId=${bId}&otp=${otp}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
                 const data = await res.json();
-                
-                if(res.ok && data.success) {
-                    currentPrescriptionId = data.prescription._id;
+
+                if (res.ok) {
+                    currentRxId = data._id; // Save ID for dispensing later
                     
                     // Populate UI
-                    document.getElementById('rxDrName').innerText = `Dr. ${data.prescription.doctorId.name}`;
-                    document.getElementById('rxDrCreds').innerText = `${data.prescription.doctorId.degrees?.join(', ')} | BMDC: ${data.prescription.doctorId.licenseNumber}`;
-                    document.getElementById('rxPatientId').innerText = data.prescription.patientId;
+                    document.getElementById('resPatientName').innerText = data.patientId ? data.patientId.name : 'Unknown Patient';
+                    document.getElementById('resDoctorInfo').innerText = `Authorized by: Dr. ${data.doctorId ? data.doctorId.name : 'Unknown'}`;
                     
-                    document.getElementById('rxMedList').innerHTML = data.prescription.medications.map(med => `
-                        <div class="bg-emerald-50/50 p-5 rounded-2xl border border-emerald-100 flex justify-between items-center">
+                    // Status Badge Logic
+                    const badge = document.getElementById('resStatusBadge');
+                    const actionArea = document.getElementById('dispenseActionArea');
+                    
+                    if(data.status === 'Dispensed') {
+                        badge.className = 'px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest bg-rose-100 text-rose-700 border border-rose-200';
+                        badge.innerText = 'Already Dispensed';
+                        actionArea.classList.add('hidden'); // Hide the dispense button
+                    } else {
+                        badge.className = 'px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest bg-emerald-100 text-emerald-700 border border-emerald-200';
+                        badge.innerText = 'Active & Valid';
+                        actionArea.classList.remove('hidden'); // Show the dispense button
+                    }
+
+                    // Populate Meds
+                    document.getElementById('resMedList').innerHTML = data.medications.map(m => `
+                        <div class="bg-white p-4 rounded-xl border border-slate-200 flex justify-between items-center shadow-sm">
                             <div>
-                                <p class="font-black text-slate-800 text-base">${med.brandName} <span class="text-xs text-emerald-600 font-bold ml-1 uppercase">(${med.generic})</span></p>
-                                <p class="text-[11px] text-slate-500 font-bold mt-1">${med.dosage} — ${med.timing}</p>
+                                <p class="font-black text-lg text-slate-800">${m.brandName}</p>
+                                <p class="text-xs uppercase text-slate-500 font-bold mt-1">${m.dosage} | ${m.timing}</p>
                             </div>
-                            <div class="text-right bg-white px-4 py-2 rounded-xl border border-emerald-100 shadow-sm">
-                                <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Dispense For</p>
-                                <p class="text-sm font-black text-emerald-700">${med.duration}</p>
-                            </div>
+                            <p class="text-xs font-black text-emerald-700 bg-emerald-50 px-4 py-2 rounded-lg border border-emerald-100">${m.duration}</p>
                         </div>
                     `).join('');
 
-                    document.getElementById('decryptedRecord').classList.remove('hidden');
-                } else { alert(data.error || "Decryption Failed."); }
-            } catch (err) { alert("Grid Connection Offline."); }
-            finally { btn.innerHTML = '<i class="fa-solid fa-unlock-keyhole text-lg text-emerald-400"></i> Decrypt & Access Record'; }
+                    viewer.classList.remove('hidden');
+                } else {
+                    alert(data.msg || "Prescription not found or invalid OTP.");
+                }
+            } catch(err) {
+                alert(`Network Error: ${err.message}`);
+            } finally {
+                btn.innerHTML = 'Authenticate & Fetch Data';
+            }
         }
 
-        async function dispenseMeds() {
-            if(!currentPrescriptionId) return;
+        async function dispenseMedication() {
+            if(!currentRxId) return;
+            
             const btn = document.getElementById('dispenseBtn');
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xl"></i> SEALING...';
-
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Processing...';
+            
             try {
-                const res = await fetch(`${API_BASE_URL}/api/prescriptions/dispense`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ prescriptionId: currentPrescriptionId, pharmacistId: pharmId })
+                const res = await fetch(`${API_BASE_URL}/api/prescriptions/${currentRxId}/dispense`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
 
                 if(res.ok) {
-                    alert("Success! Record sealed. Patient cannot reuse this prescription.");
-                    location.reload();
-                } else { alert("Failed to seal record."); }
-            } catch (err) { alert("Grid Error."); }
-            finally { btn.innerHTML = '<i class="fa-solid fa-box-open text-xl"></i> Mark as Dispensed (Seal Record)'; }
+                    alert("Success! Prescription has been securely marked as Dispensed.");
+                    // Refresh the view to show it is now locked
+                    verifyPrescription(); 
+                } else {
+                    const data = await res.json();
+                    alert(data.msg || "Failed to update status.");
+                }
+            } catch(err) {
+                alert(`Network Error: ${err.message}`);
+            } finally {
+                btn.innerHTML = '<i class="fa-solid fa-check-double mr-2"></i> Mark as Dispensed';
+            }
         }
-
-        function logout() { localStorage.clear(); window.location.href = 'index.html'; }
     </script>
 </body>
 </html>
