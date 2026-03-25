@@ -15,9 +15,12 @@
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        /* Dropdown animations */
+        .dropdown-menu { transform-origin: top; transition: transform 0.2s ease, opacity 0.2s ease; }
+        .dropdown-menu.hidden { transform: scaleY(0.95); opacity: 0; pointer-events: none; }
     </style>
 </head>
-<body class="antialiased text-slate-800 flex h-screen overflow-hidden">
+<body class="antialiased text-slate-800 flex h-screen overflow-hidden" onclick="closeAllDropdowns(event)">
 
     <aside class="w-24 lg:w-72 bg-slate-900 text-white flex flex-col transition-all duration-300 z-20 shadow-2xl relative">
         <div class="h-24 flex items-center justify-center lg:justify-start lg:px-8 border-b border-slate-800">
@@ -64,10 +67,20 @@
 
         <div class="flex-1 overflow-y-auto custom-scrollbar p-8">
             <div id="viewRxPad" class="max-w-5xl mx-auto space-y-6 block">
-                <div class="bg-white rounded-[32px] p-8 shadow-sm border border-slate-200 flex flex-col md:flex-row gap-6">
-                    <div class="flex-1">
-                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Patient Grid ID (Email)</label>
-                        <input type="email" id="patientId" placeholder="patient@grid.com" class="premium-input w-full bg-slate-50 p-4 rounded-2xl border border-slate-200 font-bold text-slate-800 outline-none">
+                
+                <div class="bg-white rounded-[32px] p-8 shadow-sm border border-slate-200">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Select Patient</label>
+                    <div class="relative w-full" id="patientDropdownContainer">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="fa-solid fa-magnifying-glass text-slate-400"></i>
+                        </div>
+                        <input type="text" id="patientSearchInput" onfocus="showPatientDropdown()" oninput="filterPatients()" placeholder="Search by Patient Name or Grid ID..." autocomplete="off" class="premium-input w-full bg-slate-50 p-4 pl-12 rounded-2xl border border-slate-200 font-bold text-slate-800 outline-none">
+                        
+                        <input type="hidden" id="selectedPatientEmail">
+                        
+                        <div id="patientDropdown" class="dropdown-menu hidden absolute z-[60] w-full mt-2 bg-white border border-slate-200 rounded-2xl shadow-2xl max-h-60 overflow-y-auto custom-scrollbar">
+                            <div class="p-4 text-center text-sm text-slate-400 font-bold"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Loading Grid Citizens...</div>
+                        </div>
                     </div>
                 </div>
 
@@ -76,10 +89,16 @@
                         <div class="p-6 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
                             <h3 class="font-black text-slate-900 uppercase tracking-widest text-xs"><i class="fa-solid fa-capsules text-teal-500 mr-2"></i> Medications</h3>
                         </div>
-                        <div class="p-6 flex-1 flex flex-col">
+                        <div class="p-6 flex-1 flex flex-col relative z-50">
+                            
                             <div class="grid grid-cols-12 gap-2 mb-4">
-                                <input type="text" id="medName" list="drugDatabaseList" oninput="searchDrugs(this.value)" placeholder="Brand Name" class="col-span-4 premium-input bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm font-bold outline-none">
-                                <datalist id="drugDatabaseList"></datalist>
+                                <div class="col-span-4 relative" id="drugDropdownContainer">
+                                    <input type="text" id="medName" onfocus="document.getElementById('drugDropdown').classList.remove('hidden')" oninput="searchDrugs(this.value)" placeholder="Search Drug..." autocomplete="off" class="premium-input w-full bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm font-bold outline-none">
+                                    
+                                    <div id="drugDropdown" class="dropdown-menu hidden absolute z-[70] w-64 mt-2 left-0 bg-white border border-slate-200 rounded-2xl shadow-2xl max-h-48 overflow-y-auto custom-scrollbar">
+                                        <div class="p-3 text-xs text-slate-400 font-bold text-center">Type to search Grid Database...</div>
+                                    </div>
+                                </div>
                                 
                                 <input type="text" id="medDose" placeholder="e.g. 1+0+1" class="col-span-3 premium-input bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm font-bold outline-none text-center">
                                 <select id="medTiming" class="col-span-3 premium-input bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm font-bold outline-none text-center appearance-none">
@@ -89,16 +108,18 @@
                                 </select>
                                 <input type="text" id="medDuration" placeholder="Days" class="col-span-2 premium-input bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm font-bold outline-none text-center">
                             </div>
-                            <button onclick="addMedication()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-black text-[10px] uppercase tracking-widest p-3 rounded-xl transition-colors mb-6">
+                            
+                            <button onclick="addMedication()" class="w-full bg-slate-100 hover:bg-teal-50 hover:text-teal-600 text-slate-600 font-black text-[10px] uppercase tracking-widest p-3 rounded-xl transition-colors mb-6 border border-transparent hover:border-teal-200">
                                 + Add to Prescription
                             </button>
+                            
                             <div id="medListDisplay" class="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar min-h-[150px]">
                                 <div class="text-center text-slate-300 font-bold text-sm py-10">No medications added yet</div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="bg-white rounded-[32px] shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+                    <div class="bg-white rounded-[32px] shadow-sm border border-slate-200 overflow-hidden flex flex-col relative z-40">
                         <div class="p-6 border-b border-slate-100 bg-slate-50/50">
                             <h3 class="font-black text-slate-900 uppercase tracking-widest text-xs"><i class="fa-solid fa-microscope text-indigo-500 mr-2"></i> Investigations</h3>
                         </div>
@@ -234,12 +255,12 @@
     </div>
 
     <script>
-        // Note: Make sure the API route here matches your specific drug database route!
         const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
         
         let medications = [];
         let investigations = [];
         let doctorPrescriptions = [];
+        let allPatients = []; // Holds the fetched directory of patients
 
         const token = localStorage.getItem('eRx_Token');
         const role = localStorage.getItem('eRx_UserRole');
@@ -249,10 +270,120 @@
         if (!token || role !== 'doctor') window.location.href = 'index.html';
 
         document.getElementById('drNameDisplay').innerText = `Dr. ${drName}`;
+        
+        // 🚀 INIT SEQUENCE
+        fetchPatientsList();
         fetchHistory();
 
         function logout() { localStorage.clear(); window.location.href = 'index.html'; }
 
+        // 🌟 GLOBAL CLICK HANDLER TO CLOSE DROPDOWNS 🌟
+        function closeAllDropdowns(event) {
+            const pContainer = document.getElementById('patientDropdownContainer');
+            const dContainer = document.getElementById('drugDropdownContainer');
+            
+            if (!pContainer.contains(event.target)) {
+                document.getElementById('patientDropdown').classList.add('hidden');
+            }
+            if (!dContainer.contains(event.target)) {
+                document.getElementById('drugDropdown').classList.add('hidden');
+            }
+        }
+
+        // ==========================================
+        // 🧑‍🤝‍🧑 PATIENT DIRECTORY LOGIC
+        // ==========================================
+        async function fetchPatientsList() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/auth/patients`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if(res.ok) allPatients = await res.json();
+            } catch(e) { console.error("Failed to load patient directory.", e); }
+        }
+
+        function showPatientDropdown() {
+            document.getElementById('patientDropdown').classList.remove('hidden');
+            filterPatients(); // show all initially or filter current
+        }
+
+        function filterPatients() {
+            const query = document.getElementById('patientSearchInput').value.toLowerCase();
+            const dropdown = document.getElementById('patientDropdown');
+            
+            const filtered = allPatients.filter(p => 
+                p.name.toLowerCase().includes(query) || 
+                (p.gridId && p.gridId.toLowerCase().includes(query))
+            );
+
+            if (filtered.length === 0) {
+                dropdown.innerHTML = '<div class="p-4 text-sm text-slate-400 text-center font-bold">No citizens found matching criteria.</div>';
+                return;
+            }
+
+            dropdown.innerHTML = filtered.map(p => `
+                <div onclick="selectPatient('${p.email}', '${p.name}', '${p.gridId}')" class="p-4 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-0 flex items-center justify-between transition-colors">
+                    <div>
+                        <p class="font-black text-sm text-slate-800">${p.name}</p>
+                        <p class="text-[10px] font-bold text-slate-400 mt-1">${p.email}</p>
+                    </div>
+                    <span class="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-lg text-[9px] font-black tracking-widest uppercase border border-indigo-100">${p.gridId || 'NO-ID'}</span>
+                </div>
+            `).join('');
+        }
+
+        function selectPatient(email, name, gridId) {
+            document.getElementById('patientSearchInput').value = `${name} (${gridId || email})`;
+            document.getElementById('selectedPatientEmail').value = email; // Backend needs the email!
+            document.getElementById('patientDropdown').classList.add('hidden');
+        }
+
+        // ==========================================
+        // 💊 DRUG DATABASE LOGIC
+        // ==========================================
+        let searchTimeout;
+        async function searchDrugs(query) {
+            const dropdown = document.getElementById('drugDropdown');
+            if(query.length < 2) {
+                dropdown.innerHTML = '<div class="p-3 text-xs text-slate-400 font-bold text-center">Type at least 2 letters...</div>';
+                return;
+            }
+
+            // Debounce to prevent spamming the server
+            clearTimeout(searchTimeout);
+            dropdown.innerHTML = '<div class="p-3 text-xs text-slate-400 font-bold text-center"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Searching...</div>';
+            
+            searchTimeout = setTimeout(async () => {
+                try {
+                    const res = await fetch(`${API_BASE_URL}/api/medicines?search=${query}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if(res.ok) {
+                        const drugs = await res.json();
+                        if(drugs.length === 0) {
+                            dropdown.innerHTML = '<div class="p-3 text-xs text-slate-400 font-bold text-center">No drugs found in database.</div>';
+                            return;
+                        }
+                        dropdown.innerHTML = drugs.map(d => `
+                            <div onclick="selectDrug('${d.brandName}')" class="p-3 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-0 transition-colors">
+                                <p class="font-black text-sm text-slate-800"><i class="fa-solid fa-pills text-teal-500 mr-2 text-xs"></i>${d.brandName}</p>
+                            </div>
+                        `).join('');
+                    }
+                } catch(e) {
+                    dropdown.innerHTML = '<div class="p-3 text-xs text-rose-400 font-bold text-center">Database connection failed.</div>';
+                }
+            }, 300); // 300ms delay
+        }
+
+        function selectDrug(name) {
+            document.getElementById('medName').value = name;
+            document.getElementById('drugDropdown').classList.add('hidden');
+        }
+
+        // ==========================================
+        // UI & CORE FUNCTIONS
+        // ==========================================
         function switchTab(tab) {
             document.getElementById('viewRxPad').classList.add('hidden');
             document.getElementById('viewHistory').classList.add('hidden');
@@ -271,25 +402,6 @@
                 document.getElementById('navHistory').classList.add('bg-teal-500/10', 'text-teal-400');
                 document.getElementById('navHistory').classList.remove('text-slate-400');
                 document.getElementById('pageTitle').innerText = 'Archive';
-            }
-        }
-
-        // 🌟 RESTORED DRUG SEARCH ENGINE 🌟
-        async function searchDrugs(query) {
-            if(query.length < 2) return; // Only search if typing more than 1 letter
-            try {
-                // Adjust '/api/medicines' if your route was named differently!
-                const res = await fetch(`${API_BASE_URL}/api/medicines?search=${query}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if(res.ok) {
-                    const drugs = await res.json();
-                    const datalist = document.getElementById('drugDatabaseList');
-                    // Assumes the drug object has a 'brandName' field
-                    datalist.innerHTML = drugs.map(d => `<option value="${d.brandName}">`).join('');
-                }
-            } catch(e) {
-                console.error("Drug DB Offline:", e);
             }
         }
 
@@ -348,16 +460,22 @@
 
         function removeTest(index) { investigations.splice(index, 1); renderTests(); }
 
+        // ==========================================
+        // 🚀 MASTER TRANSMISSION
+        // ==========================================
         async function generatePrescription() {
-            const patientId = document.getElementById('patientId').value;
-            if (!patientId || medications.length === 0) return alert("Patient Email and at least 1 Medicine required.");
+            // Notice we use the hidden selectedPatientEmail field here!
+            const patientEmail = document.getElementById('selectedPatientEmail').value;
+            
+            if (!patientEmail) return alert("Please search and select a Patient from the Dropdown directory.");
+            if (medications.length === 0) return alert("At least 1 Medicine is required.");
 
             const btn = document.getElementById('generateBtn');
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Encrypting...';
 
             const payload = {
                 doctorId: drId,
-                patientId: patientId,
+                patientId: patientEmail, 
                 medications: medications,
                 investigations: investigations
             };
@@ -375,10 +493,15 @@
                 const data = await res.json();
                 
                 if (res.ok) {
-                    showSuccessModal(data, patientId);
+                    // Pass the visual display name/ID to the success modal
+                    const visualPatientInfo = document.getElementById('patientSearchInput').value;
+                    showSuccessModal(data, visualPatientInfo);
+                    
+                    // Reset Pad
                     medications = [];
                     investigations = [];
-                    document.getElementById('patientId').value = '';
+                    document.getElementById('patientSearchInput').value = '';
+                    document.getElementById('selectedPatientEmail').value = '';
                     renderMedications();
                     renderTests();
                     fetchHistory(); 
@@ -392,13 +515,15 @@
             }
         }
 
-        function showSuccessModal(data, patId) {
+        // ==========================================
+        // MODALS & ARCHIVES
+        // ==========================================
+        function showSuccessModal(data, visualPatInfo) {
             document.getElementById('successDrName').innerText = `Dr. ${drName}`;
-            document.getElementById('successPatientId').innerHTML = `<i class="fa-solid fa-user mr-1"></i> Patient ID: ${patId}`;
+            document.getElementById('successPatientId').innerHTML = `<i class="fa-solid fa-user mr-1"></i> Patient: ${visualPatInfo}`;
             
             document.getElementById('successBroadcastId').innerText = data.broadcastId || "PENDING";
             document.getElementById('successOtp').innerText = data.otp || "----";
-            
             document.getElementById('successTimestamp').innerText = `Timestamp: ${new Date().toLocaleString()}`;
 
             document.getElementById('successMedList').innerHTML = data.medications.map(m => `
