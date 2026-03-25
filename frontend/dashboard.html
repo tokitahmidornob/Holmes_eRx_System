@@ -8,10 +8,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
-    
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="text-slate-800 antialiased selection:bg-teal-200 selection:text-teal-900">
+<body class="text-slate-800 antialiased selection:bg-teal-200 selection:text-teal-900 overflow-x-hidden">
 
     <nav class="sticky top-0 z-50 bg-gradient-to-r from-slate-900 via-teal-900 to-slate-900 text-white shadow-lg border-b border-teal-500/30">
         <div class="flex justify-between items-center px-8">
@@ -50,7 +49,7 @@
                         <input type="text" id="patientSearchInput" placeholder="National ID or Email..." class="premium-input w-full pl-10 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none">
                         <i class="fa-solid fa-id-card absolute left-3.5 top-3.5 text-slate-400 text-lg"></i>
                     </div>
-                    <button onclick="findPatient()" class="w-full bg-gradient-to-r from-slate-800 to-slate-900 hover:from-black hover:to-slate-800 text-white py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg shadow-slate-900/20 transform hover:-translate-y-0.5">Verify Identity</button>
+                    <button onclick="findPatient()" class="w-full bg-gradient-to-r from-slate-800 to-slate-900 hover:from-black hover:to-slate-800 text-white py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg shadow-slate-900/20 transform hover:-translate-y-0.5">Pull Medical File</button>
                 </div>
 
                 <div id="patientCard" class="hidden mt-6 p-5 bg-gradient-to-br from-teal-50 to-white rounded-xl border border-teal-100/50 shadow-sm animate-slide-down">
@@ -61,15 +60,34 @@
                             <p id="pEmail" class="text-[9px] font-bold text-teal-600 uppercase tracking-widest mt-1">citizen@grid.com</p>
                         </div>
                     </div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div class="bg-white p-3 rounded-lg border border-slate-100 shadow-sm text-center">
-                            <span class="block text-[9px] text-slate-400 font-black uppercase mb-1">Demographics</span>
+                    
+                    <div class="grid grid-cols-2 gap-3 mb-3">
+                        <div class="bg-white p-3 rounded-lg border border-slate-100 shadow-sm">
+                            <span class="block text-[8px] text-slate-400 font-black uppercase mb-1">Age/Gender</span>
                             <span id="pAgeGender" class="font-bold text-slate-700 text-xs">25 / Male</span>
                         </div>
-                        <div class="bg-white p-3 rounded-lg border border-slate-100 shadow-sm text-center">
-                            <span class="block text-[9px] text-slate-400 font-black uppercase mb-1">Blood Group</span>
+                        <div class="bg-white p-3 rounded-lg border border-slate-100 shadow-sm">
+                            <span class="block text-[8px] text-slate-400 font-black uppercase mb-1">Blood Group</span>
                             <span id="pBlood" class="font-black text-red-500 text-xs bg-red-50 px-2 py-0.5 rounded-full">O+</span>
                         </div>
+                        <div class="bg-white p-3 rounded-lg border border-slate-100 shadow-sm">
+                            <span class="block text-[8px] text-slate-400 font-black uppercase mb-1">Weight</span>
+                            <span id="pWeight" class="font-bold text-slate-700 text-xs">68 kg</span>
+                        </div>
+                        <div class="bg-white p-3 rounded-lg border border-slate-100 shadow-sm">
+                            <span class="block text-[8px] text-slate-400 font-black uppercase mb-1">Last Vitals (BP)</span>
+                            <span id="pBP" class="font-bold text-slate-700 text-xs">120/80</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-3 rounded-lg border border-slate-100 shadow-sm mb-3">
+                        <span class="block text-[8px] text-slate-400 font-black uppercase mb-1"><i class="fa-solid fa-phone mr-1"></i> Contact</span>
+                        <span id="pPhone" class="font-bold text-slate-700 text-[10px]">+880 1711-XXXXXX</span>
+                    </div>
+
+                    <div class="bg-rose-50 p-3 rounded-lg border border-rose-100 shadow-sm">
+                        <span class="block text-[8px] text-rose-400 font-black uppercase mb-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Known Allergies</span>
+                        <span id="pAllergies" class="font-bold text-rose-700 text-[10px]">Penicillin, Dust</span>
                     </div>
                 </div>
             </div>
@@ -83,13 +101,13 @@
                         <h2 class="text-2xl font-black text-gradient tracking-tighter uppercase drop-shadow-sm">Digital Prescription Pad</h2>
                         <div class="flex items-center gap-2 mt-2">
                             <span class="w-2 h-2 rounded-full bg-teal-400 pulse-glow"></span>
-                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">National Grid Secured Connection</p>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Session Active</p>
                         </div>
                     </div>
-                    <div id="qrcode" class="bg-white p-1.5 rounded-xl border border-slate-200 shadow-sm min-w-[60px] min-h-[60px] flex justify-center items-center text-slate-300 text-[8px] font-bold text-center">QR<br>Pending</div>
+                    <div id="qrcode" class="bg-white p-1.5 rounded-xl border border-slate-200 shadow-sm min-w-[60px] min-h-[60px] flex justify-center items-center text-slate-300 text-[8px] font-bold text-center">QR<br>Ready</div>
                 </div>
 
-                <form id="masterPad" class="p-6 md:p-10 space-y-8 bg-white relative z-10" onsubmit="event.preventDefault(); submitPrescription();">
+                <div id="masterPad" class="p-6 md:p-10 space-y-8 bg-white relative z-10">
                     
                     <div class="relative z-50">
                         <div class="relative">
@@ -98,164 +116,274 @@
                                 <i class="fa-solid fa-magnifying-glass text-white"></i>
                             </div>
                         </div>
-                        
                         <div id="searchSuggestions" class="absolute z-50 w-full glass-panel shadow-2xl shadow-slate-900/10 rounded-[20px] mt-2 max-h-[300px] overflow-y-auto hidden border-t border-slate-200"></div>
                     </div>
 
-                    <div id="overridePanel" class="hidden animate-slide-down">
-                        
-                        <div class="bg-gradient-to-r from-teal-50 to-emerald-50 border border-teal-100 rounded-2xl p-5 mb-5 shadow-inner">
-                            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                                <div>
-                                    <h4 id="selectedBrand" class="font-black text-teal-900 text-2xl tracking-tighter drop-shadow-sm"></h4>
-                                    <p id="selectedGeneric" class="text-[10px] font-black text-teal-600/70 uppercase tracking-widest mt-1"></p>
-                                </div>
-                                <div class="flex gap-2">
-                                    <span class="bg-white border border-teal-200 text-teal-700 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase shadow-sm flex items-center"><i class="fa-solid fa-check-circle mr-1.5 text-teal-500"></i> Verified</span>
-                                </div>
+                    <div id="overridePanel" class="hidden animate-slide-down bg-teal-50/30 p-6 rounded-[24px] border border-teal-100">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h4 id="selectedBrand" class="font-black text-teal-900 text-xl tracking-tighter"></h4>
+                                <p id="selectedGeneric" class="text-[10px] font-black text-teal-600/70 uppercase tracking-widest mt-1"></p>
                             </div>
-                            
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 pt-4 border-t border-teal-200/50">
-                                <div class="bg-white/60 p-3 rounded-xl border border-white">
-                                    <span class="block text-[9px] font-black text-indigo-500 uppercase tracking-widest mb-1">Indications</span>
-                                    <span class="text-xs font-bold text-slate-700" id="metaIndications">...</span>
-                                </div>
-                                <div class="bg-white/60 p-3 rounded-xl border border-white">
-                                    <span class="block text-[9px] font-black text-rose-500 uppercase tracking-widest mb-1">Side Effects</span>
-                                    <span class="text-xs font-bold text-slate-700" id="metaSideEffects">...</span>
-                                </div>
-                            </div>
+                            <span class="bg-white border border-teal-200 text-teal-700 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase shadow-sm">Selected</span>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div class="relative group">
-                                <label class="text-[9px] font-black text-slate-400 uppercase mb-2 block ml-1 group-focus-within:text-teal-600 transition-colors">Dosage Protocol</label>
-                                <input type="text" id="overrideDosage" class="premium-input w-full bg-slate-50 p-3.5 border border-slate-200 rounded-xl font-mono font-black text-teal-700 text-sm outline-none">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-5">
+                            <div>
+                                <label class="text-[9px] font-black text-slate-400 uppercase mb-2 block ml-1">Dosage Protocol</label>
+                                <input type="text" id="overrideDosage" class="premium-input w-full bg-white p-3 border border-slate-200 rounded-xl font-mono font-black text-teal-700 text-sm outline-none">
                             </div>
-                            <div class="relative group">
-                                <label class="text-[9px] font-black text-slate-400 uppercase mb-2 block ml-1 group-focus-within:text-teal-600 transition-colors">Administration Timing</label>
-                                <select id="timing" class="premium-input w-full bg-slate-50 p-3.5 border border-slate-200 rounded-xl font-bold text-slate-700 text-xs outline-none cursor-pointer">
+                            <div>
+                                <label class="text-[9px] font-black text-slate-400 uppercase mb-2 block ml-1">Administration Timing</label>
+                                <select id="timing" class="premium-input w-full bg-white p-3 border border-slate-200 rounded-xl font-bold text-slate-700 text-sm outline-none cursor-pointer">
                                     <option>After Meal</option>
                                     <option>Before Meal</option>
                                     <option>Empty Stomach</option>
                                 </select>
                             </div>
-                            <div class="relative group">
-                                <label class="text-[9px] font-black text-slate-400 uppercase mb-2 block ml-1 group-focus-within:text-teal-600 transition-colors">Treatment Duration</label>
-                                <input type="text" id="duration" placeholder="e.g. 7 Days" required class="premium-input w-full bg-slate-50 p-3.5 border border-slate-200 rounded-xl font-bold text-slate-700 text-xs outline-none">
+                            <div>
+                                <label class="text-[9px] font-black text-slate-400 uppercase mb-2 block ml-1">Duration</label>
+                                <input type="text" id="duration" placeholder="e.g. 7 Days" class="premium-input w-full bg-white p-3 border border-slate-200 rounded-xl font-bold text-slate-700 text-sm outline-none">
                             </div>
-                            <div class="relative group">
-                                <label class="text-[9px] font-black text-slate-400 uppercase mb-2 block ml-1 group-focus-within:text-teal-600 transition-colors">Clinical Route</label>
-                                <input type="text" id="instruction" value="Orally" class="premium-input w-full bg-slate-50 p-3.5 border border-slate-200 rounded-xl font-bold text-slate-700 text-xs outline-none">
+                            <div>
+                                <label class="text-[9px] font-black text-slate-400 uppercase mb-2 block ml-1">Clinical Route</label>
+                                <input type="text" id="instruction" value="Orally" class="premium-input w-full bg-white p-3 border border-slate-200 rounded-xl font-bold text-slate-700 text-sm outline-none">
                             </div>
                         </div>
+
+                        <button type="button" onclick="addDrugToRx()" class="w-full bg-teal-600 hover:bg-teal-500 text-white py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-teal-500/30 transition-all">
+                            <i class="fa-solid fa-plus-circle mr-2"></i> Append to Prescription
+                        </button>
                     </div>
 
-                    <div class="relative group">
-                        <label class="absolute -top-2 left-4 bg-white px-2 text-[9px] font-black text-slate-400 uppercase tracking-widest group-focus-within:text-teal-600 transition-colors z-10">Required Lab Investigations</label>
-                        <textarea id="investigations" rows="2" placeholder="Input clinical test requirements (e.g. CBC, Lipid Profile)..." class="premium-input w-full p-5 bg-white border-2 border-slate-100 rounded-[20px] text-sm font-medium text-slate-700 outline-none resize-none"></textarea>
+                    <div id="rxListContainer" class="hidden animate-slide-down border-t border-slate-100 pt-6">
+                        <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center">
+                            <i class="fa-solid fa-pills mr-2 text-teal-500"></i> Active Medications
+                        </h3>
+                        <div id="rxList" class="space-y-3">
+                            </div>
                     </div>
 
-                    <div class="bg-slate-900 rounded-[24px] p-2 flex flex-col md:flex-row items-center justify-between shadow-2xl shadow-slate-900/30">
+                    <div class="border-t border-slate-100 pt-6">
+                        <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center">
+                            <i class="fa-solid fa-microscope mr-2 text-indigo-500"></i> Required Lab Investigations
+                        </h3>
+                        <div class="flex gap-3">
+                            <input type="text" id="testInput" onkeypress="handleTestEnter(event)" placeholder="Type test name (e.g. CBC) and press Enter or Add..." class="premium-input flex-1 bg-slate-50 p-4 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 outline-none">
+                            <button type="button" onclick="addTest()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-6 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-indigo-500/30 transition-all">Add Test</button>
+                        </div>
+                        
+                        <div id="testTags" class="flex flex-wrap gap-2 mt-4">
+                            </div>
+                    </div>
+
+                    <div class="bg-slate-900 rounded-[24px] p-2 flex flex-col md:flex-row items-center justify-between shadow-2xl shadow-slate-900/30 mt-8">
                         <div class="flex items-center gap-4 pl-6 py-4 md:py-0">
                             <div>
                                 <p class="text-[8px] text-slate-400 font-black uppercase tracking-widest mb-1">Cryptographic OTP</p>
                                 <p id="otpCode" class="text-2xl font-mono font-black tracking-[0.2em] text-teal-400 drop-shadow-[0_0_5px_rgba(45,212,191,0.5)]">----</p>
                             </div>
                         </div>
-                        <button type="submit" id="authBtn" class="btn-premium w-full md:w-auto bg-gradient-to-r from-teal-500 to-emerald-500 text-white px-10 py-5 rounded-[20px] font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3">
-                            <i class="fa-solid fa-satellite-dish text-lg"></i> Broadcast to Grid
+                        <button type="button" onclick="submitFinalPrescription()" class="btn-premium w-full md:w-auto bg-gradient-to-r from-teal-500 to-emerald-500 text-white px-10 py-5 rounded-[20px] font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3">
+                            <i class="fa-solid fa-satellite-dish text-lg"></i> Broadcast Master Rx
                         </button>
                     </div>
-                </form>
+
+                </div>
             </div>
         </div>
     </main>
 
     <script>
-    const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
-    const token = localStorage.getItem('eRx_Token');
-    if(!token) window.location.href = 'index.html';
+        const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
+        const token = localStorage.getItem('eRx_Token');
+        if(!token) window.location.href = 'index.html';
 
-    document.getElementById('drNameDisplay').innerText = `Dr. ${localStorage.getItem('eRx_UserName') || 'Unknown'}`;
+        document.getElementById('drNameDisplay').innerText = `Dr. ${localStorage.getItem('eRx_UserName') || 'Unknown'}`;
 
-    let globalSearchResults = [];
+        // THE MASTER STATE ENGINE
+        let currentRx = {
+            patientId: null,
+            medications: [],
+            investigations: []
+        };
 
-    function findPatient() {
-        const query = document.getElementById('patientSearchInput').value;
-        if(!query) return;
-        document.getElementById('patientCard').classList.remove('hidden');
-        document.getElementById('pName').innerText = "Toki Tawsif";
-    }
+        let globalSearchResults = [];
+        let tempSelectedMed = null; // Holds the drug while configuring
 
-    let searchTimeout;
-    async function searchMedicines() {
-        const query = document.getElementById('medSearch').value;
-        const suggestions = document.getElementById('searchSuggestions');
-        if (query.length < 2) { suggestions.classList.add('hidden'); return; }
-
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(async () => {
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/medicines/search?q=${query}`, { headers: { 'Authorization': `Bearer ${token}` } });
-                globalSearchResults = await res.json();
-                
-                if (globalSearchResults.length === 0) {
-                    suggestions.innerHTML = `<div class="p-6 text-center"><i class="fa-solid fa-capsules text-slate-300 text-2xl mb-2"></i><p class="text-xs font-bold text-slate-400">No database match found.</p></div>`;
-                } else {
-                    // UPDATED TO MATCH YOUR VAULT FIELD NAMES (brandName, genericName)
-                    suggestions.innerHTML = globalSearchResults.map((m, index) => `
-                        <div onclick="selectMed(${index})" class="search-item p-4 cursor-pointer border-b border-slate-100 flex justify-between items-center group bg-white">
-                            <div>
-                                <p class="font-black text-slate-800 text-sm">${m.brandName} <span class="text-[10px] text-slate-400 font-bold ml-2 py-0.5 px-2 bg-slate-100 rounded-full group-hover:bg-teal-100">${m.strength || 'Std'}</span></p>
-                                <p class="text-[9px] text-slate-400 uppercase font-black tracking-widest mt-1">${m.genericName}</p>
-                            </div>
-                            <div class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-teal-500 group-hover:shadow-[0_0_10px_rgba(45,212,191,0.4)] transition-all">
-                                <i class="fa-solid fa-plus text-slate-300 group-hover:text-white transition-colors"></i>
-                            </div>
-                        </div>
-                    `).join('');
-                }
-                suggestions.classList.remove('hidden');
-            } catch (err) { console.error("Search Failed."); }
-        }, 300);
-    }
-
-    function selectMed(index) {
-        const med = globalSearchResults[index];
-        document.getElementById('searchSuggestions').classList.add('hidden');
-        document.getElementById('overridePanel').classList.remove('hidden');
-        document.getElementById('medSearch').value = med.brandName; // UPDATED
-
-        document.getElementById('selectedBrand').innerText = `${med.brandName} ${med.strength || ''}`;
-        document.getElementById('selectedGeneric').innerText = med.genericName;
-        
-        // UNPACKING THE ARRAYS FROM YOUR VAULT
-        const ind = (med.indications && med.indications.length > 0) ? med.indications.join(', ') : 'General clinical indication.';
-        const se = (med.sideEffects && med.sideEffects.length > 0) ? med.sideEffects.join(', ') : 'Observe for standard contraindications.';
-        
-        document.getElementById('metaIndications').innerText = ind;
-        document.getElementById('metaSideEffects').innerText = se;
-        
-        // GRABBING THE DEFAULT DOSE
-        document.getElementById('overrideDosage').value = med.defaultDose || '1+0+1';
-
-        const otp = Math.floor(1000 + Math.random() * 9000);
-        document.getElementById('otpCode').innerText = otp;
-        document.getElementById('qrcode').innerHTML = "";
-        new QRCode(document.getElementById("qrcode"), { text: `SH-ERX-${otp}`, width: 60, height: 60, colorDark: "#0f172a", colorLight: "#ffffff" });
-    }
-
-    async function submitPrescription() {
-        const btn = document.getElementById('authBtn');
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-lg"></i> TRANSMITTING...';
-        
+        // Generate Master OTP & QR on load
+        const masterOtp = Math.floor(1000 + Math.random() * 9000);
+        document.getElementById('otpCode').innerText = masterOtp;
         setTimeout(() => {
-            alert("Prescription Broadcasted to National Grid.");
-            location.reload();
-        }, 1000);
-    }
+            document.getElementById('qrcode').innerHTML = "";
+            new QRCode(document.getElementById("qrcode"), { text: `SH-RX-${masterOtp}`, width: 50, height: 50, colorDark: "#0f172a", colorLight: "#ffffff" });
+        }, 500);
+
+        function findPatient() {
+            const query = document.getElementById('patientSearchInput').value;
+            if(!query) return alert("Please enter identity data.");
+            
+            document.getElementById('patientCard').classList.remove('hidden');
+            currentRx.patientId = query; // In real life, fetch _id from DB
+        }
+
+        let searchTimeout;
+        async function searchMedicines() {
+            const query = document.getElementById('medSearch').value;
+            const suggestions = document.getElementById('searchSuggestions');
+            if (query.length < 2) { suggestions.classList.add('hidden'); return; }
+
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(async () => {
+                try {
+                    const res = await fetch(`${API_BASE_URL}/api/medicines/search?q=${query}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                    globalSearchResults = await res.json();
+                    
+                    if (globalSearchResults.length === 0) {
+                        suggestions.innerHTML = `<div class="p-6 text-center text-slate-400">No match found.</div>`;
+                    } else {
+                        suggestions.innerHTML = globalSearchResults.map((m, index) => `
+                            <div onclick="openConfigurator(${index})" class="search-item p-4 cursor-pointer border-b border-slate-100 flex justify-between items-center group bg-white">
+                                <div>
+                                    <p class="font-black text-slate-800 text-sm">${m.brandName} <span class="text-[10px] text-slate-400 font-bold ml-2 py-0.5 px-2 bg-slate-100 rounded-full">${m.strength || 'Std'}</span></p>
+                                    <p class="text-[9px] text-slate-400 uppercase font-black tracking-widest mt-1">${m.genericName}</p>
+                                </div>
+                                <div class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-teal-500 transition-all">
+                                    <i class="fa-solid fa-plus text-slate-300 group-hover:text-white transition-colors"></i>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                    suggestions.classList.remove('hidden');
+                } catch (err) { console.error("Search Failed."); }
+            }, 300);
+        }
+
+        function openConfigurator(index) {
+            tempSelectedMed = globalSearchResults[index];
+            document.getElementById('searchSuggestions').classList.add('hidden');
+            document.getElementById('overridePanel').classList.remove('hidden');
+            document.getElementById('medSearch').value = ''; 
+
+            document.getElementById('selectedBrand').innerText = `${tempSelectedMed.brandName} ${tempSelectedMed.strength || ''}`;
+            document.getElementById('selectedGeneric').innerText = tempSelectedMed.genericName;
+            document.getElementById('metaIndications').innerText = tempSelectedMed.indications || tempSelectedMed.use_for || 'General indication.';
+            document.getElementById('metaSideEffects').innerText = tempSelectedMed.sideEffects || 'Standard contraindications.';
+            document.getElementById('overrideDosage').value = tempSelectedMed.defaultDose || '1+0+1';
+            document.getElementById('duration').value = '7 Days';
+        }
+
+        // --- STAGING AREA LOGIC ---
+        function addDrugToRx() {
+            if(!tempSelectedMed) return;
+            
+            const drugEntry = {
+                brandName: tempSelectedMed.brandName,
+                generic: tempSelectedMed.genericName,
+                dosage: document.getElementById('overrideDosage').value,
+                timing: document.getElementById('timing').value,
+                duration: document.getElementById('duration').value,
+                instruction: document.getElementById('instruction').value
+            };
+
+            currentRx.medications.push(drugEntry);
+            
+            // Clean up UI
+            document.getElementById('overridePanel').classList.add('hidden');
+            tempSelectedMed = null;
+            
+            renderRxList();
+        }
+
+        function removeDrug(index) {
+            currentRx.medications.splice(index, 1);
+            renderRxList();
+        }
+
+        function renderRxList() {
+            const container = document.getElementById('rxListContainer');
+            const list = document.getElementById('rxList');
+            
+            if(currentRx.medications.length === 0) {
+                container.classList.add('hidden');
+                return;
+            }
+
+            container.classList.remove('hidden');
+            list.innerHTML = currentRx.medications.map((drug, idx) => `
+                <div class="flex justify-between items-center bg-white p-4 rounded-xl border-l-4 border-teal-500 shadow-sm">
+                    <div>
+                        <h5 class="font-black text-slate-800 text-sm">${drug.brandName} <span class="text-[10px] text-slate-400 font-bold ml-1">${drug.dosage}</span></h5>
+                        <p class="text-[10px] text-slate-500 mt-1">${drug.timing} | ${drug.duration} | ${drug.instruction}</p>
+                    </div>
+                    <button type="button" onclick="removeDrug(${idx})" class="w-8 h-8 rounded-full bg-rose-50 hover:bg-rose-500 text-rose-500 hover:text-white flex items-center justify-center transition-colors">
+                        <i class="fa-solid fa-trash text-xs"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // --- INVESTIGATION ENGINE LOGIC ---
+        function handleTestEnter(e) { if(e.key === 'Enter') addTest(); }
+
+        function addTest() {
+            const input = document.getElementById('testInput');
+            const val = input.value.trim();
+            if(val && !currentRx.investigations.includes(val)) {
+                currentRx.investigations.push(val);
+                input.value = '';
+                renderTests();
+            }
+        }
+
+        function removeTest(index) {
+            currentRx.investigations.splice(index, 1);
+            renderTests();
+        }
+
+        function renderTests() {
+            const container = document.getElementById('testTags');
+            container.innerHTML = currentRx.investigations.map((test, idx) => `
+                <div class="bg-indigo-50 text-indigo-700 border border-indigo-200 px-3 py-1.5 rounded-full text-[10px] font-black uppercase flex items-center gap-2 shadow-sm animate-slide-down">
+                    ${test}
+                    <button type="button" onclick="removeTest(${idx})" class="hover:text-red-500 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            `).join('');
+        }
+
+        // --- MASTER BROADCAST ---
+        async function submitFinalPrescription() {
+            if(currentRx.medications.length === 0) return alert("Please add at least one medication to the prescription.");
+            if(!currentRx.patientId) return alert("Please verify target patient identity first.");
+
+            const btn = document.getElementById('authBtn');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-lg"></i> TRANSMITTING...';
+            
+            const payload = {
+                ...currentRx,
+                otp: masterOtp,
+                doctorId: userId
+            };
+
+            console.log("Broadcasting:", payload);
+
+            // Here you will eventually un-comment the actual fetch logic
+            /*
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/prescriptions`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(payload)
+                });
+                if(res.ok) { alert("Broadcast Successful!"); location.reload(); }
+            } catch (err) { alert("Grid Error"); }
+            */
+
+            setTimeout(() => {
+                alert("Master Prescription Broadcasted to National Grid.");
+                location.reload();
+            }, 1000);
+        }
 
         function logout() { localStorage.clear(); window.location.href = 'index.html'; }
     </script>
