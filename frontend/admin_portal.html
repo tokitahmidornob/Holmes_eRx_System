@@ -3,124 +3,195 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Holmes eRx | National Health Oversight</title>
+    <title>Central Command | Holmes eRx</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; color: #f8fafc; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+    </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen font-sans">
-    
-    <nav class="border-b border-slate-800 p-6 flex justify-between items-center bg-slate-900/50 backdrop-blur-md sticky top-0 z-50">
-        <div class="flex items-center gap-3">
-            <div class="p-2 bg-blue-600 rounded-lg shadow-lg shadow-blue-500/20">
-                <i class="fa-solid fa-tower-broadcast text-xl text-white"></i>
-            </div>
-            <h1 class="text-xl font-black tracking-tighter uppercase">National Grid Oversight</h1>
-        </div>
-        <div class="flex items-center gap-4">
-            <span class="flex items-center gap-2 text-[10px] font-black text-green-400 bg-green-400/10 px-3 py-1 rounded-full uppercase">
-                <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span> Live Sync
-            </span>
-        </div>
-    </nav>
+<body class="antialiased flex h-screen overflow-hidden">
 
-    <main class="max-w-7xl mx-auto p-8 space-y-8">
-        
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div class="bg-slate-800/50 p-6 rounded-3xl border border-slate-700">
-                <p class="text-[10px] font-black text-slate-500 uppercase mb-1">Total Prescriptions</p>
-                <h2 id="statPres" class="text-4xl font-black text-blue-400">--</h2>
+    <aside class="w-24 lg:w-72 bg-black flex flex-col transition-all duration-300 z-20 shadow-2xl relative border-r border-slate-800">
+        <div class="h-24 flex items-center justify-center lg:justify-start lg:px-8 border-b border-slate-800">
+            <div class="w-10 h-10 bg-rose-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-rose-600/30 shrink-0">
+                <i class="fa-solid fa-shield-halved"></i>
             </div>
-            <div class="bg-slate-800/50 p-6 rounded-3xl border border-slate-700">
-                <p class="text-[10px] font-black text-slate-500 uppercase mb-1">Active Doctors</p>
-                <h2 id="statDrs" class="text-4xl font-black text-emerald-400">--</h2>
-            </div>
-            <div class="bg-slate-800/50 p-6 rounded-3xl border border-slate-700">
-                <p class="text-[10px] font-black text-slate-500 uppercase mb-1">Registered Citizens</p>
-                <h2 id="statPts" class="text-4xl font-black text-purple-400">--</h2>
-            </div>
-            <div class="bg-slate-800/50 p-6 rounded-3xl border border-slate-700">
-                <p class="text-[10px] font-black text-slate-500 uppercase mb-1">Global Pharmacy Size</p>
-                <h2 id="statMeds" class="text-4xl font-black text-amber-400">--</h2>
-            </div>
+            <h1 class="hidden lg:block ml-4 text-xl font-black tracking-tighter">Central <span class="text-rose-500">Command</span></h1>
         </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div class="lg:col-span-1 bg-slate-800/50 p-8 rounded-3xl border border-slate-700">
-                <h3 class="text-xs font-black uppercase text-slate-400 mb-6 tracking-widest">User Distribution</h3>
-                <canvas id="userChart" class="max-h-64"></canvas>
+        <nav class="flex-1 py-8 flex flex-col gap-2 px-4">
+            <button class="nav-btn active flex items-center p-4 rounded-2xl bg-rose-500/10 text-rose-500 transition-all">
+                <i class="fa-solid fa-users-gear text-xl lg:mr-4 w-6 text-center"></i>
+                <span class="hidden lg:block font-bold text-sm">Grid Personnel</span>
+            </button>
+        </nav>
+        <div class="p-4 border-t border-slate-800">
+            <div class="hidden lg:block mb-4 px-4 text-center">
+                <p id="adminNameDisplay" class="font-black text-sm text-white truncate">Loading...</p>
+                <div class="bg-rose-500/10 border border-rose-500/30 rounded-lg mt-2 py-1">
+                    <p id="adminGridIdDisplay" class="text-xs font-mono font-bold text-rose-500 tracking-wider">ID: PENDING</p>
+                </div>
+                <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-2">Super Administrator</p>
             </div>
-            
-            <div class="lg:col-span-2 bg-slate-800/50 p-8 rounded-3xl border border-slate-700">
-                <h3 class="text-xs font-black uppercase text-slate-400 mb-6 tracking-widest">Real-Time Grid Activity</h3>
-                <div id="activityLog" class="space-y-4">
+            <button onclick="logout()" class="w-full flex items-center justify-center p-4 rounded-2xl hover:bg-rose-600 text-slate-400 hover:text-white transition-all">
+                <i class="fa-solid fa-power-off text-xl lg:mr-3"></i>
+                <span class="hidden lg:block font-bold text-sm uppercase tracking-widest">Disconnect</span>
+            </button>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col h-screen overflow-hidden relative bg-slate-900">
+        <header class="h-24 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-8 shrink-0 z-10">
+            <div>
+                <h2 class="text-2xl font-black text-white tracking-tighter">Grid Personnel Clearance</h2>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Review & Authorize Network Access</p>
+            </div>
+            <button onclick="fetchPersonnel()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-colors shadow-lg">
+                <i class="fa-solid fa-rotate-right mr-2"></i> Refresh Roster
+            </button>
+        </header>
+
+        <div class="flex-1 overflow-y-auto custom-scrollbar p-8">
+            <div class="max-w-6xl mx-auto">
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-black border border-slate-800 p-6 rounded-[24px]">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Total Agents</p>
+                        <p id="statTotal" class="text-3xl font-black text-white">0</p>
                     </div>
+                    <div class="bg-rose-500/10 border border-rose-500/20 p-6 rounded-[24px]">
+                        <p class="text-[10px] font-black text-rose-400 uppercase tracking-widest mb-2">Awaiting Clearance</p>
+                        <p id="statPending" class="text-3xl font-black text-rose-500 animate-pulse">0</p>
+                    </div>
+                    <div class="bg-emerald-500/10 border border-emerald-500/20 p-6 rounded-[24px]">
+                        <p class="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-2">Active Approvals</p>
+                        <p id="statApproved" class="text-3xl font-black text-emerald-500">0</p>
+                    </div>
+                </div>
+
+                <div class="bg-black rounded-[32px] border border-slate-800 overflow-hidden shadow-2xl">
+                    <div class="grid grid-cols-12 gap-4 px-8 py-4 border-b border-slate-800 bg-slate-900/50">
+                        <div class="col-span-3 text-[10px] font-black text-slate-500 uppercase tracking-widest">Agent Info</div>
+                        <div class="col-span-2 text-[10px] font-black text-slate-500 uppercase tracking-widest">Clearance Type</div>
+                        <div class="col-span-2 text-[10px] font-black text-slate-500 uppercase tracking-widest">Grid ID</div>
+                        <div class="col-span-2 text-[10px] font-black text-slate-500 uppercase tracking-widest">Status</div>
+                        <div class="col-span-3 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Command Actions</div>
+                    </div>
+                    <div id="personnelList" class="divide-y divide-slate-800">
+                        <div class="p-10 text-center text-slate-500 font-bold"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Connecting to Grid...</div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </main>
 
     <script>
         const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
+        const token = localStorage.getItem('eRx_Token');
 
-        async function refreshIntelligence() {
+        function parseJwt(t) { try { return JSON.parse(atob(t.split('.')[1])); } catch(e) { return {}; } }
+        const decoded = parseJwt(token);
+
+        // KICK NON-ADMINS OUT IMMEDIATELY
+        if (!token || decoded.role !== 'admin') {
+            alert("SECURITY VIOLATION: You do not have Central Command Clearance.");
+            window.location.href = 'index.html';
+        }
+
+        document.getElementById('adminNameDisplay').innerText = decoded.name;
+        document.getElementById('adminGridIdDisplay').innerText = `ID: ${decoded.gridId || 'MASTER'}`;
+
+        fetchPersonnel();
+
+        function logout() { localStorage.clear(); window.location.href = 'index.html'; }
+
+        async function fetchPersonnel() {
+            const list = document.getElementById('personnelList');
+            list.innerHTML = '<div class="p-10 text-center text-slate-500 font-bold"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Syncing Rosters...</div>';
+            
             try {
-                const res = await fetch(`${API_BASE_URL}/api/analytics/stats`);
-                const data = await res.json();
+                const res = await fetch(`${API_BASE_URL}/api/auth/admin/users`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
                 
-                if(data.success) {
-                    // Update Stat Cards
-                    document.getElementById('statPres').innerText = data.stats.prescriptions;
-                    document.getElementById('statDrs').innerText = data.stats.users.doctors;
-                    document.getElementById('statPts').innerText = data.stats.users.patients;
-                    document.getElementById('statMeds').innerText = (data.stats.medicines / 1000).toFixed(1) + 'K';
+                if (!res.ok) throw new Error("Unauthorized");
+                const users = await res.json();
+                
+                // Update Stats
+                document.getElementById('statTotal').innerText = users.length;
+                document.getElementById('statPending').innerText = users.filter(u => u.status === 'Pending').length;
+                document.getElementById('statApproved').innerText = users.filter(u => u.status === 'Approved').length;
 
-                    // Update Chart
-                    updateChart(data.stats.users);
+                if (users.length === 0) return list.innerHTML = '<div class="p-10 text-center text-slate-500 font-bold">No grid personnel found.</div>';
 
-                    // Update Activity Log
-                    const log = document.getElementById('activityLog');
-                    log.innerHTML = data.recentActivity.map(act => `
-                        <div class="flex items-center justify-between p-4 bg-slate-900/50 rounded-2xl border border-slate-700/50">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center text-blue-400">
-                                    <i class="fa-solid fa-file-signature text-xs"></i>
-                                </div>
-                                <div>
-                                    <p class="text-sm font-bold">${act.medication}</p>
-                                    <p class="text-[10px] text-slate-500 uppercase">Authorized Prescription Broadcast</p>
-                                </div>
+                list.innerHTML = users.map(u => {
+                    let statusBadge = '';
+                    let actionButtons = '';
+
+                    if (u.status === 'Pending') {
+                        statusBadge = `<span class="bg-rose-500/10 text-rose-500 border border-rose-500/30 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest animate-pulse">Awaiting</span>`;
+                        actionButtons = `
+                            <button onclick="updateStatus('${u._id}', 'approve')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-colors mr-2"><i class="fa-solid fa-check"></i> Approve</button>
+                            <button onclick="updateStatus('${u._id}', 'reject')" class="bg-rose-600 hover:bg-rose-500 text-white px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-colors"><i class="fa-solid fa-xmark"></i> Reject</button>
+                        `;
+                    } else if (u.status === 'Approved') {
+                        statusBadge = `<span class="bg-emerald-500/10 text-emerald-500 border border-emerald-500/30 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest">Active</span>`;
+                        actionButtons = `<button onclick="updateStatus('${u._id}', 'reject')" class="text-slate-500 hover:text-rose-500 text-[10px] font-black uppercase tracking-widest transition-colors">Revoke Access</button>`;
+                    } else {
+                        statusBadge = `<span class="bg-slate-800 text-slate-500 border border-slate-700 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest">Rejected</span>`;
+                        actionButtons = `<button onclick="updateStatus('${u._id}', 'approve')" class="text-slate-500 hover:text-emerald-500 text-[10px] font-black uppercase tracking-widest transition-colors">Restore Access</button>`;
+                    }
+
+                    // Fancy icons based on role
+                    let roleIcon = 'fa-user';
+                    if (u.role === 'doctor') roleIcon = 'fa-user-doctor text-teal-400';
+                    if (u.role === 'pharmacist') roleIcon = 'fa-pills text-emerald-400';
+                    if (u.role === 'pathologist') roleIcon = 'fa-microscope text-cyan-400';
+                    if (u.role === 'admin') roleIcon = 'fa-shield text-rose-400';
+
+                    return `
+                        <div class="grid grid-cols-12 gap-4 px-8 py-5 items-center hover:bg-slate-800/50 transition-colors">
+                            <div class="col-span-3">
+                                <p class="font-black text-sm text-white">${u.name}</p>
+                                <p class="text-[10px] font-bold text-slate-500 truncate">${u.email}</p>
                             </div>
-                            <span class="text-[10px] font-mono text-slate-600">${new Date(act.createdAt).toLocaleTimeString()}</span>
+                            <div class="col-span-2 flex items-center gap-2 text-xs font-black text-slate-300 uppercase">
+                                <i class="fa-solid ${roleIcon}"></i> ${u.role}
+                            </div>
+                            <div class="col-span-2 text-xs font-mono font-black text-slate-400">${u.gridId || 'N/A'}</div>
+                            <div class="col-span-2">${statusBadge}</div>
+                            <div class="col-span-3 text-right flex justify-end items-center">${actionButtons}</div>
                         </div>
-                    `).join('');
-                }
-            } catch (err) { console.error("Grid Intelligence Offline."); }
+                    `;
+                }).join('');
+
+            } catch (err) {
+                list.innerHTML = '<div class="p-10 text-center text-rose-500 font-bold">Failed to sync with Central Command.</div>';
+            }
         }
 
-        function updateChart(users) {
-            const ctx = document.getElementById('userChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Doctors', 'Patients', 'Pharmacists'],
-                    datasets: [{
-                        data: [users.doctors, users.patients, users.pharmacists],
-                        backgroundColor: ['#10b981', '#a855f7', '#f59e0b'],
-                        borderWidth: 0,
-                        hoverOffset: 20
-                    }]
-                },
-                options: {
-                    plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: { weight: 'bold', size: 10 } } } },
-                    cutout: '70%'
+        async function updateStatus(id, action) {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/auth/admin/users/${id}/${action}`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (res.ok) {
+                    fetchPersonnel(); // Refresh the list
+                } else {
+                    const data = await res.json();
+                    alert(data.msg);
                 }
-            });
+            } catch (err) {
+                alert("Grid Connection Failed.");
+            }
         }
-
-        // Initial Load
-        refreshIntelligence();
-        // Auto-refresh every 30 seconds
-        setInterval(refreshIntelligence, 30000);
     </script>
 </body>
 </html>

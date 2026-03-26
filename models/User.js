@@ -16,13 +16,18 @@ const UserSchema = new mongoose.Schema({
     },
     role: { 
         type: String, 
-        enum: ['doctor', 'patient', 'pharmacist', 'pathologist'], 
+        enum: ['doctor', 'patient', 'pharmacist', 'pathologist', 'admin'], // Added 'admin'
         required: true 
     },
-    // 🌟 NEW: The Unique Grid Identification Number
     gridId: { 
         type: String, 
         unique: true 
+    },
+    // 🌟 NEW: The Security Clearance Status 🌟
+    status: {
+        type: String,
+        enum: ['Pending', 'Approved', 'Rejected'],
+        default: 'Pending'
     }
 }, { timestamps: true });
 
