@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Identity Matrix | Holmes eRx</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="antialiased text-slate-800 min-h-screen p-4 md:p-8">
+
+    <nav class="max-w-4xl mx-auto glass-panel rounded-2xl p-4 mb-8 flex justify-between items-center shadow-lg hover-lift">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-teal-400 shadow-lg"><i class="fa-solid fa-fingerprint"></i></div>
+            <div>
+                <h1 class="text-xl font-black text-slate-900 tracking-tighter leading-none">Identity <span class="text-teal-500">Matrix</span></h1>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">National Grid Verification</p>
+            </div>
+        </div>
+        <button onclick="goBack()" class="text-[10px] font-black uppercase tracking-widest bg-slate-100 text-slate-600 px-4 py-2 rounded-xl hover:bg-slate-200 transition-all"><i class="fa-solid fa-arrow-left mr-2"></i> Return to Terminal</button>
+    </nav>
+
+    <main class="max-w-4xl mx-auto space-y-8">
+        <div class="glass-panel rounded-[32px] p-8 shadow-xl text-center relative overflow-hidden hover-lift">
+            <div class="absolute inset-0 opacity-5" style="background-image: radial-gradient(#14b8a6 1px, transparent 1px); background-size: 20px 20px;"></div>
+            <h2 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Grid Security Clearance</h2>
+            <div class="relative w-48 h-48 mx-auto flex items-center justify-center mb-4">
+                <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="45" fill="none" stroke="#e2e8f0" stroke-width="8"></circle>
+                    <circle id="progressCircle" cx="50" cy="50" r="45" fill="none" stroke="#14b8a6" stroke-width="8" stroke-dasharray="283" stroke-dashoffset="283" class="transition-all duration-1000 ease-out"></circle>
+                </svg>
+                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                    <span id="progressText" class="text-4xl font-black text-slate-900 tracking-tighter">0%</span>
+                </div>
+            </div>
+            <p id="progressMessage" class="text-sm font-bold text-rose-500">Action Required: Complete profile to unlock Grid transmission.</p>
+        </div>
+
+        <form id="profileForm" onsubmit="event.preventDefault(); saveProfile();" class="space-y-6">
+            
+            <div class="glass-panel rounded-[32px] p-8 shadow-sm hover-lift">
+                <h3 class="text-xs font-black text-teal-600 uppercase tracking-widest mb-6 border-b border-slate-100 pb-2"><i class="fa-solid fa-id-card mr-2"></i> Universal Identity (Mandatory)</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div><label class="text-[10px] font-bold text-slate-500 uppercase ml-1 block mb-1">National ID (NID)</label><input type="text" id="nid" class="premium-input w-full p-3 rounded-xl text-sm" placeholder="e.g. 1990123456789"></div>
+                    <div><label class="text-[10px] font-bold text-slate-500 uppercase ml-1 block mb-1">Verified Phone</label><input type="text" id="phone" class="premium-input w-full p-3 rounded-xl text-sm" placeholder="+880..."></div>
+                    <div><label class="text-[10px] font-bold text-slate-500 uppercase ml-1 block mb-1">Date of Birth</label><input type="date" id="dob" class="premium-input w-full p-3 rounded-xl text-sm text-slate-600"></div>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-500 uppercase ml-1 block mb-1">Gender</label>
+                        <select id="gender" class="premium-input w-full p-3 rounded-xl text-sm text-slate-600">
+                            <option value="">Select...</option><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div id="dynamicRoleSection" class="glass-panel rounded-[32px] p-8 shadow-sm hover-lift hidden"></div>
+
+            <button type="submit" id="saveBtn" class="w-full bg-slate-900 hover:bg-teal-600 text-white py-5 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl hover-lift flex items-center justify-center gap-3">
+                <i class="fa-solid fa-cloud-arrow-up"></i> Synchronize with National Grid
+            </button>
+        </form>
+    </main>
+
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[150] flex flex-col gap-3 pointer-events-none"></div>
+
+    <script>
+        const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
+        const token = localStorage.getItem('eRx_Token');
+        let currentUserRole = '';
+
+        function parseJwt(t) { try { return JSON.parse(atob(t.split('.')[1])); } catch(e) { return {}; } }
+        if (!token) window.location.href = 'index.html';
+        const decoded = parseJwt(token);
+        currentUserRole = decoded.role;
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const colors = type === 'error' ? 'bg-rose-600 text-white' : 'bg-teal-600 text-white';
+            toast.className = `flex items-center gap-3 px-6 py-4 rounded-2xl shadow-xl transform transition-all duration-500 ${colors}`;
+            toast.innerHTML = `<span class="text-[10px] font-black uppercase tracking-widest">${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        function goBack() {
+            if(currentUserRole === 'doctor') window.location.href = 'dashboard.html';
+            else if(currentUserRole === 'pathologist') window.location.href = 'pathology_portal.html';
+            else window.location.href = 'index.html';
+        }
+
+        function renderDynamicFields() {
+            const section = document.getElementById('dynamicRoleSection');
+            section.classList.remove('hidden');
+
+            if (currentUserRole === 'patient') {
+                section.innerHTML = `
+                    <h3 class="text-xs font-black text-rose-500 uppercase tracking-widest mb-6 border-b border-slate-100 pb-2"><i class="fa-solid fa-notes-medical mr-2"></i> Clinical Baseline & Diagnostics</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div><label class="text-[10px] font-bold text-slate-500 uppercase block mb-1">Blood Group</label><select id="p_blood" class="premium-input w-full p-3 rounded-xl text-sm"><option value="">Select...</option><option value="A+">A+</option><option value="O+">O+</option><option value="B+">B+</option><option value="AB+">AB+</option><option value="A-">A-</option><option value="O-">O-</option><option value="B-">B-</option><option value="AB-">AB-</option></select></div>
+                        <div><label class="text-[10px] font-bold text-slate-500 uppercase block mb-1">Emergency Contact Phone</label><input type="text" id="p_emerg" class="premium-input w-full p-3 rounded-xl text-sm" placeholder="+880..."></div>
+                        <div class="md:col-span-2"><label class="text-[10px] font-bold text-slate-500 uppercase block mb-1">Known Allergies (Comma separated)</label><input type="text" id="p_allergies" class="premium-input w-full p-3 rounded-xl text-sm" placeholder="e.g. Penicillin, Peanuts"></div>
+                        <div class="md:col-span-2"><label class="text-[10px] font-bold text-slate-500 uppercase block mb-1">Chronic Conditions</label><input type="text" id="p_chronic" class="premium-input w-full p-3 rounded-xl text-sm" placeholder="e.g. Asthma, Type 2 Diabetes"></div>
+                        
+                        <div class="md:col-span-2 mt-4 p-4 bg-rose-50 border border-rose-100 rounded-2xl">
+                            <h4 class="text-[10px] font-black text-rose-600 uppercase mb-2"><i class="fa-solid fa-scalpel mr-1"></i> Surgical Vault</h4>
+                            <input type="text" id="p_surg_name" class="premium-input w-full p-3 rounded-xl text-sm mb-2" placeholder="Surgery Name (e.g. Appendectomy)">
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="text" id="p_surg_doc" class="premium-input w-full p-3 rounded-xl text-sm" placeholder="Surgeon Name">
+                                <input type="text" id="p_surg_hosp" class="premium-input w-full p-3 rounded-xl text-sm" placeholder="Hospital/Date">
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (currentUserRole === 'doctor') {
+                section.innerHTML = `
+                    <h3 class="text-xs font-black text-indigo-500 uppercase tracking-widest mb-6 border-b border-slate-100 pb-2"><i class="fa-solid fa-user-doctor mr-2"></i> Clinical Authority Validation</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div><label class="text-[10px] font-bold text-slate-500 uppercase block mb-1">BMDC Registration No.</label><input type="text" id="d_bmdc" class="premium-input w-full p-3 rounded-xl text-sm font-mono font-bold" placeholder="A-XXXXX"></div>
+                        <div><label class="text-[10px] font-bold text-slate-500 uppercase block mb-1">Primary Specialty</label><input type="text" id="d_spec" class="premium-input w-full p-3 rounded-xl text-sm" placeholder="e.g. Cardiology"></div>
+                        <div><label class="text-[10px] font-bold text-slate-500 uppercase block mb-1">Degrees/Qualifications</label><input type="text" id="d_deg" class="premium-input w-full p-3 rounded-xl text-sm" placeholder="MBBS, FCPS..."></div>
+                        <div><label class="text-[10px] font-bold text-slate-500 uppercase block mb-1">Primary Hospital/Chamber</label><input type="text" id="d_hosp" class="premium-input w-full p-3 rounded-xl text-sm" placeholder="Hospital Name"></div>
+                    </div>
+                `;
+            }
+        }
+
+        async function loadProfile() {
+            renderDynamicFields();
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/profile`, { headers: { 'Authorization': `Bearer ${token}` } });
+                if(res.ok) {
+                    const user = await res.json();
+                    
+                    if(user.nationalId) document.getElementById('nid').value = user.nationalId;
+                    if(user.phone) document.getElementById('phone').value = user.phone;
+                    if(user.dateOfBirth) document.getElementById('dob').value = user.dateOfBirth.split('T')[0];
+                    if(user.gender) document.getElementById('gender').value = user.gender;
+
+                    const pct = user.profileCompletion || 20;
+                    document.getElementById('progressText').innerText = `${pct}%`;
+                    const offset = 283 - (283 * pct) / 100;
+                    document.getElementById('progressCircle').style.strokeDashoffset = offset;
+                    
+                    if(pct === 100) {
+                        document.getElementById('progressCircle').style.stroke = "#10b981"; 
+                        document.getElementById('progressText').classList.replace('text-slate-900', 'text-emerald-600');
+                        document.getElementById('progressMessage').innerHTML = "<i class='fa-solid fa-shield-check mr-1'></i> Profile Verified. Full Grid Access Granted.";
+                        document.getElementById('progressMessage').classList.replace('text-rose-500', 'text-emerald-600');
+                    }
+
+                    if(currentUserRole === 'patient' && user.patientProfile) {
+                        document.getElementById('p_blood').value = user.patientProfile.bloodGroup || '';
+                        document.getElementById('p_emerg').value = user.patientProfile.emergencyContact?.phone || '';
+                        document.getElementById('p_allergies').value = user.patientProfile.knownAllergies?.join(', ') || '';
+                        document.getElementById('p_chronic').value = user.patientProfile.chronicConditions?.join(', ') || '';
+                    } else if (currentUserRole === 'doctor' && user.doctorProfile) {
+                        document.getElementById('d_bmdc').value = user.doctorProfile.bmdcNumber || '';
+                        document.getElementById('d_spec').value = user.doctorProfile.primarySpecialty || '';
+                        document.getElementById('d_deg').value = user.doctorProfile.primaryDegree || '';
+                        document.getElementById('d_hosp').value = user.doctorProfile.primaryHospital || '';
+                    }
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        async function saveProfile() {
+            const btn = document.getElementById('saveBtn');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Synchronizing...';
+            
+            const payload = {
+                nationalId: document.getElementById('nid').value, phone: document.getElementById('phone').value,
+                dateOfBirth: document.getElementById('dob').value, gender: document.getElementById('gender').value
+            };
+
+            if (currentUserRole === 'patient') {
+                payload.patientProfile = {
+                    bloodGroup: document.getElementById('p_blood').value,
+                    emergencyContact: { phone: document.getElementById('p_emerg').value },
+                    knownAllergies: document.getElementById('p_allergies').value.split(',').map(s=>s.trim()).filter(Boolean),
+                    chronicConditions: document.getElementById('p_chronic').value.split(',').map(s=>s.trim()).filter(Boolean)
+                };
+                
+                const sName = document.getElementById('p_surg_name').value;
+                if(sName) {
+                    payload.patientProfile.surgeryHistory = [{
+                        surgeryName: sName,
+                        surgeonName: document.getElementById('p_surg_doc').value || 'Unknown',
+                        hospitalName: document.getElementById('p_surg_hosp').value || 'Unknown',
+                        approximateDate: 'Recorded'
+                    }];
+                }
+            } else if (currentUserRole === 'doctor') {
+                payload.doctorProfile = {
+                    bmdcNumber: document.getElementById('d_bmdc').value,
+                    primarySpecialty: document.getElementById('d_spec').value,
+                    primaryDegree: document.getElementById('d_deg').value,
+                    primaryHospital: document.getElementById('d_hosp').value
+                };
+            }
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/profile`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) });
+                if(res.ok) { showToast("Vault Synchronized Successfully"); loadProfile(); } 
+                else { showToast("Sync Failed", "error"); }
+            } catch(e) { showToast("Network Error", "error"); } finally { btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Synchronize with National Grid'; }
+        }
+
+        window.onload = loadProfile;
+    </script>
+</body>
+</html>
