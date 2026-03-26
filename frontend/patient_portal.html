@@ -34,7 +34,7 @@
             ? 'http://localhost:3000' 
             : 'https://holmes-erx-system.onrender.com';
 
-        const token = localStorage.getItem('holmesToken');
+        const token = sessionStorage.getItem('holmesToken');
         if (!token) window.location.href = 'index.html';
 
         async function loadHistory() {
@@ -67,7 +67,7 @@
             }
         }
 
-        function logout() { localStorage.clear(); window.location.href = 'index.html'; }
+        function logout() { sessionStorage.clear(); window.location.href = 'index.html'; }
         
         // Auto-load on entry
         loadHistory();

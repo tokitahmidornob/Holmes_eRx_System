@@ -109,7 +109,7 @@
 
     <script>
         const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
-        const token = localStorage.getItem('eRx_Token');
+        const token = sessionStorage.getItem('eRx_Token');
         
         let currentRxId = null; 
         let html5QrcodeScanner = null; // Holds the camera instance
@@ -121,10 +121,10 @@
         if (!token || decoded.role !== 'pharmacist') { window.location.href = 'index.html'; }
 
         // Initialize UI
-        document.getElementById('pharmacistNameDisplay').innerText = localStorage.getItem('eRx_UserName') || 'Licensed Pharmacist';
+        document.getElementById('pharmacistNameDisplay').innerText = sessionStorage.getItem('eRx_UserName') || 'Licensed Pharmacist';
         document.getElementById('pharmacistIdDisplay').innerText = `ID: ${decoded.gridId || 'PENDING'}`;
 
-        function logout() { localStorage.clear(); window.location.href = 'index.html'; }
+        function logout() { sessionStorage.clear(); window.location.href = 'index.html'; }
 
         // ==========================================
         // 📷 OPTICAL SCANNER LOGIC

@@ -104,14 +104,14 @@
 
     <script>
         const API_BASE_URL = "https://holmes-erx-system.onrender.com/api";
-        const token = localStorage.getItem('token');
-        const doctorId = localStorage.getItem('userId');
+        const token = sessionStorage.getItem('token');
+        const doctorId = sessionStorage.getItem('userId');
 
         if (!token || !doctorId || !doctorId.startsWith('DR-')) {
             alert("Unauthorized Entry."); window.location.href = 'index.html';
         }
 
-        function logout() { localStorage.clear(); window.location.href = 'index.html'; }
+        function logout() { sessionStorage.clear(); window.location.href = 'index.html'; }
 
         function switchTab(tabId, element) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));

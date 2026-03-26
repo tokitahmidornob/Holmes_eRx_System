@@ -87,12 +87,12 @@
 
     <script>
         const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
-        const token = localStorage.getItem('eRx_Token');
-        const userId = localStorage.getItem('eRx_UserId');
+        const token = sessionStorage.getItem('eRx_Token');
+        const userId = sessionStorage.getItem('eRx_UserId');
         
         if(!token || !userId) window.location.href = 'index.html';
 
-        document.getElementById('drNameDisplay').innerText = `Dr. ${localStorage.getItem('eRx_UserName') || 'Unknown'}`;
+        document.getElementById('drNameDisplay').innerText = `Dr. ${sessionStorage.getItem('eRx_UserName') || 'Unknown'}`;
 
         async function fetchChambers() {
             try {

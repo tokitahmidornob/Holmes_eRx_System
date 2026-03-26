@@ -95,7 +95,7 @@
 
     <script>
         const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
-        const token = localStorage.getItem('eRx_Token');
+        const token = sessionStorage.getItem('eRx_Token');
 
         function parseJwt(t) { try { return JSON.parse(atob(t.split('.')[1])); } catch(e) { return {}; } }
         const decoded = parseJwt(token);
@@ -111,7 +111,7 @@
 
         fetchPersonnel();
 
-        function logout() { localStorage.clear(); window.location.href = 'index.html'; }
+        function logout() { sessionStorage.clear(); window.location.href = 'index.html'; }
 
         async function fetchPersonnel() {
             const list = document.getElementById('personnelList');

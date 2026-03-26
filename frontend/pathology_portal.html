@@ -108,7 +108,7 @@
 
     <script>
         const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
-        const token = localStorage.getItem('eRx_Token');
+        const token = sessionStorage.getItem('eRx_Token');
         let currentRxId = null; let html5QrcodeScanner = null; 
 
         function parseJwt(t) { try { return JSON.parse(atob(t.split('.')[1])); } catch(e) { return {}; } }
@@ -117,7 +117,7 @@
 
         document.getElementById('pathologistNameDisplay').innerText = decoded.name || 'Diagnostic Agent';
         document.getElementById('pathologistIdDisplay').innerText = `ID: ${decoded.gridId || 'PENDING'}`;
-        function logout() { localStorage.clear(); window.location.href = 'index.html'; }
+        function logout() { sessionStorage.clear(); window.location.href = 'index.html'; }
 
         // 🎨 THE TOAST ENGINE PRESERVED
         function showToast(message, type = 'success') {

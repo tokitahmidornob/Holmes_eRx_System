@@ -88,8 +88,8 @@
         const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
 
         // Check if user is already logged in
-        if (localStorage.getItem('eRx_Token')) {
-            const role = localStorage.getItem('eRx_UserRole');
+        if (sessionStorage.getItem('eRx_Token')) {
+            const role = sessionStorage.getItem('eRx_UserRole');
             const roleMap = { 'doctor': 'dashboard.html', 'patient': 'patient_dashboard.html', 'pharmacist': 'pharmacy_dashboard.html', 'pathologist': 'pathology_portal.html' };
             window.location.href = roleMap[role] || 'index.html';
         }
@@ -151,10 +151,10 @@
                         showAlert('Identity Initialized. Proceed to Login.', 'success');
                         setTimeout(() => switchTab('login'), 2000);
                     } else {
-                        localStorage.setItem('eRx_Token', data.token);
-                        localStorage.setItem('eRx_UserId', data.user.id);
-                        localStorage.setItem('eRx_UserName', data.user.name);
-                        localStorage.setItem('eRx_UserRole', data.user.role);
+                        sessionStorage.setItem('eRx_Token', data.token);
+                        sessionStorage.setItem('eRx_UserId', data.user.id);
+                        sessionStorage.setItem('eRx_UserName', data.user.name);
+                        sessionStorage.setItem('eRx_UserRole', data.user.role);
                         
                         const roleMap = {
                             'doctor': 'dashboard.html',

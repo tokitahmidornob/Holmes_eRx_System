@@ -102,7 +102,7 @@
 
     <script>
         const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
-        const token = localStorage.getItem('eRx_Token');
+        const token = sessionStorage.getItem('eRx_Token');
         let patientPrescriptions = [];
         let currentRxForPrint = null;
 
@@ -116,7 +116,7 @@
 
         fetchHistory();
 
-        function logout() { localStorage.clear(); window.location.href = 'index.html'; }
+        function logout() { sessionStorage.clear(); window.location.href = 'index.html'; }
 
         async function fetchHistory() {
             const list = document.getElementById('historyList');

@@ -213,10 +213,10 @@
             const data = await response.json();
             
             if (response.ok) {
-                localStorage.setItem('eRx_Token', data.token);
-                localStorage.setItem('eRx_Role', payload.role);
-                localStorage.setItem('eRx_UserName', data.userData.name);
-                localStorage.setItem('eRx_UserId', data.userData.doctorId || data.userData.patientId || data.userData.pharmacistId);
+                sessionStorage.setItem('eRx_Token', data.token);
+                sessionStorage.setItem('eRx_Role', payload.role);
+                sessionStorage.setItem('eRx_UserName', data.userData.name);
+                sessionStorage.setItem('eRx_UserId', data.userData.doctorId || data.userData.patientId || data.userData.pharmacistId);
                 
                 if(payload.role === 'doctor') window.location.href = 'dashboard.html';
                 else if(payload.role === 'patient') window.location.href = 'patient_app.html';
