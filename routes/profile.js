@@ -1,7 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../models/User');
 const jwt = require('jsonwebtoken');
+
+// 🌟 INJECTING THE MASTER ARCHITECTURE
+const { Person, Patient, PractitionerRole, Credential } = require('../models/GridModels');
 
 // Security Tripwire
 const authenticate = (req, res, next) => {
@@ -14,79 +16,145 @@ const authenticate = (req, res, next) => {
 };
 
 // ==========================================
-// GET CURRENT USER'S PROFILE
+// 1. GET CURRENT PROFILE (Adapter: DB -> Frontend)
 // ==========================================
 router.get('/', authenticate, async (req, res) => {
     try {
-        const user = await User.findById(req.user.id).select('-password');
-        res.json(user);
-    } catch (err) { res.status(500).json({ msg: 'Server Error' }); }
-});
+        const person = await Person.findById(req.user.id);
+        if (!person) return res.status(404).json({ msg: 'Identity not found in Grid.' });
 
-// ==========================================
-// UPDATE PROFILE & CALCULATE PROGRESS SCORE
-// ==========================================
-router.put('/', authenticate, async (req, res) => {
-    try {
-        let user = await User.findById(req.user.id);
-        const data = req.body;
+        // Base Frontend Object
+        let responseObj = {
+            nationalId: person.nationalId,
+            phone: person.contact?.primaryMobile,
+            dateOfBirth: person.dateOfBirth,
+            gender: person.genderLegal,
+            profileCompletion: person.audit?.verificationStatus === 'Verified' ? 100 : (person.audit?.verificationStatus === 'Pending' ? 50 : 20)
+        };
 
-        // 1. Update Universal Core
-        if(data.nationalId) user.nationalId = data.nationalId;
-        if(data.phone) user.phone = data.phone;
-        if(data.dateOfBirth) user.dateOfBirth = data.dateOfBirth;
-        if(data.gender) user.gender = data.gender;
-
-        // 2. Update Role-Specific Data & Calculate Score
-        let score = 20; // Base score for having an account
-
-        if (user.nationalId && user.phone) score += 30; // Universal data is worth 30%
-
-        if (user.role === 'patient') {
-            if(!user.patientProfile) user.patientProfile = {};
-            user.patientProfile = { ...user.patientProfile, ...data.patientProfile };
-            if (user.patientProfile.bloodGroup && user.patientProfile.emergencyContact?.phone) score += 50;
-        } 
-        else if (user.role === 'doctor') {
-            if(!user.doctorProfile) user.doctorProfile = {};
-            user.doctorProfile = { ...user.doctorProfile, ...data.doctorProfile };
-            if (user.doctorProfile.bmdcNumber && user.doctorProfile.primarySpecialty) score += 50;
-        }
-        else if (user.role === 'pharmacist') {
-            if(!user.pharmacistProfile) user.pharmacistProfile = {};
-            user.pharmacistProfile = { ...user.pharmacistProfile, ...data.pharmacistProfile };
-            if (user.pharmacistProfile.drugLicenseNumber && user.pharmacistProfile.tradeName) score += 50;
-        }
-        else if (user.role === 'pathologist') {
-            if(!user.pathologistProfile) user.pathologistProfile = {};
-            user.pathologistProfile = { ...user.pathologistProfile, ...data.pathologistProfile };
-            if (user.pathologistProfile.dghsApprovalNumber && user.pathologistProfile.labName) score += 50;
+        // Fetch & Map Role-Specific Data
+        if (req.user.role === 'patient') {
+            const patient = await Patient.findOne({ personId: person._id });
+            if (patient) {
+                responseObj.patientProfile = {
+                    bloodGroup: patient.safetyAnchors?.bloodGroup,
+                    emergencyContact: patient.emergencyContact,
+                    knownAllergies: patient.safetyAnchors?.knownAllergies,
+                    chronicConditions: patient.safetyAnchors?.chronicConditions,
+                    surgeryHistory: patient.safetyAnchors?.surgeryHistory
+                };
+            }
+        } else if (req.user.role === 'doctor') {
+            const prac = await PractitionerRole.findOne({ personId: person._id });
+            const cred = await Credential.findOne({ personId: person._id, credentialType: 'Medical License' });
+            
+            if (prac) {
+                responseObj.doctorProfile = {
+                    primarySpecialty: prac.doctorScopes?.specialty,
+                    primaryDegree: prac.doctorScopes?.subSpecialty, // Mapping for UI simplicity
+                    primaryHospital: prac.organizationId // In a full build, this would populate the Org name
+                };
+            }
+            if (cred) responseObj.doctorProfile.bmdcNumber = cred.licenseNumber;
         }
 
-        user.profileCompletion = score > 100 ? 100 : score;
-        await user.save();
-        res.json({ msg: 'Profile Vault Updated', user });
-
+        res.json(responseObj);
     } catch (err) { 
         console.error(err);
-        res.status(500).json({ msg: 'Server Error during update' }); 
+        res.status(500).json({ msg: 'Server Error' }); 
     }
 });
 
 // ==========================================
-// 🩺 DOCTOR PRIVILEGE: FETCH PATIENT PROFILE (For the Red Flag Snapshot)
+// 2. UPDATE PROFILE (Adapter: Frontend -> DB)
+// ==========================================
+router.put('/', authenticate, async (req, res) => {
+    try {
+        const person = await Person.findById(req.user.id);
+        const data = req.body;
+        let score = 20;
+
+        // 1. Update Universal Identity (Person Vault)
+        if (data.nationalId) person.nationalId = data.nationalId;
+        if (data.phone) {
+            person.contact = person.contact || {};
+            person.contact.primaryMobile = data.phone;
+        }
+        if (data.dateOfBirth) person.dateOfBirth = data.dateOfBirth;
+        if (data.gender) person.genderLegal = data.gender;
+
+        if (person.nationalId && person.contact?.primaryMobile) score += 30;
+
+        // 2. Update Role Vaults
+        if (req.user.role === 'patient' && data.patientProfile) {
+            let patient = await Patient.findOne({ personId: person._id });
+            
+            patient.emergencyContact = data.patientProfile.emergencyContact;
+            patient.safetyAnchors = patient.safetyAnchors || {};
+            patient.safetyAnchors.bloodGroup = data.patientProfile.bloodGroup;
+            patient.safetyAnchors.knownAllergies = data.patientProfile.knownAllergies;
+            patient.safetyAnchors.chronicConditions = data.patientProfile.chronicConditions;
+            patient.safetyAnchors.surgeryHistory = data.patientProfile.surgeryHistory;
+            
+            await patient.save();
+            if (patient.safetyAnchors.bloodGroup) score += 50;
+
+        } else if (req.user.role === 'doctor' && data.doctorProfile) {
+            let prac = await PractitionerRole.findOne({ personId: person._id });
+            prac.doctorScopes = prac.doctorScopes || {};
+            prac.doctorScopes.specialty = data.doctorProfile.primarySpecialty;
+            prac.doctorScopes.subSpecialty = data.doctorProfile.primaryDegree;
+            await prac.save();
+
+            // Store BMDC as a formal Credential Document
+            if (data.doctorProfile.bmdcNumber) {
+                await Credential.findOneAndUpdate(
+                    { personId: person._id, credentialType: 'Medical License' },
+                    { licenseNumber: data.doctorProfile.bmdcNumber, issuingAuthority: 'BMDC' },
+                    { upsert: true, new: true }
+                );
+                score += 50;
+            }
+        }
+
+        // 3. Save Security Status
+        person.audit = person.audit || {};
+        person.audit.verificationStatus = score === 100 ? 'Verified' : 'Pending';
+        await person.save();
+
+        res.json({ msg: 'Vault Synchronized Successfully', profileCompletion: score });
+
+    } catch (err) { 
+        console.error("Profile Engine Update Error:", err);
+        res.status(500).json({ msg: 'Server Error during synchronization.' }); 
+    }
+});
+
+// ==========================================
+// 3. DOCTOR PRIVILEGE: FETCH PATIENT FOR RED FLAG SNAPSHOT
 // ==========================================
 router.get('/patient/:email', authenticate, async (req, res) => {
     try {
-        // Security: Only Doctors can do this
         if (req.user.role !== 'doctor') return res.status(403).json({msg: 'Unauthorized Clinical Access.'});
         
-        const patient = await User.findOne({ email: req.params.email, role: 'patient' }).select('-password');
-        if (!patient) return res.status(404).json({msg: 'Patient record not found in Grid.'});
+        const person = await Person.findOne({ loginIdentity: req.params.email });
+        if (!person) return res.status(404).json({msg: 'Citizen not found in Grid.'});
         
-        res.json(patient);
+        const patient = await Patient.findOne({ personId: person._id });
+        
+        // Map back to the exact format the Doctor Pad UI expects
+        res.json({
+            name: person.legalFullName,
+            patientProfile: {
+                bloodGroup: patient?.safetyAnchors?.bloodGroup,
+                knownAllergies: patient?.safetyAnchors?.knownAllergies,
+                chronicConditions: patient?.safetyAnchors?.chronicConditions,
+                surgeryHistory: patient?.safetyAnchors?.surgeryHistory
+            }
+        });
+
     } catch (err) { 
-        console.error(err);
+        console.error("Snapshot Fetch Error:", err);
         res.status(500).json({ msg: 'Server Error' }); 
     }
 });

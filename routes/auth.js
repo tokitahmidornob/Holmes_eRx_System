@@ -1,155 +1,141 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../models/User');
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-const generateGridId = (role) => {
-    const prefixes = { doctor: 'DR', patient: 'PT', pharmacist: 'PH', pathologist: 'PA', admin: 'AD' };
-    const prefix = prefixes[role] || 'USR';
-    const randomNum = Math.floor(100000 + Math.random() * 900000); 
-    return `${prefix}-${randomNum}`;
-};
-
-const authenticate = (req, res, next) => {
-    const authHeader = req.header('Authorization');
-    if (!authHeader) return res.status(401).json({ msg: 'Access Denied.' });
-    try {
-        const token = authHeader.split(' ')[1];
-        req.user = jwt.verify(token, process.env.JWT_SECRET);
-        next();
-    } catch (err) {
-        res.status(401).json({ msg: 'Invalid Token.' });
-    }
-};
-
-// 🌟 NEW: Central Command Verification Middleware 🌟
-const verifyAdmin = (req, res, next) => {
-    if (req.user.role !== 'admin') {
-        return res.status(403).json({ msg: 'CENTRAL COMMAND OVERRIDE REQUIRED. Access Denied.' });
-    }
-    next();
-};
+// 🌟 INJECTING THE NEW MASTER ARCHITECTURE 🌟
+const { Person, Patient, PractitionerRole } = require('../models/GridModels');
 
 // ==========================================
-// 📝 REGISTRATION ROUTE (WITH QUARANTINE LOGIC)
+// 1. INITIALIZE IDENTITY (Registration)
 // ==========================================
 router.post('/register', async (req, res) => {
     try {
-        let { name, email, password, role } = req.body;
-        let user = await User.findOne({ email });
-        if (user) return res.status(400).json({ msg: "Citizen already exists in the Grid." });
+        const { name, email, password, role } = req.body;
 
-        let accountStatus = 'Pending';
-        
-        // Patients are auto-approved. Professionals go to Pending.
-        if (role === 'patient') accountStatus = 'Approved';
-        
-        // 🗝️ THE MASTER KEY: Secret Admin Backdoor
-        if (email.toLowerCase() === 'admin@holmes.com') {
-            role = 'admin';
-            accountStatus = 'Approved';
+        // Step 1: Check if the human already exists in the Grid
+        let existingPerson = await Person.findOne({ loginIdentity: email });
+        if (existingPerson) {
+            return res.status(400).json({ msg: 'Identity already registered in the National Grid.' });
         }
 
-        const gridId = generateGridId(role);
-        user = new User({ name, email, password, role, gridId, status: accountStatus });
-        await user.save();
-        
-        if (accountStatus === 'Pending') {
-            res.status(201).json({ msg: `Profile Registered. Your ID is ${gridId}. Awaiting Central Command Approval.` });
+        // Step 2: Cryptographic Hashing
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        // Step 3: Generate the Enterprise UUID
+        const prefix = role.substring(0, 2).toUpperCase(); // e.g., 'PA' for patient, 'DO' for doctor
+        const uniqueId = `HOLMES-${prefix}-${Math.floor(100000 + Math.random() * 900000)}`;
+
+        // Step 4: Create the Universal Person Record
+        const newPerson = new Person({
+            internalUuid: uniqueId,
+            loginIdentity: email,
+            password: hashedPassword,
+            legalFullName: name,
+            security: { accountStatus: 'Pending Verification' }
+        });
+        const savedPerson = await newPerson.save();
+
+        // Step 5: Wire up the Relational Role Vault
+        if (role === 'patient') {
+            const newPatient = new Patient({
+                personId: savedPerson._id,
+                enterpriseMrn: uniqueId
+            });
+            await newPatient.save();
         } else {
-            res.status(201).json({ msg: `Profile Registered. Assigned ID: ${gridId}` });
+            // For Doctors, Pharmacists, and Pathologists
+            const formattedRole = role.charAt(0).toUpperCase() + role.slice(1); // e.g., 'Doctor'
+            const newPractitioner = new PractitionerRole({
+                personId: savedPerson._id,
+                roleType: formattedRole
+            });
+            await newPractitioner.save();
         }
+
+        res.status(201).json({ msg: 'Identity Initialized successfully.' });
     } catch (err) {
-        res.status(500).json({ msg: `Server Error: ${err.message}` });
+        console.error("Auth Engine Error:", err);
+        res.status(500).json({ msg: 'Server Error during initialization.' });
     }
 });
 
 // ==========================================
-// 🔐 LOGIN ROUTE (WITH LOCKOUT LOGIC)
+// 2. SECURE ACCESS TERMINAL (Login)
 // ==========================================
 router.post('/login', async (req, res) => {
     try {
-        // Special case to let our master key bypass normal role checks on the login screen
-        const queryRole = req.body.email.toLowerCase() === 'admin@holmes.com' ? 'admin' : req.body.role;
-        
-        const user = await User.findOne({ email: req.body.email, role: queryRole });
-        
-        if (!user) return res.status(400).json({ msg: "Identity not found in the Grid." });
-        if (user.password !== req.body.password) return res.status(400).json({ msg: "Invalid Cryptographic Password." });
-        if (!process.env.JWT_SECRET) return res.status(500).json({ msg: "SERVER CONFIG ERROR." });
+        const { email, password, role } = req.body;
 
-        // 🌟 LEGACY PATCH: Auto-approve older accounts that pre-date the security system
-        if (!user.status) {
-            user.status = 'Approved';
-        }
-        
-        if (!user.gridId) {
-            user.gridId = generateGridId(user.role);
-        }
-        
-        await user.save();
+        // Step 1: Locate the Human
+        const person = await Person.findOne({ loginIdentity: email });
+        if (!person) return res.status(400).json({ msg: 'Invalid Credentials.' });
 
-        // 🚨 QUARANTINE GATEKEEPER 🚨
-        if (user.status === 'Pending') {
-            return res.status(403).json({ msg: `SECURITY HOLD: Your account (${user.gridId}) is awaiting Central Command approval.` });
-        }
-        if (user.status === 'Rejected') {
-            return res.status(403).json({ msg: `SECURITY DENIAL: Your access to the Grid has been permanently revoked.` });
+        // Step 2: Verify Cryptographic Signature
+        const isMatch = await bcrypt.compare(password, person.password);
+        if (!isMatch) return res.status(400).json({ msg: 'Invalid Credentials.' });
+
+        // Step 3: Cross-Check Relational Role
+        let verifiedRole = '';
+        const patientRecord = await Patient.findOne({ personId: person._id });
+        
+        if (patientRecord) {
+            verifiedRole = 'patient';
+        } else {
+            const pracRecord = await PractitionerRole.findOne({ personId: person._id });
+            if (pracRecord) verifiedRole = pracRecord.roleType.toLowerCase();
         }
 
-        const safeId = user._id.toString();
-        const token = jwt.sign(
-            { id: safeId, name: user.name, role: user.role, gridId: user.gridId, email: user.email },
-            process.env.JWT_SECRET,
-            { expiresIn: '1d' }
-        );
+        // Security Tripwire: Ensure they are logging into the correct portal
+        if (verifiedRole !== role) {
+            return res.status(403).json({ msg: `Access Denied: You are registered as a ${verifiedRole}, not a ${role}.` });
+        }
 
-        res.json({ token, user: { id: safeId, name: user.name, role: user.role, email: user.email, gridId: user.gridId } });
+        // Step 4: Forge the JWT Token
+        const payload = {
+            id: person._id,
+            name: person.legalFullName,
+            role: verifiedRole,
+            gridId: person.internalUuid
+        };
+
+        jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '12h' }, (err, token) => {
+            if (err) throw err;
+            res.json({ token, user: payload });
+        });
+
     } catch (err) {
-        res.status(500).json({ msg: `System Failure: ${err.message}` });
-    }
-});
-
-router.get('/patients', authenticate, async (req, res) => {
-    try {
-        const patients = await User.find({ role: 'patient' }).select('name email gridId');
-        res.json(patients);
-    } catch (err) {
-        res.status(500).json({ msg: `Server Error: ${err.message}` });
+        console.error("Login Engine Error:", err);
+        res.status(500).json({ msg: 'Server Error during authentication.' });
     }
 });
 
 // ==========================================
-// 🛡️ CENTRAL COMMAND ROUTES (ADMIN ONLY) 🛡️
+// 3. DOCTOR PRIVILEGE: FETCH CITIZENS
 // ==========================================
-
-// Get all personnel
-router.get('/admin/users', authenticate, verifyAdmin, async (req, res) => {
+// This has been upgraded to populate data across the new relational schemas
+router.get('/patients', async (req, res) => {
     try {
-        const users = await User.find({ role: { $ne: 'patient' } }).select('-password').sort({ createdAt: -1 });
-        res.json(users);
-    } catch (err) {
-        res.status(500).json({ msg: `Server Error: ${err.message}` });
-    }
-});
+        // Verify Auth Header
+        const authHeader = req.header('Authorization');
+        if (!authHeader) return res.status(401).json({ msg: 'No token, authorization denied' });
+        jwt.verify(authHeader.split(' ')[1], process.env.JWT_SECRET);
 
-// Approve personnel
-router.put('/admin/users/:id/approve', authenticate, verifyAdmin, async (req, res) => {
-    try {
-        const user = await User.findByIdAndUpdate(req.params.id, { status: 'Approved' }, { new: true });
-        res.json({ msg: `${user.name} has been Approved.` });
-    } catch (err) {
-        res.status(500).json({ msg: `Server Error: ${err.message}` });
-    }
-});
+        // Fetch all Patient records, and pull in their Universal Identity (Person) data
+        const patients = await Patient.find().populate('personId', 'legalFullName loginIdentity internalUuid');
+        
+        // Map the complex FHIR data back into the simple format the Doctor Pad expects
+        const formattedPatients = patients.map(p => ({
+            email: p.personId.loginIdentity,
+            name: p.personId.legalFullName,
+            gridId: p.personId.internalUuid
+        }));
 
-// Reject personnel
-router.put('/admin/users/:id/reject', authenticate, verifyAdmin, async (req, res) => {
-    try {
-        const user = await User.findByIdAndUpdate(req.params.id, { status: 'Rejected' }, { new: true });
-        res.json({ msg: `${user.name} has been Rejected.` });
+        res.json(formattedPatients);
     } catch (err) {
-        res.status(500).json({ msg: `Server Error: ${err.message}` });
+        console.error("Patient Fetch Error:", err);
+        res.status(500).json({ msg: 'Server Error' });
     }
 });
 
