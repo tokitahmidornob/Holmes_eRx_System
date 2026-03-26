@@ -30,13 +30,9 @@ router.post('/', authenticate, async (req, res) => {
             return res.status(403).json({ msg: 'Your clinical credentials are pending verification. Prescribing is locked.' });
         }
 
-        // 2. Locate the Patient (Frontend currently sends email, so we find Person, then Patient)
-        const { Person } = require('../models/GridModels');
-        const targetPerson = await Person.findOne({ loginIdentity: patientId });
-        if (!targetPerson) return res.status(404).json({ msg: 'Citizen not found.' });
-        
-        const targetPatient = await Patient.findOne({ personId: targetPerson._id });
-        if (!targetPatient) return res.status(404).json({ msg: 'Clinical Patient Record missing.' });
+        // 2. Locate the Patient via exact Relational ID
+        const targetPatient = await Patient.findById(patientId);
+        if (!targetPatient) return res.status(404).json({ msg: 'Clinical Patient Record missing from Grid.' });
 
         // 🚨 3. THE CLINICAL CROSS-CHECK ENGINE (Fatal Interaction Prevention)
         const patientAllergies = await AllergyProfile.find({ patientId: targetPatient._id });
