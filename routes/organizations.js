@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { Organization, Location, AuditEvent } = require('../models/GridModels'); // Assuming GridModels is in root
-const { logAudit } = require('./middleware/auditLogger');
+const { Organization, Location } = require('../models/GridModels');
 
 /**
  * 🏛️ REGISTER NATIONAL ORGANIZATION

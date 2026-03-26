@@ -1,8 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const { Credential, PractitionerRole, AuditEvent } = require('./models/GridModels');
-const { logAudit } = require('./middleware/auditLogger');
+const { Credential } = require('../models/GridModels');
 
 // 🔒 SECURITY TRIPWIRE (Using sessionStorage logic)
 const authenticate = (req, res, next) => {
