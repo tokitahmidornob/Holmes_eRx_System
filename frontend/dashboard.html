@@ -29,6 +29,11 @@
             <button onclick="switchTab('history')" id="navHistory" class="nav-btn flex items-center p-4 rounded-2xl hover:bg-slate-800 text-slate-400 hover:text-white transition-all hover:-translate-y-1">
                 <i class="fa-solid fa-clock-rotate-left text-xl lg:mr-4 w-6 text-center"></i><span class="hidden lg:block font-bold text-sm">Rx History & Labs</span>
             </button>
+            <button onclick="window.location.href='profile.html'" id="navProfile" class="nav-btn flex items-center p-4 rounded-2xl hover:bg-slate-800 text-slate-400 hover:text-white transition-all hover:-translate-y-1">
+                <i class="fa-solid fa-id-card-clip text-xl lg:mr-4 w-6 text-center"></i>
+                <span class="hidden lg:block font-bold text-sm">Identity Matrix</span>
+                <div id="profileWarningDot" class="hidden ml-auto w-3 h-3 rounded-full bg-rose-500 animate-pulse shadow-[0_0_10px_rgba(244,63,94,0.8)]"></div>
+            </button>
         </nav>
         <div class="p-4 border-t border-slate-800">
             <div class="hidden lg:block mb-4 px-4 text-center">
@@ -318,6 +323,24 @@
                 if(doctorPrescriptions.length === 0) return list.innerHTML = '<div class="p-10 text-center text-slate-400 font-bold">Archive is empty.</div>';
                 list.innerHTML = doctorPrescriptions.map((rx, i) => `<div class="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-slate-50 border-b transition-colors"><div class="col-span-3 text-xs font-bold text-slate-500">${new Date(rx.createdAt).toLocaleDateString()}</div><div class="col-span-4 text-sm font-black text-slate-800">${rx.patientId}</div><div class="col-span-3"><span class="px-2 py-1 rounded text-[9px] font-black uppercase ${rx.status === 'Dispensed' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}">${rx.status}</span></div><div class="col-span-2 text-right"><button onclick="openRxModal(${i})" class="text-[10px] font-black uppercase bg-slate-900 text-white px-4 py-2 rounded-xl hover:shadow-lg hover:-translate-y-0.5 transition-all">Open</button></div></div>`).join('');
             } catch (err) { list.innerHTML = '<div class="p-10 text-center text-rose-500 font-bold">Failed to sync Archive.</div>'; }
+        }
+
+        // 🚨 SILENT PROFILE SCANNER 🚨
+        async function checkProfileStatus() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/profile`, { headers: { 'Authorization': `Bearer ${token}` } });
+                if(res.ok) {
+                    const user = await res.json();
+                    const pct = user.profileCompletion || 20;
+                    if(pct < 100) {
+                        // Activate the red dot and show a warning toast
+                        document.getElementById('profileWarningDot').classList.remove('hidden');
+                        setTimeout(() => {
+                            showToast(`Security Alert: Profile only ${pct}% Complete.`, 'error');
+                        }, 1000);
+                    }
+                }
+            } catch(e) { console.log("Profile scan failed"); }
         }
 
         // 🌟 THE UPGRADED RX MODAL (FETCHES LAB REPORTS) 🌟
