@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 // ==========================================
-// 1. CROSS-CUTTING AUDIT & METADATA
+// 🛡️ CROSS-CUTTING AUDIT & PROVENANCE
 // ==========================================
 const AuditMetadata = {
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Person' },
@@ -10,233 +10,195 @@ const AuditMetadata = {
     lastLogin: { type: Date },
     lastPermissionChange: { type: Date },
     verificationStatus: { type: String, enum: ['Verified', 'Pending', 'Rejected', 'Unverified'], default: 'Unverified' },
-    sourceOfTruth: { type: String, default: 'Self-Reported' },
+    sourceOfTruth: { type: String, required: true, default: 'National_Identity_Server' },
     softDeleted: { type: Boolean, default: false },
-    breachFlag: { type: Boolean, default: false }
+    version: { type: Number, default: 1 }
 };
 
 // ==========================================
-// 2. THE PERSON (Universal Identity)
+// 1. PERSON (The Human Identity)
 // ==========================================
 const PersonSchema = new mongoose.Schema({
-    internalUuid: { type: String, required: true, unique: true },
-    loginIdentity: { type: String, required: true, unique: true }, // Email or SSO
-    password: { type: String, required: true },
+    internalUuid: { type: String, required: true, unique: true }, // National UUID
+    loginIdentity: { type: String, required: true, unique: true }, // SSO/Email
+    password: { type: String, required: true }, // Hashed
     
     legalFullName: { type: String, required: true },
     displayName: { type: String },
-    preferredName: { type: String },
-    dateOfBirth: { type: Date },
-    genderLegal: { type: String }, // As required by local law
-    nationalId: { type: String }, // NID / Passport
+    dateOfBirth: { type: Date, required: true },
+    genderLegal: { type: String, required: true }, // Compliant with local laws
+    nationalId: { type: String, unique: true }, // NID
+    professionalPhotoUrl: { type: String },
     
     contact: {
-        primaryMobile: { type: String },
-        primaryEmail: { type: String },
-        address: { type: String }
+        primaryMobile: { type: String, required: true },
+        primaryEmail: { type: String, required: true },
+        permanentAddress: { type: String }
     },
     
-    preferences: {
-        preferredLanguage: { type: String, default: 'en-US' },
-        locale: { type: String, default: 'BD' }
-    },
+    locale: { lang: { type: String, default: 'bn-BD' }, timezone: String },
     
     security: {
-        accountStatus: { type: String, enum: ['Active', 'Suspended', 'Terminated', 'Pending Verification'], default: 'Pending Verification' },
+        accountStatus: { type: String, enum: ['Active', 'Suspended', 'Terminated', 'Pending'], default: 'Pending' },
         mfaEnabled: { type: Boolean, default: false },
-        portalIdentityVerificationStatus: { type: String, enum: ['Level 1', 'Level 2', 'Level 3 (Biometric)'], default: 'Level 1' },
-        fraudExceptionFlags: [{ type: String }]
+        securityIncidentFlags: [{ type: String }]
     },
     
     audit: AuditMetadata
 }, { timestamps: true });
 
 // ==========================================
-// 3. ORGANIZATION & LOCATION
+// 2. ORGANIZATION & 3. LOCATION
 // ==========================================
 const OrganizationSchema = new mongoose.Schema({
-    orgType: { type: String, enum: ['Hospital', 'Clinic', 'Pharmacy', 'Laboratory'] },
+    orgIdentifier: { type: String, unique: true }, // DGHS Org ID
     orgName: { type: String, required: true },
-    legalIdentifiers: {
-        tradeLicense: { type: String },
-        cliaCertificate: { type: String }, // Or local equivalent
-        pharmacyCouncilId: { type: String }
-    },
-    certificateValidity: {
-        issuedDate: { type: Date },
-        expiryDate: { type: Date }
-    },
-    contactChannels: { phone: String, email: String, website: String },
-    directors: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Person' }],
-    supportedTestMenu: [{ type: String }], // For Labs
+    orgType: { type: String, enum: ['Hospital', 'Clinic', 'Pharmacy', 'Laboratory'] },
+    taxId: { type: String }, // BIN/TIN
+    operatingHours: { type: String },
+    contactChannels: { phone: String, email: String },
+    labDirector: { type: mongoose.Schema.Types.ObjectId, ref: 'Person' }, // Specifically for labs
     audit: AuditMetadata
 });
 
 const LocationSchema = new mongoose.Schema({
-    managingOrganization: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization' },
-    locationName: { type: String },
-    physicalAddress: { type: String },
-    operatingHours: { type: String },
+    orgId: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization' },
+    siteId: { type: String, unique: true },
+    physicalAddress: { type: String, required: true },
+    gpsCoordinates: { lat: Number, lng: Number },
     audit: AuditMetadata
 });
 
 // ==========================================
-// 4. PROFESSIONAL CREDENTIALS (Immutable proofs)
+// 4. PROFESSIONAL CREDENTIAL
 // ==========================================
 const CredentialSchema = new mongoose.Schema({
-    personId: { type: mongoose.Schema.Types.ObjectId, ref: 'Person', required: true },
-    credentialType: { type: String, enum: ['Medical License', 'Pharmacy License', 'Pathology Board', 'DEA/Narcotics'] },
+    personId: { type: mongoose.Schema.Types.ObjectId, ref: 'Person' },
+    credentialType: { type: String, enum: ['Medical_License', 'Pharmacy_License', 'Pathology_Board', 'Narcotics_Authority'] },
     licenseNumber: { type: String, required: true },
-    issuingAuthority: { type: String, required: true },
-    jurisdiction: { type: String },
-    effectiveDate: { type: Date },
-    expiryDate: { type: Date },
-    documentAttachmentUrl: { type: String }, // Link to cloud bucket
-    verificationStatus: { type: String, enum: ['Verified', 'Pending', 'Expired', 'Revoked'] },
+    issuingAuthority: { type: String, required: true }, // e.g., BMDC
+    jurisdiction: { type: String, default: 'Bangladesh' },
+    effectiveDate: { type: Date, required: true },
+    expiryDate: { type: Date, required: true },
+    documentAttachmentUrl: { type: String }, // Proof of certificate
     audit: AuditMetadata
 });
 
 // ==========================================
-// 5. PRACTITIONER ROLE (Authority & Scopes)
+// 5. PRACTITIONER ROLE
 // ==========================================
 const PractitionerRoleSchema = new mongoose.Schema({
-    personId: { type: mongoose.Schema.Types.ObjectId, ref: 'Person', required: true },
-    organizationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization' },
-    locationIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Location' }],
+    personId: { type: mongoose.Schema.Types.ObjectId, ref: 'Person' },
+    orgId: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization' },
+    locationAssignments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Location' }],
     
-    roleType: { type: String, enum: ['Doctor', 'Pharmacist', 'Pathologist'], required: true },
+    specialty: { type: String },
+    subSpecialty: { type: String },
+    prescribingAuthorityScope: [{ type: String }], // e.g., 'General', 'Psychotropic'
     
-    doctorScopes: {
-        specialty: { type: String },
-        subSpecialty: { type: String },
-        providerIdentifierNPI: { type: String },
-        consultationModes: [{ type: String, enum: ['In-Person', 'Telemedicine', 'Home Care'] }],
-        prescriptionAuthorityScope: [{ type: String }],
-        controlledSubstanceAuthority: { type: Boolean, default: false },
-        epcsIdentityProofingStatus: { type: Boolean, default: false },
-        twoFactorSigningEnabled: { type: Boolean, default: false },
-        supervisingPhysicianId: { type: mongoose.Schema.Types.ObjectId, ref: 'Person' },
-        formularyPreferences: [{ type: String }],
-        signatureBlockMetadata: { type: String }
-    },
-    
-    pharmacistScopes: {
-        pharmacyRole: { type: String, enum: ['Staff', 'Verifying', 'PIC', 'Owner', 'Trainee'] },
-        shiftAssignment: { type: String },
-        substitutionAuthority: { type: Boolean, default: false },
-        controlledSubstanceProcessing: { type: Boolean, default: false },
-        verificationFinalCheck: { type: Boolean, default: false },
-        immunizationAuthority: { type: Boolean, default: false },
-        counselingPermissions: { type: Boolean, default: true },
-        suspensionRestrictionFlags: [{ type: String }]
-    },
-    
-    pathologistScopes: {
-        boardCertificationDetails: { type: String },
-        signOutPrivileges: { type: Boolean, default: false },
-        testCategoryPermissions: [{ type: String }],
-        specimenAuthorizationLevel: { type: String },
-        consultationPrivileges: { type: Boolean, default: false },
-        digitalReportSigningStatus: { type: Boolean, default: false },
-        escalationSettings: { type: String },
-        onCallStatus: { type: Boolean, default: false }
-    },
+    // Controlled Substance Protocols
+    narcoticsRegistrationNumber: { type: String },
+    epcsIdentityProofed: { type: Boolean, default: false },
+    twoFactorSigningRequired: { type: Boolean, default: true },
     
     audit: AuditMetadata
 });
 
 // ==========================================
-// 6. CLINICAL RESOURCES (FHIR-Aligned)
+// 6. PATIENT (The Beneficiary)
+// ==========================================
+const PatientSchema = new mongoose.Schema({
+    personId: { type: mongoose.Schema.Types.ObjectId, ref: 'Person' },
+    enterpriseMrn: { type: String, unique: true }, // Hospital Internal ID
+    nationalHealthId: { type: String, unique: true },
+    
+    emergencyContact: { name: String, relation: String, phone: String },
+    caregiverGuardian: { name: String, phone: String },
+    
+    insuranceDetails: { payerName: String, membershipId: String },
+    preferredPharmacy: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization' },
+    primaryDoctor: { type: mongoose.Schema.Types.ObjectId, ref: 'Person' },
+    
+    deceasedFlag: { type: Boolean, default: false },
+    audit: AuditMetadata
+});
+
+// ==========================================
+// 7. CLINICAL VAULTS (Safety Critical)
 // ==========================================
 const AllergyProfileSchema = new mongoose.Schema({
-    patientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient', required: true },
-    substance: { type: String, required: true }, // e.g., Penicillin
-    criticality: { type: String, enum: ['Low', 'High', 'Unable to Assess'] },
-    verificationStatus: { type: String, enum: ['Unconfirmed', 'Confirmed', 'Refuted'] },
+    patientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient' },
+    substance: { type: String, required: true },
+    criticality: { type: String, enum: ['Low', 'High', 'Unable_to_Assess'] },
+    verificationStatus: { type: String, default: 'Unconfirmed' },
     audit: AuditMetadata
 });
 
-const ConditionProfileSchema = new mongoose.Schema({
-    patientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient', required: true },
-    conditionType: { type: String, enum: ['Chronic', 'Surgical', 'Acute'] },
-    name: { type: String, required: true }, // e.g., Asthma, Appendectomy
-    clinicalStatus: { type: String, enum: ['Active', 'Resolved', 'Inactive'] },
-    recordedDate: { type: Date },
-    asserter: { type: mongoose.Schema.Types.ObjectId, ref: 'PractitionerRole' }, // Doctor who recorded it
-    notes: { type: String },
+const MedicationProfileSchema = new mongoose.Schema({
+    patientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient' },
+    brandName: String,
+    genericName: String,
+    status: { type: String, enum: ['Active', 'Completed', 'Discontinued'] },
+    authoredBy: { type: mongoose.Schema.Types.ObjectId, ref: 'PractitionerRole' },
     audit: AuditMetadata
 });
 
+const LabProfileSchema = new mongoose.Schema({
+    patientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient' },
+    testName: String,
+    loincCode: String,
+    resultValue: String,
+    unit: String,
+    labSite: { type: mongoose.Schema.Types.ObjectId, ref: 'Location' },
+    audit: AuditMetadata
+});
+
+// ==========================================
+// 7.5 E-PRESCRIBING PAYLOAD (The Broadcast)
+// ==========================================
+const PrescriptionSchema = new mongoose.Schema({
+    patientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient', required: true },
+    practitionerRoleId: { type: mongoose.Schema.Types.ObjectId, ref: 'PractitionerRole', required: true },
+    broadcastId: { type: String, required: true, unique: true }, // e.g., RX-2026-ABC12
+    otp: { type: String, required: true }, // 6-digit cryptographic unlock key
+    
+    medications: [{
+        brandName: String,
+        dosage: String,
+        timing: String,
+        duration: String
+    }],
+    investigations: [{ type: String }],
+    
+    status: { type: String, enum: ['Active', 'Dispensed', 'Revoked'], default: 'Active' },
+    audit: AuditMetadata
+}, { timestamps: true });
+
+// ==========================================
+// 8. CONSENT & 9. AUDIT EVENT (Immutable)
+// ==========================================
 const ConsentSchema = new mongoose.Schema({
-    patientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient', required: true },
-    status: { type: String, enum: ['Draft', 'Proposed', 'Active', 'Rejected', 'Inactive'] },
-    scope: { type: String }, // e.g., 'Data Sharing', 'Treatment'
+    patientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient' },
+    scope: { type: String, enum: ['Data_Sharing', 'Treatment', 'Research'] },
+    status: { type: String, enum: ['Active', 'Revoked', 'Pending'] },
     dateTime: { type: Date, default: Date.now },
     audit: AuditMetadata
 });
 
-// ==========================================
-// 7. PATIENT (Safety & Clinical Anchors)
-// ==========================================
-const PatientSchema = new mongoose.Schema({
-    personId: { type: mongoose.Schema.Types.ObjectId, ref: 'Person', required: true, unique: true },
-    enterpriseMrn: { type: String, unique: true },
-    nationalHealthId: { type: String },
-    
-    deceasedFlag: { type: Boolean, default: false },
-    
-    emergencyContact: {
-        name: { type: String },
-        relation: { type: String },
-        phone: { type: String }
-    },
-    
-    careTeam: {
-        caregiverGuardian: { type: String },
-        primaryDoctorId: { type: mongoose.Schema.Types.ObjectId, ref: 'Person' },
-        preferredPharmacyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization' }
-    },
-    
-    financials: {
-        insuranceIdentifiers: [{ type: String }],
-        payerMembershipDetails: { type: String }
-    },
-    
-    privacyAndConsent: {
-        communicationPreferences: [{ type: String }],
-        consentFlags: [{ type: String }],
-        mergeDuplicateStatus: { type: String }
-    },
-    
-    // Safety-Critical Links
-    safetyAnchors: {
-        bloodGroup: { type: String },
-        pregnancyLactationStatus: { type: String },
-        pediatricDosingContext: { type: String },
-        allergyRefs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'AllergyProfile' }],
-        conditionRefs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ConditionProfile' }]
-    },
-    
-    audit: AuditMetadata
-});
-
-// ==========================================
-// 8. AUDIT EVENT (Immutable Security Log)
-// ==========================================
 const AuditEventSchema = new mongoose.Schema({
     timestamp: { type: Date, default: Date.now, immutable: true },
-    actorId: { type: mongoose.Schema.Types.ObjectId, ref: 'Person', immutable: true },
-    actionType: { type: String, required: true, immutable: true }, 
-    resourceType: { type: String, immutable: true }, 
-    resourceId: { type: mongoose.Schema.Types.ObjectId, immutable: true },
-    ipAddress: { type: String, immutable: true },
-    deviceMetadata: { type: String, immutable: true },
-    outcome: { type: String, enum: ['Success', 'Failure', 'Warning'], immutable: true },
-    dataProvenanceHash: { type: String, immutable: true } 
-});
+    actorId: { type: mongoose.Schema.Types.ObjectId, ref: 'Person', required: true },
+    actionType: { type: String, required: true }, // e.g., 'RX_SIGN', 'DATA_ACCESS'
+    resourceType: { type: String }, // e.g., 'Patient', 'Allergy'
+    resourceId: { type: mongoose.Schema.Types.ObjectId },
+    ipAddress: { type: String, required: true },
+    deviceMetadata: { type: String },
+    outcome: { type: String, enum: ['Success', 'Failure', 'Warning'] },
+    provenanceHash: { type: String, required: true } // Cryptographic seal
+}, { capped: { size: 1073741824 } }); // Capped at 1GB for high-speed audit logging
 
 // ==========================================
-// EXPORTS
+// 🏁 MASTER EXPORTS
 // ==========================================
 module.exports = {
     Person: mongoose.model('Person', PersonSchema),
@@ -245,8 +207,9 @@ module.exports = {
     Credential: mongoose.model('Credential', CredentialSchema),
     PractitionerRole: mongoose.model('PractitionerRole', PractitionerRoleSchema),
     Patient: mongoose.model('Patient', PatientSchema),
-    AuditEvent: mongoose.model('AuditEvent', AuditEventSchema),
     AllergyProfile: mongoose.model('AllergyProfile', AllergyProfileSchema),
-    ConditionProfile: mongoose.model('ConditionProfile', ConditionProfileSchema),
-    Consent: mongoose.model('Consent', ConsentSchema)
+    MedicationProfile: mongoose.model('MedicationProfile', MedicationProfileSchema),
+    LabProfile: mongoose.model('LabProfile', LabProfileSchema),
+    Consent: mongoose.model('Consent', ConsentSchema),
+    AuditEvent: mongoose.model('AuditEvent', AuditEventSchema)
 };

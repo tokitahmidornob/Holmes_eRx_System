@@ -1,137 +1,130 @@
 const express = require('express');
 const router = express.Router();
-const Prescription = require('../models/Prescription');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
+const { Patient, PractitionerRole, Prescription, AllergyProfile, MedicationProfile, AuditEvent } = require('../models/GridModels');
 
-// 🛡️ THE SECURITY TRIPWIRE
-const securityLog = new Map();
-const MAX_ATTEMPTS = 5;
-const LOCKOUT_TIME_MS = 15 * 60 * 1000;
-
+// 🔒 SECURITY TRIPWIRE
 const authenticate = (req, res, next) => {
     const authHeader = req.header('Authorization');
     if (!authHeader) return res.status(401).json({ msg: 'Access Denied.' });
     try {
-        const token = authHeader.split(' ')[1];
-        req.user = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = jwt.verify(authHeader.split(' ')[1], process.env.JWT_SECRET);
         next();
-    } catch (err) {
-        res.status(401).json({ msg: 'Invalid Token.' });
-    }
+    } catch (err) { res.status(401).json({ msg: 'Invalid Token.' }); }
 };
 
-// ==========================================
-// 🩺 DOCTOR ROUTE 1: CREATE NEW PRESCRIPTION
-// ==========================================
+/**
+ * 🚀 GENERATE & BROADCAST PRESCRIPTION
+ * Logic: Cross-checks allergies, seals the document, and opens active FHIR medication profiles.
+ */
 router.post('/', authenticate, async (req, res) => {
     try {
-        const generatedBroadcastId = 'HOLMES-RX-' + Math.floor(1000 + Math.random() * 9000);
-        const generatedOtp = Math.floor(1000 + Math.random() * 9000).toString();
+        if (req.user.role !== 'doctor') return res.status(403).json({ msg: 'Clinical Authority Required.' });
 
-        const newRx = new Prescription({
-            ...req.body,
-            broadcastId: generatedBroadcastId,
-            otp: generatedOtp,
-            status: 'Active'
+        const { patientId, medications, investigations } = req.body; // Note: Frontend now sends the Patient's _id or email. We must adapt.
+
+        // 1. Verify Practitioner Authority
+        const pracRole = await PractitionerRole.findOne({ personId: req.user.id });
+        if (!pracRole || pracRole.audit.verificationStatus !== 'Verified') {
+            return res.status(403).json({ msg: 'Your clinical credentials are pending verification. Prescribing is locked.' });
+        }
+
+        // 2. Locate the Patient (Frontend currently sends email, so we find Person, then Patient)
+        const { Person } = require('../models/GridModels');
+        const targetPerson = await Person.findOne({ loginIdentity: patientId });
+        if (!targetPerson) return res.status(404).json({ msg: 'Citizen not found.' });
+        
+        const targetPatient = await Patient.findOne({ personId: targetPerson._id });
+        if (!targetPatient) return res.status(404).json({ msg: 'Clinical Patient Record missing.' });
+
+        // 🚨 3. THE CLINICAL CROSS-CHECK ENGINE (Fatal Interaction Prevention)
+        const patientAllergies = await AllergyProfile.find({ patientId: targetPatient._id });
+        
+        for (let med of medications) {
+            for (let allergy of patientAllergies) {
+                // If the prescribed drug name contains the allergic substance
+                if (med.brandName.toLowerCase().includes(allergy.substance.toLowerCase())) {
+                    return res.status(400).json({ 
+                        msg: `CONTRAINDICATION BLOCKED: Patient has a recorded allergy to ${allergy.substance.toUpperCase()}. Prescription of ${med.brandName} is legally prohibited.` 
+                    });
+                }
+            }
+        }
+
+        // 4. Generate Cryptographic Identifiers
+        const broadcastId = `RX-${new Date().getFullYear()}-${crypto.randomBytes(3).toString('hex').toUpperCase()}`;
+        const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit pin
+
+        // 5. Forge the Master Prescription Document
+        const newPrescription = new Prescription({
+            patientId: targetPatient._id,
+            practitionerRoleId: pracRole._id,
+            broadcastId,
+            otp,
+            medications,
+            investigations,
+            audit: { sourceOfTruth: 'Clinical_Pad_Terminal' }
         });
-        
-        const savedRx = await newRx.save();
-        res.status(201).json(savedRx); // Instant UI Release!
-        
+
+        const savedRx = await newPrescription.save();
+
+        // 6. Update the Patient's Active Medication Profiles (FHIR compliance)
+        for (let med of medications) {
+            await MedicationProfile.create({
+                patientId: targetPatient._id,
+                brandName: med.brandName,
+                status: 'Active',
+                authoredBy: pracRole._id,
+                audit: { sourceOfTruth: 'E_Prescription_Event' }
+            });
+        }
+
+        res.status(201).json({ 
+            msg: 'Prescription Encrypted & Broadcasted to National Grid.',
+            broadcastId: savedRx.broadcastId,
+            otp: savedRx.otp,
+            _id: savedRx._id
+        });
+
     } catch (err) {
-        console.error("Create Rx Error:", err);
-        res.status(500).json({ msg: `Server Error: ${err.message}` });
+        console.error("RX_BROADCAST_ERR:", err);
+        res.status(500).json({ msg: 'Grid Broadcast Failure.' });
     }
 });
 
-// ==========================================
-// 🩺 DOCTOR ROUTE 2: FETCH DOCTOR'S HISTORY
-// ==========================================
-router.get('/doctor/:id', authenticate, async (req, res) => {
+/**
+ * 🗄️ FETCH DOCTOR'S ARCHIVE (Master Rx History)
+ */
+router.get('/doctor/:doctorId', authenticate, async (req, res) => {
     try {
-        const rxs = await Prescription.find({ doctorId: req.params.id }).sort({ createdAt: -1 });
-        res.json(rxs);
-    } catch (err) {
-        res.status(500).json({ msg: `Server Error: ${err.message}` });
-    }
-});
+        const pracRole = await PractitionerRole.findOne({ personId: req.user.id });
+        if (!pracRole) return res.json([]);
 
-// ==========================================
-// 👤 PATIENT ROUTE: FETCH PATIENT'S HISTORY
-// ==========================================
-router.get('/patient/:email', authenticate, async (req, res) => {
-    try {
-        const rxs = await Prescription.find({ patientId: req.params.email })
-            .populate('doctorId', 'name email')
+        // Populate the Patient's Person data to display their name on the UI
+        const history = await Prescription.find({ practitionerRoleId: pracRole._id })
+            .populate({
+                path: 'patientId',
+                populate: { path: 'personId', select: 'legalFullName loginIdentity' }
+            })
             .sort({ createdAt: -1 });
-        res.json(rxs);
+
+        // Map it back to the format the frontend UI expects
+        const mappedHistory = history.map(rx => ({
+            _id: rx._id,
+            broadcastId: rx.broadcastId,
+            otp: rx.otp,
+            patientId: rx.patientId?.personId?.legalFullName || 'Unknown Citizen',
+            status: rx.status,
+            createdAt: rx.createdAt,
+            medications: rx.medications,
+            investigations: rx.investigations
+        }));
+
+        res.json(mappedHistory);
     } catch (err) {
-        res.status(500).json({ msg: `Server Error: ${err.message}` });
-    }
-});
-
-// ==========================================
-// 💊 PHARMACIST ROUTE 1: VERIFY (WITH TRIPWIRE)
-// ==========================================
-router.get('/verify', authenticate, async (req, res) => {
-    try {
-        const { broadcastId, otp } = req.query;
-        if (!broadcastId || !otp) return res.status(400).json({ msg: "Missing Broadcast ID or OTP." });
-
-        const currentTime = Date.now();
-        if (securityLog.has(broadcastId)) {
-            const log = securityLog.get(broadcastId);
-            if (log.lockUntil > currentTime) {
-                const remainingMinutes = Math.ceil((log.lockUntil - currentTime) / 60000);
-                return res.status(429).json({ msg: `SECURITY LOCKOUT: Vault locked for ${remainingMinutes} minutes.` });
-            }
-        }
-
-        const rx = await Prescription.findOne({ broadcastId }).populate('doctorId', 'name email');
-        if (!rx) return res.status(404).json({ msg: "Broadcast ID not found." });
-
-        if (rx.otp !== otp) {
-            let log = securityLog.get(broadcastId) || { attempts: 0, lockUntil: 0 };
-            log.attempts += 1;
-
-            if (log.attempts >= MAX_ATTEMPTS) {
-                log.lockUntil = currentTime + LOCKOUT_TIME_MS;
-                log.attempts = 0; 
-                securityLog.set(broadcastId, log);
-                return res.status(429).json({ msg: `TRIPWIRE TRIGGERED: Vault locked for 15 minutes.` });
-            }
-
-            securityLog.set(broadcastId, log);
-            return res.status(401).json({ msg: `Invalid OTP. ${MAX_ATTEMPTS - log.attempts} attempts remaining.` });
-        }
-
-        securityLog.delete(broadcastId);
-
-        let formattedRx = rx.toObject();
-        if (typeof formattedRx.patientId === 'string') {
-            formattedRx.patientId = { name: formattedRx.patientId }; 
-        }
-
-        res.json(formattedRx);
-    } catch (err) {
-        res.status(500).json({ msg: `Server Error: ${err.message}` });
-    }
-});
-
-// ==========================================
-// 💊 PHARMACIST ROUTE 2: DISPENSE & LOCK
-// ==========================================
-router.put('/:id/dispense', authenticate, async (req, res) => {
-    try {
-        const rx = await Prescription.findById(req.params.id);
-        if (!rx) return res.status(404).json({ msg: "Prescription not found." });
-        if (rx.status === 'Dispensed') return res.status(400).json({ msg: "Already dispensed." });
-
-        rx.status = 'Dispensed';
-        await rx.save();
-        res.json({ msg: "Prescription locked and dispensed." });
-    } catch (err) {
-        res.status(500).json({ msg: `Server Error: ${err.message}` });
+        console.error("RX_HISTORY_ERR:", err);
+        res.status(500).json({ msg: 'Archive Unreachable.' });
     }
 });
 

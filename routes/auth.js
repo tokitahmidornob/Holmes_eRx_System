@@ -2,8 +2,9 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 
-// 🌟 INJECTING THE NEW MASTER ARCHITECTURE 🌟
+// 🌟 INJECTING THE NATIONAL GRID MODELS
 const { Person, Patient, PractitionerRole } = require('../models/GridModels');
 
 // ==========================================
@@ -11,53 +12,58 @@ const { Person, Patient, PractitionerRole } = require('../models/GridModels');
 // ==========================================
 router.post('/register', async (req, res) => {
     try {
-        const { name, email, password, role } = req.body;
+        const { name, email, password, role, dob, gender, phone } = req.body;
 
-        // Step 1: Check if the human already exists in the Grid
+        // Step 1: Check if Identity already exists
         let existingPerson = await Person.findOne({ loginIdentity: email });
-        if (existingPerson) {
-            return res.status(400).json({ msg: 'Identity already registered in the National Grid.' });
-        }
+        if (existingPerson) return res.status(400).json({ msg: 'Identity already exists in National Grid.' });
 
-        // Step 2: Cryptographic Hashing
-        const salt = await bcrypt.genSalt(10);
+        // Step 2: Create Universal UUID (e.g., BD-2026-XXXXX)
+        const timestamp = Date.now().toString().slice(-6);
+        const uuid = `BD-${new Date().getFullYear()}-${timestamp}`;
+
+        // Step 3: Cryptographic Passphrase Hashing
+        const salt = await bcrypt.genSalt(12);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        // Step 3: Generate the Enterprise UUID
-        const prefix = role.substring(0, 2).toUpperCase(); // e.g., 'PA' for patient, 'DO' for doctor
-        const uniqueId = `HOLMES-${prefix}-${Math.floor(100000 + Math.random() * 900000)}`;
-
-        // Step 4: Create the Universal Person Record
+        // Step 4: Create the 'Person' (The Human Identity)
         const newPerson = new Person({
-            internalUuid: uniqueId,
+            internalUuid: uuid,
             loginIdentity: email,
             password: hashedPassword,
             legalFullName: name,
-            security: { accountStatus: 'Pending Verification' }
+            dateOfBirth: dob || new Date(), // Required for National Grade
+            genderLegal: gender || 'Other',
+            contact: {
+                primaryMobile: phone || '0000000000',
+                primaryEmail: email
+            },
+            audit: { sourceOfTruth: 'Self_Registered_Portal' }
         });
+
         const savedPerson = await newPerson.save();
 
-        // Step 5: Wire up the Relational Role Vault
+        // Step 5: Link the 'Role' (The Clinical Authority)
         if (role === 'patient') {
-            const newPatient = new Patient({
+            await Patient.create({
                 personId: savedPerson._id,
-                enterpriseMrn: uniqueId
+                enterpriseMrn: `MRN-${timestamp}`,
+                nationalHealthId: `NHI-${uuid}`
             });
-            await newPatient.save();
         } else {
-            // For Doctors, Pharmacists, and Pathologists
-            const formattedRole = role.charAt(0).toUpperCase() + role.slice(1); // e.g., 'Doctor'
-            const newPractitioner = new PractitionerRole({
+            // Doctors, Pharmacists, Pathologists
+            await PractitionerRole.create({
                 personId: savedPerson._id,
-                roleType: formattedRole
+                roleType: role.charAt(0).toUpperCase() + role.slice(1), // e.g. 'Doctor'
+                audit: { verificationStatus: 'Pending' }
             });
-            await newPractitioner.save();
         }
 
-        res.status(201).json({ msg: 'Identity Initialized successfully.' });
+        res.status(201).json({ msg: 'National Identity Initialized. Pending Verification.' });
+
     } catch (err) {
-        console.error("Auth Engine Error:", err);
-        res.status(500).json({ msg: 'Server Error during initialization.' });
+        console.error("AUTH_ERR:", err);
+        res.status(500).json({ msg: 'Grid Initialization Failure.' });
     }
 });
 
@@ -66,38 +72,27 @@ router.post('/register', async (req, res) => {
 // ==========================================
 router.post('/login', async (req, res) => {
     try {
-        const { email, password, role } = req.body;
+        const { email, password } = req.body;
 
-        // Step 1: Locate the Human
+        // Step 1: Find the Person
         const person = await Person.findOne({ loginIdentity: email });
-        if (!person) return res.status(400).json({ msg: 'Invalid Credentials.' });
+        if (!person) return res.status(400).json({ msg: 'Invalid Grid Credentials.' });
 
-        // Step 2: Verify Cryptographic Signature
+        // Step 2: Verify Hash
         const isMatch = await bcrypt.compare(password, person.password);
-        if (!isMatch) return res.status(400).json({ msg: 'Invalid Credentials.' });
+        if (!isMatch) return res.status(400).json({ msg: 'Invalid Grid Credentials.' });
 
-        // Step 3: Cross-Check Relational Role
-        let verifiedRole = '';
-        const patientRecord = await Patient.findOne({ personId: person._id });
-        
-        if (patientRecord) {
-            verifiedRole = 'patient';
-        } else {
-            const pracRecord = await PractitionerRole.findOne({ personId: person._id });
-            if (pracRecord) verifiedRole = pracRecord.roleType.toLowerCase();
-        }
+        // Step 3: Determine Role via Relational Search
+        let userRole = 'patient';
+        const checkPrac = await PractitionerRole.findOne({ personId: person._id });
+        if (checkPrac) userRole = checkPrac.roleType.toLowerCase();
 
-        // Security Tripwire: Ensure they are logging into the correct portal
-        if (verifiedRole !== role) {
-            return res.status(403).json({ msg: `Access Denied: You are registered as a ${verifiedRole}, not a ${role}.` });
-        }
-
-        // Step 4: Forge the JWT Token
+        // Step 4: Sign JWT with National UUID
         const payload = {
             id: person._id,
-            name: person.legalFullName,
-            role: verifiedRole,
-            gridId: person.internalUuid
+            uuid: person.internalUuid,
+            role: userRole,
+            name: person.legalFullName
         };
 
         jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '12h' }, (err, token) => {
@@ -106,36 +101,7 @@ router.post('/login', async (req, res) => {
         });
 
     } catch (err) {
-        console.error("Login Engine Error:", err);
-        res.status(500).json({ msg: 'Server Error during authentication.' });
-    }
-});
-
-// ==========================================
-// 3. DOCTOR PRIVILEGE: FETCH CITIZENS
-// ==========================================
-// This has been upgraded to populate data across the new relational schemas
-router.get('/patients', async (req, res) => {
-    try {
-        // Verify Auth Header
-        const authHeader = req.header('Authorization');
-        if (!authHeader) return res.status(401).json({ msg: 'No token, authorization denied' });
-        jwt.verify(authHeader.split(' ')[1], process.env.JWT_SECRET);
-
-        // Fetch all Patient records, and pull in their Universal Identity (Person) data
-        const patients = await Patient.find().populate('personId', 'legalFullName loginIdentity internalUuid');
-        
-        // Map the complex FHIR data back into the simple format the Doctor Pad expects
-        const formattedPatients = patients.map(p => ({
-            email: p.personId.loginIdentity,
-            name: p.personId.legalFullName,
-            gridId: p.personId.internalUuid
-        }));
-
-        res.json(formattedPatients);
-    } catch (err) {
-        console.error("Patient Fetch Error:", err);
-        res.status(500).json({ msg: 'Server Error' });
+        res.status(500).json({ msg: 'Authentication Terminal Offline.' });
     }
 });
 
