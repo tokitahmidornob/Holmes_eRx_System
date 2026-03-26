@@ -1,128 +1,118 @@
 /* =========================================================
-   HOLMES eRx - NATIONAL GRID MASTER STYLESHEET
+   HOLMES eRX SYSTEM - MASTER STYLESHEET
+   Aesthetic: High-End Clinical, Glassmorphism, Precision
 ========================================================= */
 
-/* Base Typography & Background */
-body { 
-    font-family: 'Plus Jakarta Sans', sans-serif; 
-    background-color: #f4f7f6; /* Soft clinical gray-blue */
-    scroll-behavior: smooth;
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
+
+:root {
+    /* Subtle teal tint for the blueprint grid */
+    --grid-color: rgba(20, 184, 166, 0.05); 
+    --glass-border: rgba(255, 255, 255, 0.4);
 }
 
-/* Premium Custom Scrollbar */
-::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { 
-    background: #cbd5e1; 
-    border-radius: 10px; 
-    border: 2px solid transparent; 
-    background-clip: padding-box; 
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background-color: #f8fafc;
+    /* 🌟 THE NATIONAL GRID PATTERN 🌟 */
+    background-image: 
+        linear-gradient(var(--grid-color) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+    background-size: 30px 30px;
+    background-position: center center;
+    /* Smooth background transitions */
+    transition: background-color 0.5s ease;
 }
-::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-/* 🧊 Glassmorphism & Depth */
-.glass-panel { 
-    background: rgba(255, 255, 255, 0.85); 
-    backdrop-filter: blur(16px); 
+/* 🧊 HIGH-END GLASSMORPHISM */
+.glass-panel {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.4);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
 }
 
-/* ✨ Dynamic Text Gradients */
-.text-gradient {
-    background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+.glass-dark {
+    background: rgba(15, 23, 42, 0.85); /* Slate 900 */
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
-/* 🎭 Fluid Animations */
-@keyframes slideDown {
-    from { opacity: 0; transform: translateY(-15px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-.animate-slide-down { 
-    animation: slideDown 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
-}
-
-@keyframes softPulse {
-    0% { box-shadow: 0 0 0 0 rgba(20, 184, 166, 0.4); }
-    70% { box-shadow: 0 0 0 12px rgba(20, 184, 166, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(20, 184, 166, 0); }
-}
-.pulse-glow {
-    animation: softPulse 2s infinite;
-}
-
-/* 🖱️ Commercial Grade Interactive Elements */
+/* ✨ PREMIUM TACTILE INPUTS */
 .premium-input {
-    transition: all 0.3s ease;
-}
-.premium-input:focus {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 25px -5px rgba(20, 184, 166, 0.15), 0 8px 10px -6px rgba(20, 184, 166, 0.1);
-    border-color: #14b8a6;
-}
-
-.btn-premium {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.btn-premium:hover {
-    transform: translateY(-3px) scale(1.02);
-    box-shadow: 0 15px 30px -5px rgba(20, 184, 166, 0.4);
+    background: #ffffff;
+    border: 2px solid #e2e8f0;
 }
 
-/* Search Results Hover Effect */
-.search-item { transition: all 0.2s ease; }
-.search-item:hover {
-    background-color: #f0fdfa; /* Tailwind teal-50 */
-    padding-left: 1.5rem; /* Slight indent on hover */
-    border-left: 4px solid #14b8a6; /* Teal accent bar */
+.premium-input:focus {
+    box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.15); /* Soft Teal Glow */
+    border-color: #14b8a6;
+    transform: translateY(-2px);
+    background: #ffffff;
 }
 
-/* =========================================================
-   HOLMES eRx - COMPLETION CARD (MODAL) VISUALS
-========================================================= */
+/* 🧲 MAGNETIC HOVER PHYSICS */
+.hover-lift {
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease;
+}
 
-/* The Blurry Background Overlay */
-#completionModal {
-    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+.hover-lift:hover {
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    z-index: 10;
+}
+
+/* 📜 SLEEK CLINICAL SCROLLBARS */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #14b8a6; /* Teal on hover */
+}
+
+/* ⚡ DYNAMIC DATA SKELETONS */
+@keyframes shimmer {
+    0% { background-position: -1000px 0; }
+    100% { background-position: 1000px 0; }
+}
+.skeleton-shimmer {
+    animation: shimmer 2s infinite linear;
+    background: linear-gradient(to right, #f1f5f9 4%, #e2e8f0 25%, #f1f5f9 36%);
+    background-size: 1000px 100%;
+}
+
+/* 🔽 DROPDOWN ANIMATIONS */
+.dropdown-menu {
+    transform-origin: top;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
+    z-index: 100;
+}
+.dropdown-menu.hidden {
+    transform: scaleY(0.95);
     opacity: 0;
-    pointer-events: none; /* Can't click through it when hidden */
-}
-
-/* State when the modal is active */
-#completionModal.modal-active {
-    opacity: 1;
-    pointer-events: auto;
-    backdrop-filter: blur(20px); /* Deep blur behind the card */
-    -webkit-backdrop-filter: blur(20px);
-}
-
-/* The visual physics of the card itself */
-.completion-card {
-    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-    transform: translateY(-40px) scale(0.9) rotate3d(1, 0, 0, -5deg);
-}
-
-.modal-active .completion-card {
-    transform: translateY(0) scale(1) rotate3d(1, 0, 0, 0deg);
-}
-
-/* Special Glowing Effects for High-Security Area */
-.otp-box-glow {
-    box-shadow: 0 0 15px rgba(45,212,191,0.3);
-    border: 1px solid rgba(45,212,191,0.4);
-}
-
-/* Authentic System Stamp Effect */
-.authentic-stamp {
-    position: absolute;
-    bottom: -20px;
-    right: -20px;
-    font-size: 8rem;
-    color: #14b8a6;
-    opacity: 0.05;
-    transform: rotate(-25deg);
     pointer-events: none;
+}
+
+/* 🖨️ THE STEALTH PRINT ENGINE */
+@media print {
+    body { 
+        background: white !important; 
+        background-image: none !important; /* Removes grid for printing */
+        height: auto !important; 
+        overflow: visible !important; 
+    }
+    body > *:not(#printArea):not(script) { display: none !important; }
+    #printArea { display: block !important; position: static; width: 100%; padding: 0; }
 }
