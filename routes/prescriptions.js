@@ -4,13 +4,16 @@ const Prescription = require('../models/Prescription');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 
-// 📧 THE DISPATCH ENGINE
+// 📧 THE DISPATCH ENGINE (IPv4 Forced Config)
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true, 
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
-    }
+    },
+    family: 4 // <--- THE FIX: Forces the engine to use the reliable IPv4 network
 });
 
 // 🛡️ THE SECURITY TRIPWIRE
