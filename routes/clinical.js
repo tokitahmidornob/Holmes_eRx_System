@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const { Patient, PractitionerRole, AllergyProfile, ConditionProfile, MedicationProfile } = require('./models/GridModels');
+const { Patient, PractitionerRole, AllergyProfile, ConditionProfile, MedicationProfile } = require('../models/GridModels');
 
 // 🔒 SECURITY TRIPWIRE
 const authenticate = (req, res, next) => {
