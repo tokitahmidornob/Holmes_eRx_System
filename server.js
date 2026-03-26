@@ -22,6 +22,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/prescriptions', require('./routes/prescriptions'));
 app.use('/api/medicines', require('./routes/medicines'));
 app.use('/api/labs', require('./routes/labs'));
+app.use('/api/profile', require('./routes/profile'));
 
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, '0.0.0.0', () => {
