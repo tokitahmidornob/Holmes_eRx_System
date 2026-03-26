@@ -1,16 +1,13 @@
 const mongoose = require('mongoose');
-const fs = require('fs');
+const csv = require('csvtojson');
 require('dotenv').config();
 
 async function injectData() {
-    // --- 🕵️ PRE-FLIGHT ENVIRONMENT CHECK ---
     console.log("🔍 Investigating Environment...");
     const uri = process.env.MONGO_URI;
 
     if (!uri) {
         console.error("❌ CRITICAL ERROR: MONGO_URI is missing or undefined.");
-        console.log("Current Directory:", __dirname);
-        console.log("Tip: Ensure your file is named exactly '.env' and NOT '.env.txt'");
         process.exit(1);
     }
 
@@ -19,28 +16,29 @@ async function injectData() {
         await mongoose.connect(uri);
         console.log("✅ Connection Established.");
 
-        // Read the purified medicine list
-        const fileName = 'Holmes_Master_Import.json';
-        if (!fs.existsSync(fileName)) {
-            console.error(`❌ ERROR: ${fileName} not found in this folder!`);
-            process.exit(1);
-        }
+        // 🌟 USING THE PRE-CLEANED MASTER FILE 🌟
+        const fileName = 'Holmes_Grid_Cleaned_Medicines.csv';
 
-        const rawData = fs.readFileSync(fileName);
-        const medicines = JSON.parse(rawData);
+        console.log("⏳ Parsing the purified clinical CSV...");
+        const medicines = await csv().fromFile(fileName);
 
-        // Access the 'medicines' collection directly
         const MedicineCollection = mongoose.connection.collection('medicines');
 
-        console.log(`📦 Preparing to inject ${medicines.length} records into the grid...`);
+        console.log(`📦 Preparing to inject ${medicines.length} verified records into the grid...`);
         
         // Wipe old data first to avoid duplicates
         await MedicineCollection.deleteMany({});
+        console.log("🗑️ Vault cleared for fresh injection.");
         
-        // Perform the mass injection
-        await MedicineCollection.insertMany(medicines);
+        // 🚀 BATCH INJECTION (5,000 at a time for safety)
+        const BATCH_SIZE = 5000;
+        for (let i = 0; i < medicines.length; i += BATCH_SIZE) {
+            const batch = medicines.slice(i, i + BATCH_SIZE);
+            await MedicineCollection.insertMany(batch);
+            console.log(`✅ Injected batch ${i} to ${i + batch.length}...`);
+        }
 
-        console.log("✨ SUCCESS: The Grand Pharmacy is now stocked and online!");
+        console.log("✨ SUCCESS: The Grand Pharmacy is now stocked with verified records!");
         process.exit(0);
     } catch (err) {
         console.error("❌ MISSION FAILED:", err.message);

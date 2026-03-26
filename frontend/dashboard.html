@@ -4,24 +4,38 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Doctor Terminal | Holmes eRx</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#14b8a6">
     <link rel="apple-touch-icon" href="/icons/icon-192.png">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; }
         .glass-panel { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(12px); }
         .premium-input { transition: all 0.3s ease; }
-        .premium-input:focus { box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.1); border-color: #14b8a6; }
+        .premium-input:focus { box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.1); border-color: #14b8a6; transform: translateY(-1px); }
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .dropdown-menu { transform-origin: top; transition: transform 0.2s ease, opacity 0.2s ease; z-index: 100; }
         .dropdown-menu.hidden { transform: scaleY(0.95); opacity: 0; pointer-events: none; }
         
+        /* 🎨 SKELETON LOADER ANIMATION */
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+        .skeleton-shimmer {
+            animation: shimmer 2.5s infinite linear;
+            background: linear-gradient(to right, #f1f5f9 4%, #e2e8f0 25%, #f1f5f9 36%);
+            background-size: 1000px 100%;
+        }
+
+        /* 🖨️ THE PRINT ENGINE */
         @media print {
             body { height: auto !important; overflow: visible !important; background: white !important; }
             body > *:not(#printArea):not(script) { display: none !important; }
@@ -37,10 +51,10 @@
             <h1 class="hidden lg:block ml-4 text-xl font-black tracking-tighter">Holmes <span class="text-teal-400">eRx</span></h1>
         </div>
         <nav class="flex-1 py-8 flex flex-col gap-2 px-4">
-            <button onclick="switchTab('rxPad')" id="navRxPad" class="nav-btn active flex items-center p-4 rounded-2xl bg-teal-500/10 text-teal-400 transition-all">
+            <button onclick="switchTab('rxPad')" id="navRxPad" class="nav-btn active flex items-center p-4 rounded-2xl bg-teal-500/10 text-teal-400 transition-all hover:-translate-y-1">
                 <i class="fa-solid fa-pen-nib text-xl lg:mr-4 w-6 text-center"></i><span class="hidden lg:block font-bold text-sm">Write Prescription</span>
             </button>
-            <button onclick="switchTab('history')" id="navHistory" class="nav-btn flex items-center p-4 rounded-2xl hover:bg-slate-800 text-slate-400 hover:text-white transition-all">
+            <button onclick="switchTab('history')" id="navHistory" class="nav-btn flex items-center p-4 rounded-2xl hover:bg-slate-800 text-slate-400 hover:text-white transition-all hover:-translate-y-1">
                 <i class="fa-solid fa-clock-rotate-left text-xl lg:mr-4 w-6 text-center"></i><span class="hidden lg:block font-bold text-sm">Rx History & Labs</span>
             </button>
         </nav>
@@ -49,7 +63,7 @@
                 <p id="drNameDisplay" class="font-black text-sm text-white truncate">Dr. Holmes</p>
                 <div class="bg-slate-800/50 border border-slate-700 rounded-lg mt-2 py-1"><p id="drGridIdDisplay" class="text-xs font-mono font-bold text-teal-400 tracking-wider">ID: PENDING</p></div>
             </div>
-            <button onclick="logout()" class="w-full flex items-center justify-center p-4 rounded-2xl hover:bg-rose-500/10 text-slate-400 hover:text-rose-500 transition-all">
+            <button onclick="logout()" class="w-full flex items-center justify-center p-4 rounded-2xl hover:bg-rose-500/10 text-slate-400 hover:text-rose-500 transition-all hover:-translate-y-1">
                 <i class="fa-solid fa-power-off text-xl lg:mr-3"></i><span class="hidden lg:block font-bold text-sm uppercase tracking-widest">Disconnect</span>
             </button>
         </div>
@@ -57,12 +71,12 @@
 
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative bg-slate-50">
         <header class="h-24 glass-panel border-b border-slate-200 flex items-center justify-between px-8 shrink-0 z-10">
-            <div><h2 id="pageTitle" class="text-2xl font-black text-slate-900 tracking-tighter">Clinical Pad</h2><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">National Grid Connected</p></div>
+            <div><h2 id="pageTitle" class="text-2xl font-black text-slate-900 tracking-tighter transition-all">Clinical Pad</h2><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">National Grid Connected</p></div>
         </header>
 
         <div class="flex-1 overflow-y-auto custom-scrollbar p-8">
             <div id="viewRxPad" class="max-w-5xl mx-auto space-y-6 block">
-                <div class="bg-white rounded-[32px] p-8 shadow-sm border border-slate-200 flex justify-between items-center">
+                <div class="bg-white rounded-[32px] p-8 shadow-sm hover:shadow-lg transition-all duration-500 border border-slate-200 flex justify-between items-center">
                     <div class="flex-1">
                         <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Select Patient</label>
                         <div class="relative w-full max-w-2xl" id="patientDropdownContainer">
@@ -71,13 +85,13 @@
                             <div id="patientDropdown" class="dropdown-menu hidden absolute z-[60] w-full mt-2 bg-white border border-slate-200 rounded-2xl shadow-2xl max-h-60 overflow-y-auto custom-scrollbar"></div>
                         </div>
                     </div>
-                    <div id="patientStatusBadge" class="hidden text-right ml-4">
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Grid Status</p><span class="bg-indigo-50 text-indigo-600 border border-indigo-200 px-3 py-1.5 rounded-lg text-xs font-black uppercase"><i class="fa-solid fa-file-waveform mr-1"></i> History Synced</span>
+                    <div id="patientStatusBadge" class="hidden text-right ml-4 transition-all">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Grid Status</p><span class="bg-indigo-50 text-indigo-600 border border-indigo-200 px-3 py-1.5 rounded-lg text-xs font-black uppercase shadow-sm"><i class="fa-solid fa-file-waveform mr-1"></i> History Synced</span>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="lg:col-span-2 bg-white rounded-[32px] shadow-sm border border-slate-200 p-6 flex flex-col">
+                    <div class="lg:col-span-2 bg-white rounded-[32px] shadow-sm hover:shadow-lg transition-all duration-500 border border-slate-200 p-6 flex flex-col">
                         <h3 class="font-black text-slate-900 uppercase tracking-widest text-xs mb-4"><i class="fa-solid fa-capsules text-teal-500 mr-2"></i> Medications</h3>
                         
                         <div class="grid grid-cols-12 gap-2 mb-4 relative">
@@ -90,7 +104,7 @@
                             <input type="text" id="medDuration" placeholder="Days" class="col-span-2 premium-input bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm font-bold outline-none">
                         </div>
 
-                        <div id="clinicalMetadataCard" class="hidden bg-slate-900 rounded-2xl p-5 mb-4 border border-slate-800 relative overflow-hidden shadow-inner">
+                        <div id="clinicalMetadataCard" class="hidden bg-slate-900 rounded-2xl p-5 mb-4 border border-slate-800 relative overflow-hidden shadow-inner transform transition-all">
                             <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fa-solid fa-book-medical text-5xl text-teal-400"></i></div>
                             <div class="relative z-10 grid grid-cols-2 gap-4">
                                 <div><p class="text-[9px] font-black text-teal-400 uppercase tracking-widest mb-1">Primary Indications</p><p id="metaIndications" class="text-xs text-slate-300 font-medium leading-relaxed">Loading...</p></div>
@@ -98,35 +112,37 @@
                             </div>
                         </div>
 
-                        <button onclick="attemptAddMedication()" class="w-full bg-slate-100 hover:bg-teal-50 hover:text-teal-600 border border-transparent hover:border-teal-200 text-slate-600 p-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all mb-4">+ Add to Prescription</button>
+                        <button onclick="attemptAddMedication()" class="w-full bg-slate-100 hover:bg-teal-50 hover:text-teal-600 hover:shadow-md hover:-translate-y-1 border border-transparent hover:border-teal-200 text-slate-600 p-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all mb-4">+ Add to Prescription</button>
                         <div id="medListDisplay" class="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar min-h-[150px]"></div>
                     </div>
 
-                    <div class="bg-white rounded-[32px] shadow-sm border border-slate-200 p-6">
+                    <div class="bg-white rounded-[32px] shadow-sm hover:shadow-lg transition-all duration-500 border border-slate-200 p-6">
                         <h3 class="font-black text-slate-900 uppercase tracking-widest text-xs mb-4"><i class="fa-solid fa-microscope text-indigo-500 mr-2"></i> Investigations</h3>
                         <div class="flex gap-2">
                             <input type="text" id="testName" placeholder="Test Name" class="flex-1 premium-input bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm font-bold outline-none">
-                            <button onclick="addTest()" class="bg-indigo-50 hover:bg-indigo-600 hover:text-white text-indigo-600 px-4 rounded-xl transition-colors font-black"><i class="fa-solid fa-plus"></i></button>
+                            <button onclick="addTest()" class="bg-indigo-50 hover:bg-indigo-600 hover:shadow-lg hover:-translate-y-1 hover:text-white text-indigo-600 px-4 rounded-xl transition-all font-black duration-300"><i class="fa-solid fa-plus"></i></button>
                         </div>
                         <div id="testListDisplay" class="mt-4 flex flex-wrap gap-2"></div>
                     </div>
                 </div>
 
                 <div class="flex justify-end pt-4">
-                    <button onclick="generatePrescription()" id="generateBtn" class="bg-slate-900 hover:bg-teal-600 text-white px-10 py-5 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl transition-colors flex items-center gap-3">
+                    <button onclick="generatePrescription()" id="generateBtn" class="bg-slate-900 hover:bg-teal-600 hover:shadow-teal-500/30 text-white px-10 py-5 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl hover:-translate-y-1 transition-all duration-300 flex items-center gap-3">
                         <i class="fa-solid fa-lock"></i> Encrypt & Broadcast
                     </button>
                 </div>
             </div>
 
             <div id="viewHistory" class="hidden">
-                <div class="bg-white rounded-[32px] shadow-sm border border-slate-200 overflow-hidden">
-                    <div class="p-8 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center"><h3 class="font-black text-slate-900 uppercase tracking-widest text-xs"><i class="fa-solid fa-vault text-slate-400 mr-2"></i> Master Rx Archive</h3><button onclick="fetchHistory()" class="text-[10px] font-black uppercase tracking-widest bg-slate-200 hover:bg-slate-300 px-4 py-2 rounded-full transition-colors">Refresh</button></div>
+                <div class="bg-white rounded-[32px] shadow-sm border border-slate-200 overflow-hidden transition-all duration-500">
+                    <div class="p-8 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center"><h3 class="font-black text-slate-900 uppercase tracking-widest text-xs"><i class="fa-solid fa-vault text-slate-400 mr-2"></i> Master Rx Archive</h3><button onclick="fetchHistory()" class="text-[10px] font-black uppercase tracking-widest bg-slate-200 hover:bg-slate-300 hover:shadow-md hover:-translate-y-1 px-4 py-2 rounded-full transition-all duration-300">Refresh</button></div>
                     <div class="p-4"><div id="historyList" class="divide-y divide-slate-100 max-h-[60vh] overflow-y-auto custom-scrollbar"></div></div>
                 </div>
             </div>
         </div>
     </main>
+
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[150] flex flex-col gap-3 pointer-events-none"></div>
 
     <div id="warningModal" class="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/80 p-4 opacity-0 pointer-events-none transition-opacity duration-300">
         <div class="bg-white rounded-[32px] w-full max-w-md p-8 text-center shadow-2xl transform scale-95 transition-transform duration-300" id="warningModalContent">
@@ -134,8 +150,8 @@
             <h3 class="text-xl font-black text-slate-900 uppercase tracking-tighter mb-2">Clinical Contraindication</h3>
             <p id="warningMessage" class="text-sm font-bold text-slate-500 mb-8 leading-relaxed"></p>
             <div class="flex gap-4">
-                <button onclick="closeWarningModal()" class="flex-1 bg-slate-100 text-slate-600 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-slate-200">Cancel</button>
-                <button onclick="overrideWarning()" class="flex-1 bg-rose-600 text-white py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-rose-700">Override</button>
+                <button onclick="closeWarningModal()" class="flex-1 bg-slate-100 text-slate-600 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-colors">Cancel</button>
+                <button onclick="overrideWarning()" class="flex-1 bg-rose-600 text-white py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-rose-700 hover:shadow-lg hover:-translate-y-1 transition-all duration-300">Override</button>
             </div>
         </div>
     </div>
@@ -145,7 +161,7 @@
             <div class="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50">
                 <div><h3 class="text-xl font-black text-slate-900 uppercase tracking-tighter">Prescription Detail</h3><p id="modalDrName" class="text-xs font-bold text-indigo-600 mt-1">Dr. Name</p></div>
                 <div class="flex items-center gap-3">
-                    <button onclick="printCurrentRecord()" class="bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-teal-600 transition-colors"><i class="fa-solid fa-print mr-2"></i> Formal PDF</button>
+                    <button onclick="printCurrentRecord()" class="bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-teal-600 hover:-translate-y-1 transition-all shadow-md"><i class="fa-solid fa-print mr-2"></i> Formal PDF</button>
                     <button onclick="closeRxModal()" class="w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center hover:bg-rose-500 hover:text-white transition-colors"><i class="fa-solid fa-xmark"></i></button>
                 </div>
             </div>
@@ -163,16 +179,16 @@
 
     <div id="successModal" class="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/90 p-4 opacity-0 pointer-events-none transition-opacity duration-300">
         <div class="bg-white rounded-[40px] w-full max-w-lg p-10 text-center shadow-2xl transform scale-95 transition-transform duration-300" id="successModalContent">
-            <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl"><i class="fa-solid fa-check"></i></div>
+            <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl shadow-emerald-500/20 shadow-lg"><i class="fa-solid fa-check"></i></div>
             <h2 class="text-3xl font-black text-slate-900 tracking-tighter mb-2">RECORD BROADCASTED</h2>
-            <div class="bg-slate-50 p-6 rounded-2xl mb-6 border border-slate-200">
+            <div class="bg-slate-50 p-6 rounded-2xl mb-6 border border-slate-200 transition-all hover:shadow-lg">
                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Prescription Rx No.</p><p id="successBroadcastId" class="font-mono font-black text-2xl text-slate-800"></p><div class="h-px bg-slate-200 my-4"></div>
-                <div class="flex justify-center mb-4"><div id="successQr" class="p-3 bg-white rounded-xl border-2 border-slate-200 shadow-sm flex items-center justify-center min-h-[150px] min-w-[150px]"></div></div>
+                <div class="flex justify-center mb-4"><div id="successQr" class="p-3 bg-white rounded-xl border-2 border-slate-200 shadow-sm flex items-center justify-center min-h-[150px] min-w-[150px] hover:scale-105 transition-transform duration-300"></div></div>
                 <p class="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em] mb-2">Secure OTP Key</p><p id="successOtp" class="font-mono font-black text-5xl text-emerald-600 tracking-[0.1em]"></p>
             </div>
             <div class="flex gap-4">
-                <button onclick="printCurrentRecord()" class="flex-1 bg-teal-600 hover:bg-teal-700 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest"><i class="fa-solid fa-print mr-2"></i> Print PDF</button>
-                <button onclick="closeSuccessAndRefresh()" class="flex-1 bg-slate-900 hover:bg-slate-800 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest">Close Pad</button>
+                <button onclick="printCurrentRecord()" class="flex-1 bg-teal-600 hover:bg-teal-700 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:shadow-lg hover:-translate-y-1 transition-all duration-300"><i class="fa-solid fa-print mr-2"></i> Print PDF</button>
+                <button onclick="closeSuccessAndRefresh()" class="flex-1 bg-slate-900 hover:bg-slate-800 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:shadow-lg hover:-translate-y-1 transition-all duration-300">Close Pad</button>
             </div>
         </div>
     </div>
@@ -197,53 +213,94 @@
         document.getElementById('drGridIdDisplay').innerText = decoded.gridId || 'ID-PENDING';
         fetchPatientsList(); fetchHistory();
 
+        // 🎨 THE TOAST ENGINE
+        function showToast(message, type = 'error') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const colors = type === 'error' ? 'bg-rose-600 text-white shadow-rose-500/30' : 'bg-emerald-600 text-white shadow-emerald-500/30';
+            const icon = type === 'error' ? 'fa-triangle-exclamation' : 'fa-check-circle';
+            
+            toast.className = `flex items-center gap-3 px-6 py-4 rounded-2xl shadow-xl transform transition-all duration-500 translate-y-10 opacity-0 ${colors}`;
+            toast.innerHTML = `<i class="fa-solid ${icon}"></i><span class="text-[10px] font-black uppercase tracking-widest">${message}</span>`;
+            
+            container.appendChild(toast);
+            requestAnimationFrame(() => { toast.classList.remove('translate-y-10', 'opacity-0'); });
+            
+            setTimeout(() => {
+                toast.classList.add('translate-y-10', 'opacity-0');
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        }
+
+        // 🎨 THE SKELETON LOADERS
+        function getDrugSkeleton() {
+            return `
+            <div class="p-4 border-b border-slate-100 flex gap-3 items-center">
+                <div class="h-4 w-32 rounded bg-slate-200 skeleton-shimmer"></div>
+                <div class="h-3 w-16 rounded bg-slate-200 skeleton-shimmer ml-auto"></div>
+            </div>
+            <div class="p-4 border-b border-slate-100 flex gap-3 items-center">
+                <div class="h-4 w-48 rounded bg-slate-200 skeleton-shimmer"></div>
+                <div class="h-3 w-12 rounded bg-slate-200 skeleton-shimmer ml-auto"></div>
+            </div>`;
+        }
+
+        function getHistorySkeleton() {
+            return Array(3).fill(`
+            <div class="grid grid-cols-12 gap-4 px-6 py-4 items-center border-b border-slate-100">
+                <div class="col-span-3 h-3 w-16 rounded bg-slate-200 skeleton-shimmer"></div>
+                <div class="col-span-4 h-4 w-32 rounded bg-slate-200 skeleton-shimmer"></div>
+                <div class="col-span-3 h-5 w-16 rounded-full bg-slate-200 skeleton-shimmer"></div>
+                <div class="col-span-2 text-right"><div class="inline-block h-8 w-16 rounded-xl bg-slate-200 skeleton-shimmer"></div></div>
+            </div>`).join('');
+        }
+
         async function fetchPatientsList() { try { const res = await fetch(`${API_BASE_URL}/api/auth/patients`, { headers: { 'Authorization': `Bearer ${token}` } }); if(res.ok) allPatients = await res.json(); } catch(e) {} }
+        
         function showPatientDropdown() { document.getElementById('patientDropdown').classList.remove('hidden'); filterPatients(); }
         function filterPatients() {
             const q = document.getElementById('patientSearchInput').value.toLowerCase();
             const filtered = allPatients.filter(p => p.name.toLowerCase().includes(q) || (p.gridId && p.gridId.toLowerCase().includes(q)));
             const dp = document.getElementById('patientDropdown');
             if(filtered.length === 0) return dp.innerHTML = '<div class="p-4 text-sm text-slate-400 font-bold text-center">No citizens found.</div>';
-            dp.innerHTML = filtered.map(p => `<div onclick="selectPatient('${p.email}', '${p.name}', '${p.gridId}')" class="p-4 hover:bg-slate-50 cursor-pointer border-b flex justify-between"><div><p class="font-black text-sm">${p.name}</p></div><span class="text-[9px] font-black bg-indigo-50 text-indigo-600 px-2 py-1 rounded">${p.gridId || 'NO-ID'}</span></div>`).join('');
+            dp.innerHTML = filtered.map(p => `<div onclick="selectPatient('${p.email}', '${p.name}', '${p.gridId}')" class="p-4 hover:bg-slate-50 cursor-pointer border-b flex justify-between transition-colors"><div><p class="font-black text-sm">${p.name}</p></div><span class="text-[9px] font-black bg-indigo-50 text-indigo-600 px-2 py-1 rounded">${p.gridId || 'NO-ID'}</span></div>`).join('');
         }
+        
         async function selectPatient(e, n, g) {
             document.getElementById('patientSearchInput').value = `${n} (${g})`; document.getElementById('selectedPatientEmail').value = e; document.getElementById('patientDropdown').classList.add('hidden');
             document.getElementById('patientStatusBadge').classList.remove('hidden');
             try {
                 const res = await fetch(`${API_BASE_URL}/api/prescriptions/patient/${e}`, { headers: { 'Authorization': `Bearer ${token}` } });
                 if(res.ok) { const history = await res.json(); patientActiveMeds = []; history.forEach(rx => { if(rx.status === 'Active') rx.medications.forEach(m => patientActiveMeds.push(m.brandName.toLowerCase())); }); }
-            } catch(e) {}
+            } catch(e) { showToast("Failed to sync patient history"); }
         }
         
         let searchTimeout;
         async function searchDrugs(query) {
             const dropdown = document.getElementById('drugDropdown');
             if(query.length < 2) return dropdown.classList.add('hidden');
-            dropdown.classList.remove('hidden'); dropdown.innerHTML = '<div class="p-3 text-xs text-slate-400 text-center">Searching...</div>';
+            dropdown.classList.remove('hidden'); 
+            dropdown.innerHTML = getDrugSkeleton(); // Inject Skeleton
+            
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(async () => {
                 try {
                     const res = await fetch(`${API_BASE_URL}/api/medicines?search=${query}`, { headers: { 'Authorization': `Bearer ${token}` } });
                     if(res.ok) {
                         currentFetchedDrugs = await res.json();
-                        dropdown.innerHTML = currentFetchedDrugs.map((d, index) => `<div onclick="selectDrug(${index})" class="p-3 hover:bg-slate-50 cursor-pointer border-b"><p class="font-black text-sm">${d.brandName}</p></div>`).join('');
+                        if(currentFetchedDrugs.length === 0) return dropdown.innerHTML = '<div class="p-4 text-xs text-slate-400 font-bold text-center">No drug found in Grid.</div>';
+                        dropdown.innerHTML = currentFetchedDrugs.map((d, index) => `<div onclick="selectDrug(${index})" class="p-4 hover:bg-slate-50 cursor-pointer border-b transition-colors flex justify-between items-center"><div><p class="font-black text-sm text-slate-800">${d.brandName || d.brand_name}</p><p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">${d.genericName || 'Generic'}</p></div><span class="text-[9px] font-black bg-slate-100 text-slate-500 px-2 py-1 rounded">${d.dosage || d.dose || 'Standard'}</span></div>`).join('');
                     }
-                } catch(e) { dropdown.innerHTML = 'Error'; }
+                } catch(e) { dropdown.innerHTML = '<div class="p-4 text-xs text-rose-500 font-bold text-center">Grid connection failed.</div>'; }
             }, 300);
         }
 
-        // 🌟 THE SMART PARSER FIX 🌟
         function selectDrug(index) {
             const drug = currentFetchedDrugs[index]; 
-            
-            // Diagnostics: Logs the exact database structure to F12 Console
-            console.log("Raw Drug Data:", drug);
-
             document.getElementById('medName').value = drug.brandName || drug.brand_name || ''; 
             document.getElementById('medDose').value = drug.dosage || drug.Dosage || drug.dose || ''; 
             document.getElementById('drugDropdown').classList.add('hidden');
             
-            // Smart Multi-Check Parser
             const indications = drug.indications || drug.Indication || drug.indication || drug.uses || drug.therapeuticClass || 'None';
             const sideEffects = drug.sideEffects || drug.SideEffects || drug.side_effects || drug.adverse_effects || 'None';
 
@@ -254,7 +311,7 @@
 
         function attemptAddMedication() {
             const n = document.getElementById('medName').value; const ds = document.getElementById('medDose').value; const t = document.getElementById('medTiming').value; const dr = document.getElementById('medDuration').value;
-            if(!n || !ds || !dr) return alert("Fill all fields.");
+            if(!n || !ds || !dr) return showToast("Please fill all therapy fields.");
             const newDrugName = n.toLowerCase(); pendingMedToAdd = { brandName: n, dosage: ds, timing: t, duration: dr };
             if(patientActiveMeds.includes(newDrugName) || medications.some(m => m.brandName.toLowerCase() === newDrugName)) { document.getElementById('warningMessage').innerHTML = `Duplicate Therapy: ${n}`; document.getElementById('warningModal').classList.remove('opacity-0', 'pointer-events-none'); document.getElementById('warningModalContent').classList.remove('scale-95'); return; }
             const matchedKey = Object.keys(interactionDB).find(key => key.toLowerCase() === newDrugName);
@@ -265,19 +322,19 @@
             finalizeAddMedication();
         }
         function closeWarningModal() { pendingMedToAdd = null; document.getElementById('warningModalContent').classList.add('scale-95'); setTimeout(() => document.getElementById('warningModal').classList.add('opacity-0', 'pointer-events-none'), 200); }
-        function overrideWarning() { finalizeAddMedication(); closeWarningModal(); }
+        function overrideWarning() { finalizeAddMedication(); closeWarningModal(); showToast("Override Accepted", "success"); }
         function finalizeAddMedication() {
             if(!pendingMedToAdd) return; medications.push(pendingMedToAdd); renderMedications();
             document.getElementById('medName').value = ''; document.getElementById('medDose').value = ''; document.getElementById('medDuration').value = ''; document.getElementById('clinicalMetadataCard').classList.add('hidden'); pendingMedToAdd = null;
         }
-        function renderMedications() { document.getElementById('medListDisplay').innerHTML = medications.map((m, i) => `<div class="bg-slate-50 p-3 rounded-xl border flex justify-between"><div><p class="font-black text-sm">${m.brandName}</p><p class="text-[9px] uppercase">${m.dosage} | ${m.timing}</p></div><div><span class="text-[10px] font-black text-teal-600 bg-teal-50 px-2 py-1 rounded">${m.duration}</span><button onclick="medications.splice(${i},1);renderMedications()" class="ml-2 text-rose-400"><i class="fa-solid fa-trash"></i></button></div></div>`).join(''); }
+        function renderMedications() { document.getElementById('medListDisplay').innerHTML = medications.map((m, i) => `<div class="bg-slate-50 p-3 rounded-xl border flex justify-between transition-all hover:border-slate-300"><div><p class="font-black text-sm">${m.brandName}</p><p class="text-[9px] uppercase">${m.dosage} | ${m.timing}</p></div><div><span class="text-[10px] font-black text-teal-600 bg-teal-50 px-2 py-1 rounded shadow-sm">${m.duration}</span><button onclick="medications.splice(${i},1);renderMedications()" class="ml-2 text-rose-400 hover:text-rose-600 transition-colors"><i class="fa-solid fa-trash"></i></button></div></div>`).join(''); }
         function addTest() { const t = document.getElementById('testName').value; if(t) { investigations.push(t); renderTests(); document.getElementById('testName').value=''; } }
-        function renderTests() { document.getElementById('testListDisplay').innerHTML = investigations.map((t, i) => `<span class="bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-lg text-xs font-black uppercase">${t} <button onclick="investigations.splice(${i},1);renderTests()"><i class="fa-solid fa-xmark"></i></button></span>`).join(''); }
+        function renderTests() { document.getElementById('testListDisplay').innerHTML = investigations.map((t, i) => `<span class="bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-lg text-xs font-black uppercase shadow-sm">${t} <button onclick="investigations.splice(${i},1);renderTests()" class="hover:text-rose-500 transition-colors"><i class="fa-solid fa-xmark ml-1"></i></button></span>`).join(''); }
 
         async function generatePrescription() {
             const pEmail = document.getElementById('selectedPatientEmail').value;
-            if(!pEmail || medications.length === 0) return alert("Select Patient and Add Medicine.");
-            const btn = document.getElementById('generateBtn'); btn.innerHTML = 'Encrypting...';
+            if(!pEmail || medications.length === 0) return showToast("Select Patient and Add Medicine.");
+            const btn = document.getElementById('generateBtn'); btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Encrypting...';
             try {
                 const res = await fetch(`${API_BASE_URL}/api/prescriptions`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ doctorId: drId, patientId: pEmail, medications, investigations }) });
                 const data = await res.json();
@@ -286,8 +343,9 @@
                     document.getElementById('successBroadcastId').innerText = data.broadcastId; document.getElementById('successOtp').innerText = data.otp;
                     document.getElementById('successQr').innerHTML = ''; new QRCode(document.getElementById('successQr'), { text: JSON.stringify({ bId: data.broadcastId, otp: data.otp }), width: 130, height: 130, colorDark : "#0f172a" });
                     document.getElementById('successModal').classList.remove('opacity-0', 'pointer-events-none'); document.getElementById('successModalContent').classList.remove('scale-95');
-                } else alert(data.msg);
-            } catch(e) {} finally { btn.innerHTML = 'Encrypt & Broadcast'; }
+                    showToast("Broadcast Successful", "success");
+                } else showToast(data.msg);
+            } catch(e) { showToast("Grid Connection Failed"); } finally { btn.innerHTML = '<i class="fa-solid fa-lock"></i> Encrypt & Broadcast'; }
         }
 
         function closeSuccessAndRefresh() {
@@ -296,11 +354,14 @@
         }
 
         async function fetchHistory() {
+            const list = document.getElementById('historyList');
+            list.innerHTML = getHistorySkeleton(); // Inject Skeleton Loaders
             try {
                 const res = await fetch(`${API_BASE_URL}/api/prescriptions/doctor/${drId}`, { headers: { 'Authorization': `Bearer ${token}` } });
                 doctorPrescriptions = await res.json();
-                document.getElementById('historyList').innerHTML = doctorPrescriptions.map((rx, i) => `<div class="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-slate-50 border-b"><div class="col-span-3 text-xs font-bold">${new Date(rx.createdAt).toLocaleDateString()}</div><div class="col-span-4 text-sm font-black">${rx.patientId}</div><div class="col-span-3">${rx.status}</div><div class="col-span-2 text-right"><button onclick="openRxModal(${i})" class="text-[10px] font-black uppercase bg-slate-900 text-white px-4 py-2 rounded-xl">Open</button></div></div>`).join('');
-            } catch (err) {}
+                if(doctorPrescriptions.length === 0) return list.innerHTML = '<div class="p-10 text-center text-slate-400 font-bold">Archive is empty.</div>';
+                list.innerHTML = doctorPrescriptions.map((rx, i) => `<div class="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-slate-50 border-b transition-colors"><div class="col-span-3 text-xs font-bold text-slate-500">${new Date(rx.createdAt).toLocaleDateString()}</div><div class="col-span-4 text-sm font-black text-slate-800">${rx.patientId}</div><div class="col-span-3"><span class="px-2 py-1 rounded text-[9px] font-black uppercase ${rx.status === 'Dispensed' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}">${rx.status}</span></div><div class="col-span-2 text-right"><button onclick="openRxModal(${i})" class="text-[10px] font-black uppercase bg-slate-900 text-white px-4 py-2 rounded-xl hover:shadow-lg hover:-translate-y-0.5 transition-all">Open</button></div></div>`).join('');
+            } catch (err) { list.innerHTML = '<div class="p-10 text-center text-rose-500 font-bold">Failed to sync Archive.</div>'; }
         }
 
         async function openRxModal(index) {
@@ -356,13 +417,11 @@
             new QRCode(document.getElementById('printQrCode'), { text: JSON.stringify({bId: rx.broadcastId, otp: rx.otp}), width: 64, height: 64, colorDark: "#0f172a" });
             setTimeout(() => { window.print(); }, 300);
         }
-    </script>
-    <script>
+
+        // PWA Engine Integration (Ensure it is registered)
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(reg => console.log('PWA Engine Active'))
-                    .catch(err => console.log('PWA Engine Failed', err));
+                navigator.serviceWorker.register('/sw.js').catch(err => console.log('PWA Engine Failed', err));
             });
         }
     </script>
