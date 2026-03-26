@@ -81,9 +81,14 @@ router.post('/login', async (req, res) => {
         const isMatch = await bcrypt.compare(password, person.password);
         if (!isMatch) return res.status(400).json({ msg: 'Invalid Grid Credentials.' });
 
+        // 🛡️ THE BULLETPROOF ROLE CHECK
         let userRole = 'patient';
         const checkPrac = await PractitionerRole.findOne({ personId: person._id });
-        if (checkPrac) userRole = checkPrac.roleType.toLowerCase();
+        
+        if (checkPrac) {
+            // Safely default to 'Doctor' if roleType is somehow undefined in the DB
+            userRole = (checkPrac.roleType || 'Doctor').toLowerCase();
+        }
 
         const payload = {
             id: person._id,
@@ -92,7 +97,6 @@ router.post('/login', async (req, res) => {
             name: person.legalFullName
         };
 
-        // 🛡️ FALLBACK SECRET ADDED
         const secret = process.env.JWT_SECRET || 'holmes_emergency_grid_secret_2026';
 
         jwt.sign(payload, secret, { expiresIn: '12h' }, (err, token) => {
@@ -105,7 +109,6 @@ router.post('/login', async (req, res) => {
 
     } catch (err) {
         console.error("LOGIN_CRASH:", err);
-        // 🚨 THIS WILL PRINT THE EXACT ERROR ON YOUR SCREEN
         res.status(500).json({ msg: 'Terminal Error: ' + err.message }); 
     }
 });
