@@ -12,7 +12,11 @@ const LabReportSchema = new mongoose.Schema({
     referenceRange: { type: String, default: 'N/A' },
     clinicalNotes: { type: String },
     
-    status: { type: String, enum: ['Completed'], default: 'Completed' }
+    status: { type: String, enum: ['Completed'], default: 'Completed' },
+
+    // 🌟 THE UPGRADE: The PDF Storage Vault (Base64 String) 🌟
+    pdfReport: { type: String } 
+
 }, { timestamps: true });
 
 module.exports = mongoose.model('LabReport', LabReportSchema);
