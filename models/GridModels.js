@@ -106,7 +106,6 @@ const PractitionerRoleSchema = new mongoose.Schema({
     
     roleType: { type: String, enum: ['Doctor', 'Pharmacist', 'Pathologist'], required: true },
     
-    // Doctor Specifics
     doctorScopes: {
         specialty: { type: String },
         subSpecialty: { type: String },
@@ -121,7 +120,6 @@ const PractitionerRoleSchema = new mongoose.Schema({
         signatureBlockMetadata: { type: String }
     },
     
-    // Pharmacist Specifics
     pharmacistScopes: {
         pharmacyRole: { type: String, enum: ['Staff', 'Verifying', 'PIC', 'Owner', 'Trainee'] },
         shiftAssignment: { type: String },
@@ -133,7 +131,6 @@ const PractitionerRoleSchema = new mongoose.Schema({
         suspensionRestrictionFlags: [{ type: String }]
     },
     
-    // Pathologist Specifics
     pathologistScopes: {
         boardCertificationDetails: { type: String },
         signOutPrivileges: { type: Boolean, default: false },
@@ -149,7 +146,37 @@ const PractitionerRoleSchema = new mongoose.Schema({
 });
 
 // ==========================================
-// 6. PATIENT (Safety & Clinical Anchors)
+// 6. CLINICAL RESOURCES (FHIR-Aligned)
+// ==========================================
+const AllergyProfileSchema = new mongoose.Schema({
+    patientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient', required: true },
+    substance: { type: String, required: true }, // e.g., Penicillin
+    criticality: { type: String, enum: ['Low', 'High', 'Unable to Assess'] },
+    verificationStatus: { type: String, enum: ['Unconfirmed', 'Confirmed', 'Refuted'] },
+    audit: AuditMetadata
+});
+
+const ConditionProfileSchema = new mongoose.Schema({
+    patientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient', required: true },
+    conditionType: { type: String, enum: ['Chronic', 'Surgical', 'Acute'] },
+    name: { type: String, required: true }, // e.g., Asthma, Appendectomy
+    clinicalStatus: { type: String, enum: ['Active', 'Resolved', 'Inactive'] },
+    recordedDate: { type: Date },
+    asserter: { type: mongoose.Schema.Types.ObjectId, ref: 'PractitionerRole' }, // Doctor who recorded it
+    notes: { type: String },
+    audit: AuditMetadata
+});
+
+const ConsentSchema = new mongoose.Schema({
+    patientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient', required: true },
+    status: { type: String, enum: ['Draft', 'Proposed', 'Active', 'Rejected', 'Inactive'] },
+    scope: { type: String }, // e.g., 'Data Sharing', 'Treatment'
+    dateTime: { type: Date, default: Date.now },
+    audit: AuditMetadata
+});
+
+// ==========================================
+// 7. PATIENT (Safety & Clinical Anchors)
 // ==========================================
 const PatientSchema = new mongoose.Schema({
     personId: { type: mongoose.Schema.Types.ObjectId, ref: 'Person', required: true, unique: true },
@@ -181,40 +208,36 @@ const PatientSchema = new mongoose.Schema({
         mergeDuplicateStatus: { type: String }
     },
     
-    // Safety-Critical Links (These would ideally be their own collections in FHIR, referenced here for strict safety checks)
-    // Safety-Critical Links 
+    // Safety-Critical Links
     safetyAnchors: {
         bloodGroup: { type: String },
-        knownAllergies: [{ type: String }],
-        chronicConditions: [{ type: String }],
-        surgeryHistory: [{
-            surgeryName: String,
-            surgeonName: String,
-            hospitalName: String,
-            approximateDate: String
-        }],
         pregnancyLactationStatus: { type: String },
-        pediatricDosingContext: { type: String }
+        pediatricDosingContext: { type: String },
+        allergyRefs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'AllergyProfile' }],
+        conditionRefs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ConditionProfile' }]
     },
     
     audit: AuditMetadata
 });
 
 // ==========================================
-// 7. AUDIT EVENT (Immutable Security Log)
+// 8. AUDIT EVENT (Immutable Security Log)
 // ==========================================
 const AuditEventSchema = new mongoose.Schema({
     timestamp: { type: Date, default: Date.now, immutable: true },
     actorId: { type: mongoose.Schema.Types.ObjectId, ref: 'Person', immutable: true },
-    actionType: { type: String, required: true, immutable: true }, // e.g., 'PRESCRIPTION_SIGNED', 'LOGIN_FAILED'
-    resourceType: { type: String, immutable: true }, // e.g., 'MedicationProfile', 'Patient'
+    actionType: { type: String, required: true, immutable: true }, 
+    resourceType: { type: String, immutable: true }, 
     resourceId: { type: mongoose.Schema.Types.ObjectId, immutable: true },
     ipAddress: { type: String, immutable: true },
     deviceMetadata: { type: String, immutable: true },
     outcome: { type: String, enum: ['Success', 'Failure', 'Warning'], immutable: true },
-    dataProvenanceHash: { type: String, immutable: true } // Cryptographic hash of the action
+    dataProvenanceHash: { type: String, immutable: true } 
 });
 
+// ==========================================
+// EXPORTS
+// ==========================================
 module.exports = {
     Person: mongoose.model('Person', PersonSchema),
     Organization: mongoose.model('Organization', OrganizationSchema),
@@ -222,5 +245,8 @@ module.exports = {
     Credential: mongoose.model('Credential', CredentialSchema),
     PractitionerRole: mongoose.model('PractitionerRole', PractitionerRoleSchema),
     Patient: mongoose.model('Patient', PatientSchema),
-    AuditEvent: mongoose.model('AuditEvent', AuditEventSchema)
+    AuditEvent: mongoose.model('AuditEvent', AuditEventSchema),
+    AllergyProfile: mongoose.model('AllergyProfile', AllergyProfileSchema),
+    ConditionProfile: mongoose.model('ConditionProfile', ConditionProfileSchema),
+    Consent: mongoose.model('Consent', ConsentSchema)
 };
