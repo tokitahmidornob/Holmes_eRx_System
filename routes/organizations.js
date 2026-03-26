@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { Organization, Location, AuditEvent } = require('./models/GridModels'); // Assuming GridModels is in root
+const { Organization, Location, AuditEvent } = require('../models/GridModels'); // Assuming GridModels is in root
 const { logAudit } = require('./middleware/auditLogger');
 
 /**
