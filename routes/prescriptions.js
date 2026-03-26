@@ -2,19 +2,6 @@ const express = require('express');
 const router = express.Router();
 const Prescription = require('../models/Prescription');
 const jwt = require('jsonwebtoken');
-const nodemailer = require('nodemailer');
-
-// 📧 THE DISPATCH ENGINE (IPv4 Forced Config)
-const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true, 
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    },
-    family: 4 // <--- THE FIX: Forces the engine to use the reliable IPv4 network
-});
 
 // 🛡️ THE SECURITY TRIPWIRE
 const securityLog = new Map();
@@ -49,50 +36,11 @@ router.post('/', authenticate, async (req, res) => {
         });
         
         const savedRx = await newRx.save();
-
-        // 🌟 THE FIX: Instantly release the Doctor's Pad UI!
-        res.status(201).json(savedRx);
-
-        // 🚀 FIRE THE EMAIL ENGINE IN THE BACKGROUND
-        const mailOptions = {
-            from: `"Holmes Health Grid" <${process.env.EMAIL_USER}>`,
-            to: req.body.patientId, // Patient's email
-            subject: '🔒 Secure Medical Prescription Broadcast',
-            html: `
-                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff;">
-                    <h2 style="color: #0f172a; text-transform: uppercase; margin-bottom: 5px;">Holmes eRx System</h2>
-                    <p style="color: #64748b; font-size: 14px; margin-top: 0;">Official Grid Notification</p>
-                    
-                    <p style="color: #334155; line-height: 1.6;">A new electronic prescription has been securely broadcast to the National Grid for you by <strong>Dr. ${req.user.name}</strong>.</p>
-                    
-                    <div style="background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; margin: 25px 0; text-align: center;">
-                        <p style="font-size: 10px; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 2px; margin: 0;">Prescription Rx No.</p>
-                        <p style="font-size: 22px; font-weight: 900; font-family: monospace; color: #0f172a; margin: 5px 0 15px 0;">${generatedBroadcastId}</p>
-                        
-                        <div style="height: 1px; background: #e2e8f0; margin: 15px 0;"></div>
-                        
-                        <p style="font-size: 10px; font-weight: bold; color: #10b981; text-transform: uppercase; letter-spacing: 2px; margin: 0;">Secure OTP Key</p>
-                        <p style="font-size: 36px; font-weight: 900; font-family: monospace; color: #059669; margin: 5px 0 0 0; letter-spacing: 8px;">${generatedOtp}</p>
-                    </div>
-                    
-                    <p style="color: #64748b; font-size: 14px; line-height: 1.6;">Please present these credentials to your authorized Pharmacist or Pathologist to unlock your medications and lab orders.</p>
-                    
-                    <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 30px 0 20px 0;">
-                    <p style="font-size: 10px; color: #94a3b8; text-align: center; text-transform: uppercase; font-weight: bold;">This is an automated encrypted transmission. Do not reply.</p>
-                </div>
-            `
-        };
+        res.status(201).json(savedRx); // Instant UI Release!
         
-        // Execute email without 'awaiting' it
-        transporter.sendMail(mailOptions)
-            .then(() => console.log("✉️ Dispatch Engine: Secure email transmitted to patient."))
-            .catch(emailErr => console.error("❌ Dispatch Engine Error:", emailErr.message));
-
     } catch (err) {
         console.error("Create Rx Error:", err);
-        if (!res.headersSent) {
-            res.status(500).json({ msg: `Server Error: ${err.message}` });
-        }
+        res.status(500).json({ msg: `Server Error: ${err.message}` });
     }
 });
 
