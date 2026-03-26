@@ -18,6 +18,13 @@
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .dropdown-menu { transform-origin: top; transition: transform 0.2s ease, opacity 0.2s ease; z-index: 100; }
         .dropdown-menu.hidden { transform: scaleY(0.95); opacity: 0; pointer-events: none; }
+        
+        /* 🖨️ THE STEALTH PRINT ENGINE 🖨️ */
+        @media print {
+            body * { visibility: hidden; }
+            #printArea, #printArea * { visibility: visible; }
+            #printArea { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; }
+        }
     </style>
 </head>
 <body class="antialiased text-slate-800 flex h-screen overflow-hidden" onclick="closeAllDropdowns(event)">
@@ -39,7 +46,6 @@
                 <span class="hidden lg:block font-bold text-sm">Rx History & Labs</span>
             </button>
         </nav>
-        
         <div class="p-4 border-t border-slate-800">
             <div class="hidden lg:block mb-4 px-4 text-center">
                 <p id="drNameDisplay" class="font-black text-sm text-white truncate">Dr. Holmes</p>
@@ -59,11 +65,6 @@
             <div>
                 <h2 id="pageTitle" class="text-2xl font-black text-slate-900 tracking-tighter">Clinical Pad</h2>
                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">National Grid Connected</p>
-            </div>
-            <div class="flex items-center gap-4">
-                <span class="flex items-center gap-2 bg-emerald-50 text-emerald-600 px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest border border-emerald-100">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> System Online
-                </span>
             </div>
         </header>
 
@@ -94,7 +95,7 @@
                                 <input type="text" id="medName" oninput="searchDrugs(this.value)" placeholder="Search Drug..." class="premium-input w-full bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm font-bold outline-none">
                                 <div id="drugDropdown" class="dropdown-menu hidden absolute w-full mt-2 bg-white border border-slate-200 rounded-2xl shadow-2xl max-h-48 overflow-y-auto custom-scrollbar"></div>
                             </div>
-                            <input type="text" id="medDose" placeholder="Dose (e.g. 1+0+1)" class="col-span-3 premium-input bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm font-bold outline-none">
+                            <input type="text" id="medDose" placeholder="Dose" class="col-span-3 premium-input bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm font-bold outline-none">
                             <select id="medTiming" class="col-span-3 premium-input bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm font-bold outline-none">
                                 <option value="After Meal">After Meal</option>
                                 <option value="Before Meal">Before Meal</option>
@@ -107,17 +108,13 @@
                             <div class="relative z-10 grid grid-cols-2 gap-4">
                                 <div><p class="text-[9px] font-black text-teal-400 uppercase tracking-widest mb-1">Primary Indications</p><p id="metaIndications" class="text-xs text-slate-300 font-medium leading-relaxed">Loading...</p></div>
                                 <div><p class="text-[9px] font-black text-rose-400 uppercase tracking-widest mb-1">Known Side Effects</p><p id="metaSideEffects" class="text-xs text-slate-300 font-medium leading-relaxed">Loading...</p></div>
-                                <div class="col-span-2 border-t border-slate-700/50 pt-3 mt-1 flex justify-between items-center"><p id="metaAdmin" class="text-[10px] text-slate-400 font-bold"></p></div>
                             </div>
                         </div>
 
                         <button onclick="attemptAddMedication()" class="w-full bg-slate-100 hover:bg-teal-50 hover:text-teal-600 border border-transparent hover:border-teal-200 text-slate-600 p-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all mb-4">
                             + Add to Prescription
                         </button>
-                        
-                        <div id="medListDisplay" class="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar min-h-[150px]">
-                            <div class="text-center text-slate-300 font-bold text-sm py-10">No medications added yet</div>
-                        </div>
+                        <div id="medListDisplay" class="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar min-h-[150px]"></div>
                     </div>
 
                     <div class="bg-white rounded-[32px] shadow-sm border border-slate-200 p-6">
@@ -143,9 +140,7 @@
                         <h3 class="font-black text-slate-900 uppercase tracking-widest text-xs"><i class="fa-solid fa-vault text-slate-400 mr-2"></i> Master Rx Archive</h3>
                         <button onclick="fetchHistory()" class="text-[10px] font-black uppercase tracking-widest bg-slate-200 hover:bg-slate-300 px-4 py-2 rounded-full transition-colors">Refresh</button>
                     </div>
-                    <div class="p-4">
-                        <div id="historyList" class="divide-y divide-slate-100 max-h-[60vh] overflow-y-auto custom-scrollbar"></div>
-                    </div>
+                    <div class="p-4"><div id="historyList" class="divide-y divide-slate-100 max-h-[60vh] overflow-y-auto custom-scrollbar"></div></div>
                 </div>
             </div>
         </div>
@@ -153,14 +148,12 @@
 
     <div id="warningModal" class="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/80 p-4 opacity-0 pointer-events-none transition-opacity duration-300">
         <div class="bg-white rounded-[32px] w-full max-w-md p-8 text-center shadow-2xl transform scale-95 transition-transform duration-300" id="warningModalContent">
-            <div class="w-16 h-16 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl animate-pulse">
-                <i class="fa-solid fa-triangle-exclamation"></i>
-            </div>
+            <div class="w-16 h-16 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl animate-pulse"><i class="fa-solid fa-triangle-exclamation"></i></div>
             <h3 class="text-xl font-black text-slate-900 uppercase tracking-tighter mb-2">Clinical Contraindication</h3>
-            <p id="warningMessage" class="text-sm font-bold text-slate-500 mb-8 leading-relaxed">Warning description goes here.</p>
+            <p id="warningMessage" class="text-sm font-bold text-slate-500 mb-8 leading-relaxed"></p>
             <div class="flex gap-4">
-                <button onclick="closeWarningModal()" class="flex-1 bg-slate-100 text-slate-600 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-colors">Cancel</button>
-                <button onclick="overrideWarning()" class="flex-1 bg-rose-600 text-white py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-rose-700 transition-colors shadow-lg shadow-rose-500/30"><i class="fa-solid fa-user-shield mr-2"></i> Override</button>
+                <button onclick="closeWarningModal()" class="flex-1 bg-slate-100 text-slate-600 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-slate-200">Cancel</button>
+                <button onclick="overrideWarning()" class="flex-1 bg-rose-600 text-white py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-rose-700">Override</button>
             </div>
         </div>
     </div>
@@ -172,12 +165,15 @@
                     <h3 class="text-xl font-black text-slate-900 uppercase tracking-tighter">Prescription Detail</h3>
                     <p id="modalDrName" class="text-xs font-bold text-indigo-600 mt-1">Dr. Name</p>
                 </div>
-                <button onclick="closeRxModal()" class="w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center hover:bg-rose-500 hover:text-white transition-colors"><i class="fa-solid fa-xmark"></i></button>
+                <div class="flex items-center gap-3">
+                    <button onclick="printCurrentRecord()" class="bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-teal-600 transition-colors"><i class="fa-solid fa-print mr-2"></i> Formal PDF</button>
+                    <button onclick="closeRxModal()" class="w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center hover:bg-rose-500 hover:text-white transition-colors"><i class="fa-solid fa-xmark"></i></button>
+                </div>
             </div>
             <div class="p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
                 <div class="flex justify-between items-center bg-slate-900 p-6 rounded-[20px] shadow-inner border border-slate-800">
-                    <div><p class="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-1">Broadcast ID (Rx No.)</p><p id="modalBroadcastId" class="font-mono font-bold text-white text-lg tracking-wider">HOLMES-RX-...</p></div>
-                    <div class="text-right"><p class="text-[9px] font-black text-emerald-400 uppercase tracking-widest mb-1">Secret OTP</p><p id="modalOtp" class="font-mono font-black text-emerald-400 text-3xl tracking-[0.2em] leading-none">----</p></div>
+                    <div><p class="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-1">Broadcast ID (Rx No.)</p><p id="modalBroadcastId" class="font-mono font-bold text-white text-lg tracking-wider"></p></div>
+                    <div class="text-right"><p class="text-[9px] font-black text-emerald-400 uppercase tracking-widest mb-1">Secret OTP</p><p id="modalOtp" class="font-mono font-black text-emerald-400 text-3xl tracking-[0.2em] leading-none"></p></div>
                 </div>
                 <div><h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Medications Ordered</h4><div id="modalMedList" class="space-y-2"></div></div>
                 <div id="modalTestSection"><h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 border-t pt-6">Lab Investigations</h4><div id="modalTestList" class="flex flex-wrap gap-2"></div></div>
@@ -192,293 +188,180 @@
             <h2 class="text-3xl font-black text-slate-900 tracking-tighter mb-2">RECORD BROADCASTED</h2>
             <div class="bg-slate-50 p-6 rounded-2xl mb-6 border border-slate-200">
                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Prescription Rx No.</p>
-                <p id="successBroadcastId" class="font-mono font-black text-2xl text-slate-800">HOLMES-RX-XXXX</p>
+                <p id="successBroadcastId" class="font-mono font-black text-2xl text-slate-800"></p>
                 <div class="h-px bg-slate-200 my-4"></div>
                 <div class="flex justify-center mb-4"><div id="successQr" class="p-3 bg-white rounded-xl border-2 border-slate-200 shadow-sm flex items-center justify-center min-h-[150px] min-w-[150px]"></div></div>
                 <p class="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em] mb-2">Secure OTP Key</p>
-                <p id="successOtp" class="font-mono font-black text-5xl text-emerald-600 tracking-[0.1em]">0000</p>
+                <p id="successOtp" class="font-mono font-black text-5xl text-emerald-600 tracking-[0.1em]"></p>
             </div>
-            <button onclick="closeSuccessAndRefresh()" class="w-full bg-slate-900 hover:bg-teal-600 text-white py-4 rounded-2xl font-black text-sm uppercase tracking-widest transition-colors">Close Pad</button>
+            <div class="flex gap-4">
+                <button onclick="printCurrentRecord()" class="flex-1 bg-teal-600 hover:bg-teal-700 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest"><i class="fa-solid fa-print mr-2"></i> Print PDF</button>
+                <button onclick="closeSuccessAndRefresh()" class="flex-1 bg-slate-900 hover:bg-slate-800 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest">Close Pad</button>
+            </div>
         </div>
     </div>
+
+    <div id="printArea" class="hidden text-black bg-white"></div>
 
     <script>
         const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
         const token = localStorage.getItem('eRx_Token');
         const drId = localStorage.getItem('eRx_UserId');
         const drName = localStorage.getItem('eRx_UserName');
-        
-        let medications = []; 
-        let investigations = []; 
-        let allPatients = []; 
-        let currentFetchedDrugs = []; 
-        
-        // 🌟 CLINICAL INTELLIGENCE VARIABLES 🌟
-        let patientActiveMeds = []; // Stores drugs the patient is currently taking
-        let pendingMedToAdd = null; // Temporarily holds med if waiting for override
+        let medications = []; let investigations = []; let allPatients = []; let currentFetchedDrugs = []; 
+        let patientActiveMeds = []; let pendingMedToAdd = null; let doctorPrescriptions = [];
+        let currentRxForPrint = null; // Store for printing
 
-        // MOCK INTERACTION DATABASE (For demonstration of Commercial Readiness)
-        const interactionDB = {
-            "Aspirin": ["Ibuprofen", "Warfarin", "Naproxen"],
-            "Fexofenadine": ["Erythromycin", "Ketoconazole", "Antacids"],
-            "Amoxicillin": ["Methotrexate", "Tetracycline"],
-            "Warfarin": ["Aspirin", "Ibuprofen", "Diclofenac"],
-            "Napa": ["Ketoconazole", "Isoniazid"], // Mocking Napa (Paracetamol) interactions
-            "Paracetamol": ["Ketoconazole", "Isoniazid"]
-        };
-
+        const interactionDB = { "Aspirin": ["Ibuprofen", "Warfarin", "Naproxen"], "Fexofenadine": ["Erythromycin", "Ketoconazole"], "Napa": ["Ketoconazole"] };
         function parseJwt(t) { try { return JSON.parse(atob(t.split('.')[1])); } catch(e) { return {}; } }
         const decoded = parseJwt(token);
         if (!token || decoded.role !== 'doctor') window.location.href = 'index.html';
 
         document.getElementById('drNameDisplay').innerText = `Dr. ${drName}`;
         document.getElementById('drGridIdDisplay').innerText = decoded.gridId || 'ID-PENDING';
-
         fetchPatientsList(); fetchHistory();
 
-        async function fetchPatientsList() {
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/auth/patients`, { headers: { 'Authorization': `Bearer ${token}` } });
-                if(res.ok) allPatients = await res.json();
-            } catch(e) {}
-        }
-
+        async function fetchPatientsList() { try { const res = await fetch(`${API_BASE_URL}/api/auth/patients`, { headers: { 'Authorization': `Bearer ${token}` } }); if(res.ok) allPatients = await res.json(); } catch(e) {} }
         function showPatientDropdown() { document.getElementById('patientDropdown').classList.remove('hidden'); filterPatients(); }
-        
         function filterPatients() {
             const q = document.getElementById('patientSearchInput').value.toLowerCase();
             const filtered = allPatients.filter(p => p.name.toLowerCase().includes(q) || (p.gridId && p.gridId.toLowerCase().includes(q)));
             const dp = document.getElementById('patientDropdown');
             if(filtered.length === 0) return dp.innerHTML = '<div class="p-4 text-sm text-slate-400 font-bold text-center">No citizens found.</div>';
-            dp.innerHTML = filtered.map(p => `
-                <div onclick="selectPatient('${p.email}', '${p.name}', '${p.gridId}')" class="p-4 hover:bg-slate-50 cursor-pointer border-b last:border-0 flex justify-between items-center">
-                    <div><p class="font-black text-sm">${p.name}</p><p class="text-[10px] font-bold text-slate-400">${p.email}</p></div>
-                    <span class="text-[9px] font-black bg-indigo-50 text-indigo-600 px-2 py-1 rounded">${p.gridId || 'NO-ID'}</span>
-                </div>`).join('');
+            dp.innerHTML = filtered.map(p => `<div onclick="selectPatient('${p.email}', '${p.name}', '${p.gridId}')" class="p-4 hover:bg-slate-50 cursor-pointer border-b flex justify-between"><div><p class="font-black text-sm">${p.name}</p></div><span class="text-[9px] font-black bg-indigo-50 text-indigo-600 px-2 py-1 rounded">${p.gridId || 'NO-ID'}</span></div>`).join('');
         }
-
-        // 🌟 NEW: FETCH PATIENT HISTORY ON SELECTION 🌟
-        async function selectPatient(email, name, gridId) {
-            document.getElementById('patientSearchInput').value = `${name} (${gridId || email})`;
-            document.getElementById('selectedPatientEmail').value = email;
-            document.getElementById('patientDropdown').classList.add('hidden');
-            
-            // Sync Clinical History
+        async function selectPatient(e, n, g) {
+            document.getElementById('patientSearchInput').value = `${n} (${g})`; document.getElementById('selectedPatientEmail').value = e; document.getElementById('patientDropdown').classList.add('hidden');
             document.getElementById('patientStatusBadge').classList.remove('hidden');
             try {
-                const res = await fetch(`${API_BASE_URL}/api/prescriptions/patient/${email}`, { headers: { 'Authorization': `Bearer ${token}` } });
-                if(res.ok) {
-                    const history = await res.json();
-                    patientActiveMeds = [];
-                    history.forEach(rx => {
-                        if(rx.status === 'Active') {
-                            rx.medications.forEach(m => patientActiveMeds.push(m.brandName.toLowerCase()));
-                        }
-                    });
-                }
-            } catch(e) { console.error("History Sync Failed"); }
+                const res = await fetch(`${API_BASE_URL}/api/prescriptions/patient/${e}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                if(res.ok) { const history = await res.json(); patientActiveMeds = []; history.forEach(rx => { if(rx.status === 'Active') rx.medications.forEach(m => patientActiveMeds.push(m.brandName.toLowerCase())); }); }
+            } catch(e) {}
         }
-
         let searchTimeout;
         async function searchDrugs(query) {
             const dropdown = document.getElementById('drugDropdown');
             if(query.length < 2) return dropdown.classList.add('hidden');
-            dropdown.classList.remove('hidden');
-            dropdown.innerHTML = '<div class="p-3 text-xs text-slate-400 font-bold text-center"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Accessing Grid...</div>';
-            
+            dropdown.classList.remove('hidden'); dropdown.innerHTML = '<div class="p-3 text-xs text-slate-400 text-center">Searching...</div>';
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(async () => {
                 try {
                     const res = await fetch(`${API_BASE_URL}/api/medicines?search=${query}`, { headers: { 'Authorization': `Bearer ${token}` } });
                     if(res.ok) {
                         currentFetchedDrugs = await res.json();
-                        if(currentFetchedDrugs.length === 0) return dropdown.innerHTML = '<div class="p-3 text-xs text-slate-400 font-bold text-center">No drugs found.</div>';
-                        dropdown.innerHTML = currentFetchedDrugs.map((d, index) => `
-                            <div onclick="selectDrug(${index})" class="p-3 hover:bg-slate-50 cursor-pointer border-b last:border-0">
-                                <p class="font-black text-sm text-slate-800"><i class="fa-solid fa-pills text-teal-500 mr-2 text-xs"></i>${d.brandName}</p>
-                            </div>
-                        `).join('');
-                    } else dropdown.innerHTML = '<div class="p-3 text-xs text-amber-500 font-bold text-center">Engine Route Error.</div>';
-                } catch(e) { dropdown.innerHTML = '<div class="p-3 text-xs text-rose-400 font-bold text-center">Grid Offline.</div>'; }
+                        dropdown.innerHTML = currentFetchedDrugs.map((d, index) => `<div onclick="selectDrug(${index})" class="p-3 hover:bg-slate-50 cursor-pointer border-b"><p class="font-black text-sm">${d.brandName}</p></div>`).join('');
+                    }
+                } catch(e) { dropdown.innerHTML = 'Error'; }
             }, 300);
         }
-
         function selectDrug(index) {
-            const drug = currentFetchedDrugs[index];
-            document.getElementById('medName').value = drug.brandName;
-            document.getElementById('medDose').value = drug.dosage || '';
-            document.getElementById('drugDropdown').classList.add('hidden');
-            
-            document.getElementById('metaIndications').innerText = drug.indications || 'No indication data recorded.';
-            document.getElementById('metaSideEffects').innerText = drug.sideEffects || 'No adverse effects recorded.';
-            document.getElementById('metaAdmin').innerHTML = `<i class="fa-solid fa-circle-info mr-1 text-teal-500"></i> ${drug.administration || 'Standard administration.'}`;
-            document.getElementById('clinicalMetadataCard').classList.remove('hidden');
+            const drug = currentFetchedDrugs[index]; document.getElementById('medName').value = drug.brandName; document.getElementById('medDose').value = drug.dosage || ''; document.getElementById('drugDropdown').classList.add('hidden');
+            document.getElementById('metaIndications').innerText = drug.indications || 'None'; document.getElementById('metaSideEffects').innerText = drug.sideEffects || 'None'; document.getElementById('clinicalMetadataCard').classList.remove('hidden');
         }
-
-        // 🌟 NEW: THE CONTRAINDICATION GATEWAY 🌟
         function attemptAddMedication() {
-            const n = document.getElementById('medName').value; 
-            const ds = document.getElementById('medDose').value;
-            const t = document.getElementById('medTiming').value; 
-            const dr = document.getElementById('medDuration').value;
-            
-            if(!n || !ds || !dr) return alert("Please fill Brand, Dose, and Days.");
-            
-            const newDrugName = n.toLowerCase();
-            pendingMedToAdd = { brandName: n, dosage: ds, timing: t, duration: dr };
-
-            // 1. Check for Duplicate Therapy
-            if(patientActiveMeds.includes(newDrugName) || medications.some(m => m.brandName.toLowerCase() === newDrugName)) {
-                showWarning(`Duplicate Therapy Detected! The patient has an active prescription containing <b>${n}</b>, or it is already on this pad.`);
-                return;
-            }
-
-            // 2. Check Interaction Database
-            // Check against both existing patient history and drugs already added to current pad
-            const allCurrentDrugs = [...patientActiveMeds, ...medications.map(m => m.brandName.toLowerCase())];
-            
-            // Look up the new drug in the DB (case-insensitive)
+            const n = document.getElementById('medName').value; const ds = document.getElementById('medDose').value; const t = document.getElementById('medTiming').value; const dr = document.getElementById('medDuration').value;
+            if(!n || !ds || !dr) return alert("Fill all fields.");
+            const newDrugName = n.toLowerCase(); pendingMedToAdd = { brandName: n, dosage: ds, timing: t, duration: dr };
+            if(patientActiveMeds.includes(newDrugName) || medications.some(m => m.brandName.toLowerCase() === newDrugName)) { document.getElementById('warningMessage').innerHTML = `Duplicate Therapy: ${n}`; document.getElementById('warningModal').classList.remove('opacity-0', 'pointer-events-none'); document.getElementById('warningModalContent').classList.remove('scale-95'); return; }
             const matchedKey = Object.keys(interactionDB).find(key => key.toLowerCase() === newDrugName);
             if (matchedKey) {
-                const clashes = interactionDB[matchedKey].map(d => d.toLowerCase());
-                const severeInteraction = allCurrentDrugs.find(activeDrug => clashes.includes(activeDrug));
-                
-                if (severeInteraction) {
-                    showWarning(`Severe Interaction Risk! <b>${n}</b> is known to negatively interact with <b>${severeInteraction.toUpperCase()}</b>, which the patient is currently taking.`);
-                    return;
-                }
+                const clashes = interactionDB[matchedKey].map(d => d.toLowerCase()); const severe = [...patientActiveMeds, ...medications.map(m=>m.brandName.toLowerCase())].find(a => clashes.includes(a));
+                if (severe) { document.getElementById('warningMessage').innerHTML = `Severe Interaction: ${n} clashes with ${severe.toUpperCase()}`; document.getElementById('warningModal').classList.remove('opacity-0', 'pointer-events-none'); document.getElementById('warningModalContent').classList.remove('scale-95'); return; }
             }
-
-            // 3. If safe, finalize.
             finalizeAddMedication();
         }
-
-        function showWarning(message) {
-            document.getElementById('warningMessage').innerHTML = message;
-            document.getElementById('warningModal').classList.remove('opacity-0', 'pointer-events-none');
-            document.getElementById('warningModalContent').classList.remove('scale-95');
-        }
-
-        function closeWarningModal() {
-            pendingMedToAdd = null; // Clear it
-            document.getElementById('warningModalContent').classList.add('scale-95');
-            setTimeout(() => document.getElementById('warningModal').classList.add('opacity-0', 'pointer-events-none'), 200);
-        }
-
-        function overrideWarning() {
-            finalizeAddMedication();
-            closeWarningModal();
-        }
-
+        function closeWarningModal() { pendingMedToAdd = null; document.getElementById('warningModalContent').classList.add('scale-95'); setTimeout(() => document.getElementById('warningModal').classList.add('opacity-0', 'pointer-events-none'), 200); }
+        function overrideWarning() { finalizeAddMedication(); closeWarningModal(); }
         function finalizeAddMedication() {
-            if(!pendingMedToAdd) return;
-            medications.push(pendingMedToAdd);
-            renderMedications();
-            
-            document.getElementById('medName').value = ''; document.getElementById('medDose').value = '';
-            document.getElementById('medDuration').value = ''; document.getElementById('clinicalMetadataCard').classList.add('hidden');
-            pendingMedToAdd = null;
+            if(!pendingMedToAdd) return; medications.push(pendingMedToAdd); renderMedications();
+            document.getElementById('medName').value = ''; document.getElementById('medDose').value = ''; document.getElementById('medDuration').value = ''; document.getElementById('clinicalMetadataCard').classList.add('hidden'); pendingMedToAdd = null;
         }
-
-        function renderMedications() {
-            const list = document.getElementById('medListDisplay');
-            if(medications.length === 0) return list.innerHTML = '<div class="text-center text-slate-300 font-bold text-sm py-10">No medications added yet</div>';
-            list.innerHTML = medications.map((m, i) => `
-                <div class="bg-white p-3 rounded-xl border border-slate-100 flex justify-between items-center shadow-sm">
-                    <div><p class="font-black text-sm text-slate-800">${m.brandName}</p><p class="text-[9px] uppercase text-slate-400 font-bold">${m.dosage} | ${m.timing}</p></div>
-                    <div class="flex items-center gap-3"><span class="text-[10px] font-black text-teal-600 bg-teal-50 px-2 py-1 rounded">${m.duration}</span><button onclick="medications.splice(${i},1);renderMedications()" class="text-rose-400 hover:text-rose-600 transition-colors"><i class="fa-solid fa-trash"></i></button></div>
-                </div>`).join('');
-        }
-
+        function renderMedications() { document.getElementById('medListDisplay').innerHTML = medications.map((m, i) => `<div class="bg-slate-50 p-3 rounded-xl border flex justify-between"><div><p class="font-black text-sm">${m.brandName}</p><p class="text-[9px] uppercase">${m.dosage} | ${m.timing}</p></div><div><span class="text-[10px] font-black text-teal-600 bg-teal-50 px-2 py-1 rounded">${m.duration}</span><button onclick="medications.splice(${i},1);renderMedications()" class="ml-2 text-rose-400"><i class="fa-solid fa-trash"></i></button></div></div>`).join(''); }
         function addTest() { const t = document.getElementById('testName').value; if(t) { investigations.push(t); renderTests(); document.getElementById('testName').value=''; } }
-        function renderTests() { document.getElementById('testListDisplay').innerHTML = investigations.map((t, i) => `<span class="bg-indigo-50 text-indigo-700 border border-indigo-100 px-3 py-1.5 rounded-lg text-xs font-black uppercase">${t} <button onclick="investigations.splice(${i},1);renderTests()" class="ml-2 hover:text-rose-500"><i class="fa-solid fa-xmark"></i></button></span>`).join(''); }
+        function renderTests() { document.getElementById('testListDisplay').innerHTML = investigations.map((t, i) => `<span class="bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-lg text-xs font-black uppercase">${t} <button onclick="investigations.splice(${i},1);renderTests()"><i class="fa-solid fa-xmark"></i></button></span>`).join(''); }
 
         async function generatePrescription() {
             const pEmail = document.getElementById('selectedPatientEmail').value;
-            if(!pEmail) return alert("Select Patient.");
-            if(medications.length === 0) return alert("Add medication.");
-            
-            const btn = document.getElementById('generateBtn');
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Encrypting...';
-            
+            if(!pEmail || medications.length === 0) return alert("Select Patient and Add Medicine.");
+            const btn = document.getElementById('generateBtn'); btn.innerHTML = 'Encrypting...';
             try {
-                const res = await fetch(`${API_BASE_URL}/api/prescriptions`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ doctorId: drId, patientId: pEmail, medications, investigations })
-                });
+                const res = await fetch(`${API_BASE_URL}/api/prescriptions`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ doctorId: drId, patientId: pEmail, medications, investigations }) });
                 const data = await res.json();
                 if(res.ok) {
-                    document.getElementById('successBroadcastId').innerText = data.broadcastId;
-                    document.getElementById('successOtp').innerText = data.otp;
-                    
-                    const qrContainer = document.getElementById('successQr');
-                    qrContainer.innerHTML = '';
-                    const qrPayload = JSON.stringify({ bId: data.broadcastId, otp: data.otp });
-                    new QRCode(qrContainer, { text: qrPayload, width: 130, height: 130, colorDark : "#0f172a", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.H });
-
-                    document.getElementById('successModal').classList.remove('opacity-0', 'pointer-events-none');
-                    document.getElementById('successModalContent').classList.remove('scale-95');
+                    currentRxForPrint = { ...data, doctorId: { name: drName }, patientId: pEmail }; // Save for print
+                    document.getElementById('successBroadcastId').innerText = data.broadcastId; document.getElementById('successOtp').innerText = data.otp;
+                    document.getElementById('successQr').innerHTML = ''; new QRCode(document.getElementById('successQr'), { text: JSON.stringify({ bId: data.broadcastId, otp: data.otp }), width: 130, height: 130, colorDark : "#0f172a" });
+                    document.getElementById('successModal').classList.remove('opacity-0', 'pointer-events-none'); document.getElementById('successModalContent').classList.remove('scale-95');
                 } else alert(data.msg);
-            } catch(e) { alert("Grid Transmission Failed."); }
-            finally { btn.innerHTML = '<i class="fa-solid fa-lock"></i> Encrypt & Broadcast'; }
+            } catch(e) {} finally { btn.innerHTML = 'Encrypt & Broadcast'; }
         }
 
         function closeSuccessAndRefresh() {
             document.getElementById('successModalContent').classList.add('scale-95');
-            setTimeout(() => {
-                document.getElementById('successModal').classList.add('opacity-0', 'pointer-events-none');
-                medications = []; investigations = []; 
-                document.getElementById('patientSearchInput').value = ''; 
-                document.getElementById('selectedPatientEmail').value = '';
-                document.getElementById('patientStatusBadge').classList.add('hidden'); // Hide status badge
-                patientActiveMeds = []; // Clear clinical memory
-                renderMedications(); renderTests(); fetchHistory();
-            }, 200);
+            setTimeout(() => { document.getElementById('successModal').classList.add('opacity-0', 'pointer-events-none'); medications = []; investigations = []; document.getElementById('patientSearchInput').value = ''; document.getElementById('selectedPatientEmail').value = ''; document.getElementById('patientStatusBadge').classList.add('hidden'); patientActiveMeds = []; renderMedications(); renderTests(); fetchHistory(); }, 200);
         }
 
         async function fetchHistory() {
-            const list = document.getElementById('historyList');
             try {
                 const res = await fetch(`${API_BASE_URL}/api/prescriptions/doctor/${drId}`, { headers: { 'Authorization': `Bearer ${token}` } });
-                const rxs = await res.json();
-                if (rxs.length === 0) return list.innerHTML = '<div class="p-10 text-center text-slate-400 font-bold">No archives found.</div>';
-                list.innerHTML = `<div class="grid grid-cols-12 gap-4 px-6 py-3 border-b border-slate-100 bg-slate-50/50"><div class="col-span-3 text-[10px] font-black text-slate-400 uppercase">Date</div><div class="col-span-4 text-[10px] font-black text-slate-400 uppercase">Patient</div><div class="col-span-3 text-[10px] font-black text-slate-400 uppercase">Status</div><div class="col-span-2 text-right"></div></div>` + 
-                rxs.map((rx, i) => {
-                    const d = new Date(rx.createdAt).toLocaleDateString();
-                    const badge = rx.status === 'Dispensed' ? '<span class="bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-1 rounded text-[9px] font-black uppercase">Dispensed</span>' : '<span class="bg-amber-50 text-amber-600 border border-amber-200 px-2 py-1 rounded text-[9px] font-black uppercase">Active</span>';
-                    return `<div class="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-slate-50 transition-colors"><div class="col-span-3 text-xs font-bold text-slate-500">${d}</div><div class="col-span-4 text-sm font-black truncate">${rx.patientId}</div><div class="col-span-3">${badge}</div><div class="col-span-2 text-right"><button onclick="doctorPrescriptions=JSON.parse('${JSON.stringify(rxs).replace(/'/g, "\\'")}'); openRxModal(${i})" class="text-[10px] font-black uppercase bg-slate-900 text-white hover:bg-teal-600 px-4 py-2 rounded-xl transition-colors">Open</button></div></div>`;
-                }).join('');
-            } catch (err) { list.innerHTML = '<div class="p-10 text-center text-rose-500 font-bold">Error loading archives.</div>'; }
+                doctorPrescriptions = await res.json();
+                document.getElementById('historyList').innerHTML = doctorPrescriptions.map((rx, i) => `<div class="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-slate-50 border-b"><div class="col-span-3 text-xs font-bold">${new Date(rx.createdAt).toLocaleDateString()}</div><div class="col-span-4 text-sm font-black">${rx.patientId}</div><div class="col-span-3">${rx.status}</div><div class="col-span-2 text-right"><button onclick="openRxModal(${i})" class="text-[10px] font-black uppercase bg-slate-900 text-white px-4 py-2 rounded-xl">Open</button></div></div>`).join('');
+            } catch (err) {}
         }
 
         async function openRxModal(index) {
             const rx = doctorPrescriptions[index];
+            currentRxForPrint = rx; // Save for print
             document.getElementById('modalDrName').innerText = `Dr. ${drName}`;
-            document.getElementById('modalBroadcastId').innerText = rx.broadcastId || 'PENDING';
-            document.getElementById('modalOtp').innerText = rx.otp || '----';
-            document.getElementById('modalMedList').innerHTML = rx.medications.map(m => `<div class="bg-slate-50 p-3 rounded-xl border border-slate-100 flex justify-between items-center"><div><p class="font-black text-sm">${m.brandName}</p><p class="text-[9px] uppercase text-slate-500 font-bold">${m.dosage} | ${m.timing}</p></div><p class="text-[10px] font-black text-indigo-600">${m.duration}</p></div>`).join('');
-            if(rx.investigations.length > 0) {
-                document.getElementById('modalTestSection').classList.remove('hidden');
-                document.getElementById('modalTestList').innerHTML = rx.investigations.map(t => `<span class="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-[9px] font-black uppercase border border-indigo-100">${t}</span>`).join('');
-            } else document.getElementById('modalTestSection').classList.add('hidden');
-            
-            document.getElementById('rxModal').classList.remove('opacity-0', 'pointer-events-none');
-            document.getElementById('rxModalContent').classList.remove('scale-95');
+            document.getElementById('modalBroadcastId').innerText = rx.broadcastId; document.getElementById('modalOtp').innerText = rx.otp;
+            document.getElementById('modalMedList').innerHTML = rx.medications.map(m => `<div class="bg-slate-50 p-3 rounded-xl border"><div><p class="font-black text-sm">${m.brandName}</p></div></div>`).join('');
+            document.getElementById('rxModal').classList.remove('opacity-0', 'pointer-events-none'); document.getElementById('rxModalContent').classList.remove('scale-95');
         }
 
         function closeRxModal() { document.getElementById('rxModalContent').classList.add('scale-95'); setTimeout(() => document.getElementById('rxModal').classList.add('opacity-0', 'pointer-events-none'), 200); }
         function switchTab(tab) {
             document.getElementById('viewRxPad').classList.add('hidden'); document.getElementById('viewHistory').classList.add('hidden');
-            document.getElementById('navRxPad').className = 'nav-btn flex items-center p-4 rounded-2xl text-slate-400 hover:bg-slate-800 hover:text-white transition-all';
-            document.getElementById('navHistory').className = 'nav-btn flex items-center p-4 rounded-2xl text-slate-400 hover:bg-slate-800 hover:text-white transition-all';
-            if (tab === 'rxPad') { document.getElementById('viewRxPad').classList.remove('hidden'); document.getElementById('navRxPad').className = 'nav-btn active flex items-center p-4 rounded-2xl bg-teal-500/10 text-teal-400 transition-all'; document.getElementById('pageTitle').innerText = 'Clinical Pad'; } 
-            else { document.getElementById('viewHistory').classList.remove('hidden'); document.getElementById('navHistory').className = 'nav-btn active flex items-center p-4 rounded-2xl bg-teal-500/10 text-teal-400 transition-all'; document.getElementById('pageTitle').innerText = 'Archive'; }
+            if (tab === 'rxPad') { document.getElementById('viewRxPad').classList.remove('hidden'); document.getElementById('pageTitle').innerText = 'Clinical Pad'; } 
+            else { document.getElementById('viewHistory').classList.remove('hidden'); document.getElementById('pageTitle').innerText = 'Archive'; }
         }
-        function closeAllDropdowns(e) {
-            if(!document.getElementById('patientDropdownContainer').contains(e.target)) document.getElementById('patientDropdown').classList.add('hidden');
-            if(!document.getElementById('drugDropdownContainer').contains(e.target)) document.getElementById('drugDropdown').classList.add('hidden');
-        }
+        function closeAllDropdowns(e) { if(!document.getElementById('patientDropdownContainer').contains(e.target)) document.getElementById('patientDropdown').classList.add('hidden'); if(!document.getElementById('drugDropdownContainer').contains(e.target)) document.getElementById('drugDropdown').classList.add('hidden'); }
         function logout() { localStorage.clear(); window.location.href = 'index.html'; }
+
+        // 🖨️ THE PRINT PDF ENGINE
+        function printCurrentRecord() {
+            if(!currentRxForPrint) return;
+            const rx = currentRxForPrint;
+            const d = new Date(rx.createdAt).toLocaleString();
+            const printHtml = `
+                <div style="font-family: sans-serif; max-width: 800px; margin: 0 auto; color: #0f172a;">
+                    <div style="border-bottom: 2px solid #0f172a; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h1 style="font-size: 24px; font-weight: 900; margin: 0;">HOLMES NATIONAL HEALTH GRID</h1>
+                            <p style="font-size: 12px; color: #64748b; margin: 5px 0 0 0; text-transform: uppercase; letter-spacing: 1px;">Official Medical Record</p>
+                        </div>
+                        <div style="text-align: right;"><div id="printQrCode"></div></div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 40px; background: #f8fafc; padding: 20px; border-radius: 12px;">
+                        <div><p style="font-size: 10px; color: #64748b; text-transform: uppercase; font-weight: bold; margin: 0 0 5px 0;">Prescribed By</p><p style="font-size: 16px; font-weight: 800; margin: 0;">Dr. ${drName}</p></div>
+                        <div style="text-align: right;"><p style="font-size: 10px; color: #64748b; text-transform: uppercase; font-weight: bold; margin: 0 0 5px 0;">Timestamp & Rx No.</p><p style="font-size: 14px; font-weight: 600; margin: 0;">${d}</p><p style="font-size: 14px; font-family: monospace; font-weight: bold; margin: 5px 0 0 0;">${rx.broadcastId}</p></div>
+                    </div>
+                    <h3 style="font-size: 14px; font-weight: 900; text-transform: uppercase; margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;">Authorized Medications</h3>
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 40px;">
+                        <tr style="background: #f1f5f9; text-align: left; font-size: 12px; text-transform: uppercase; color: #64748b;">
+                            <th style="padding: 12px; border-bottom: 1px solid #cbd5e1;">Brand Name</th><th style="padding: 12px; border-bottom: 1px solid #cbd5e1;">Dosage</th><th style="padding: 12px; border-bottom: 1px solid #cbd5e1;">Timing</th><th style="padding: 12px; border-bottom: 1px solid #cbd5e1;">Duration</th>
+                        </tr>
+                        ${rx.medications.map(m => `<tr><td style="padding: 12px; border-bottom: 1px solid #e2e8f0; font-weight: bold;">${m.brandName}</td><td style="padding: 12px; border-bottom: 1px solid #e2e8f0;">${m.dosage}</td><td style="padding: 12px; border-bottom: 1px solid #e2e8f0;">${m.timing}</td><td style="padding: 12px; border-bottom: 1px solid #e2e8f0; font-weight: bold;">${m.duration}</td></tr>`).join('')}
+                    </table>
+                    ${rx.investigations && rx.investigations.length > 0 ? `<h3 style="font-size: 14px; font-weight: 900; text-transform: uppercase; margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;">Required Investigations</h3><div style="display: flex; gap: 10px; flex-wrap: wrap;">${rx.investigations.map(t => `<span style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: bold;">${t}</span>`).join('')}</div>` : ''}
+                    <div style="margin-top: 80px; text-align: center; color: #94a3b8; font-size: 10px; font-weight: bold; text-transform: uppercase;">
+                        <p>This is a cryptographically secured electronic prescription.</p><p>Valid only when scanned and verified through the National Health Grid.</p>
+                    </div>
+                </div>
+            `;
+            document.getElementById('printArea').innerHTML = printHtml;
+            new QRCode(document.getElementById('printQrCode'), { text: JSON.stringify({bId: rx.broadcastId, otp: rx.otp}), width: 64, height: 64, colorDark: "#0f172a" });
+            setTimeout(() => { window.print(); }, 300);
+        }
     </script>
 </body>
 </html>
