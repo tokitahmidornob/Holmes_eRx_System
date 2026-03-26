@@ -2,9 +2,7 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
 
-// 🌟 INJECTING THE NATIONAL GRID MODELS
 const { Person, Patient, PractitionerRole } = require('../models/GridModels');
 
 // ==========================================
@@ -14,25 +12,25 @@ router.post('/register', async (req, res) => {
     try {
         const { name, email, password, role, dob, gender, phone } = req.body;
 
-        // Step 1: Check if Identity already exists
+        if (!email || !password || !name) {
+            return res.status(400).json({ msg: 'Missing vital registration data.' });
+        }
+
         let existingPerson = await Person.findOne({ loginIdentity: email });
         if (existingPerson) return res.status(400).json({ msg: 'Identity already exists in National Grid.' });
 
-        // Step 2: Create Universal UUID (e.g., BD-2026-XXXXX)
         const timestamp = Date.now().toString().slice(-6);
         const uuid = `BD-${new Date().getFullYear()}-${timestamp}`;
 
-        // Step 3: Cryptographic Passphrase Hashing
         const salt = await bcrypt.genSalt(12);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        // Step 4: Create the 'Person' (The Human Identity)
         const newPerson = new Person({
             internalUuid: uuid,
             loginIdentity: email,
             password: hashedPassword,
             legalFullName: name,
-            dateOfBirth: dob || new Date(), // Required for National Grade
+            dateOfBirth: dob || new Date(), 
             genderLegal: gender || 'Other',
             contact: {
                 primaryMobile: phone || '0000000000',
@@ -43,7 +41,6 @@ router.post('/register', async (req, res) => {
 
         const savedPerson = await newPerson.save();
 
-        // Step 5: Link the 'Role' (The Clinical Authority)
         if (role === 'patient') {
             await Patient.create({
                 personId: savedPerson._id,
@@ -51,10 +48,10 @@ router.post('/register', async (req, res) => {
                 nationalHealthId: `NHI-${uuid}`
             });
         } else {
-            // Doctors, Pharmacists, Pathologists
+            const roleTypeStr = role ? role.charAt(0).toUpperCase() + role.slice(1) : 'Doctor';
             await PractitionerRole.create({
                 personId: savedPerson._id,
-                roleType: role.charAt(0).toUpperCase() + role.slice(1), // e.g. 'Doctor'
+                roleType: roleTypeStr, 
                 audit: { verificationStatus: 'Pending' }
             });
         }
@@ -62,8 +59,8 @@ router.post('/register', async (req, res) => {
         res.status(201).json({ msg: 'National Identity Initialized. Pending Verification.' });
 
     } catch (err) {
-        console.error("AUTH_ERR:", err);
-        res.status(500).json({ msg: 'Grid Initialization Failure.' });
+        console.error("AUTH_REGISTER_ERR:", err);
+        res.status(500).json({ msg: 'Grid Initialization Failure: ' + err.message });
     }
 });
 
@@ -74,20 +71,20 @@ router.post('/login', async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        // Step 1: Find the Person
+        if (!email || !password) {
+            return res.status(400).json({ msg: 'Email and Password are required.' });
+        }
+
         const person = await Person.findOne({ loginIdentity: email });
         if (!person) return res.status(400).json({ msg: 'Invalid Grid Credentials.' });
 
-        // Step 2: Verify Hash
         const isMatch = await bcrypt.compare(password, person.password);
         if (!isMatch) return res.status(400).json({ msg: 'Invalid Grid Credentials.' });
 
-        // Step 3: Determine Role via Relational Search
         let userRole = 'patient';
         const checkPrac = await PractitionerRole.findOne({ personId: person._id });
         if (checkPrac) userRole = checkPrac.roleType.toLowerCase();
 
-        // Step 4: Sign JWT with National UUID
         const payload = {
             id: person._id,
             uuid: person.internalUuid,
@@ -95,13 +92,21 @@ router.post('/login', async (req, res) => {
             name: person.legalFullName
         };
 
-        jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '12h' }, (err, token) => {
-            if (err) throw err;
+        // 🛡️ FALLBACK SECRET ADDED
+        const secret = process.env.JWT_SECRET || 'holmes_emergency_grid_secret_2026';
+
+        jwt.sign(payload, secret, { expiresIn: '12h' }, (err, token) => {
+            if (err) {
+                console.error("JWT_SIGN_ERR:", err);
+                return res.status(500).json({ msg: 'Token Encryption Failed: ' + err.message });
+            }
             res.json({ token, user: payload });
         });
 
     } catch (err) {
-        res.status(500).json({ msg: 'Authentication Terminal Offline.' });
+        console.error("LOGIN_CRASH:", err);
+        // 🚨 THIS WILL PRINT THE EXACT ERROR ON YOUR SCREEN
+        res.status(500).json({ msg: 'Terminal Error: ' + err.message }); 
     }
 });
 
