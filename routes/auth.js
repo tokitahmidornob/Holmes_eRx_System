@@ -3,7 +3,6 @@ const router = express.Router();
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 
-// 🌟 THE ID GENERATION ENGINE
 const generateGridId = (role) => {
     const prefixes = { doctor: 'DR', patient: 'PT', pharmacist: 'PH', pathologist: 'PA' };
     const prefix = prefixes[role] || 'USR';
@@ -11,7 +10,6 @@ const generateGridId = (role) => {
     return `${prefix}-${randomNum}`;
 };
 
-// 🛡️ SECURITY MIDDLEWARE
 const authenticate = (req, res, next) => {
     const authHeader = req.header('Authorization');
     if (!authHeader) return res.status(401).json({ msg: 'Access Denied.' });
@@ -24,9 +22,6 @@ const authenticate = (req, res, next) => {
     }
 };
 
-// ==========================================
-// 📝 REGISTRATION ROUTE
-// ==========================================
 router.post('/register', async (req, res) => {
     try {
         const { name, email, password, role } = req.body;
@@ -36,16 +31,12 @@ router.post('/register', async (req, res) => {
         const gridId = generateGridId(role);
         user = new User({ name, email, password, role, gridId });
         await user.save();
-        
         res.status(201).json({ msg: `Profile Registered. Assigned ID: ${gridId}` });
     } catch (err) {
         res.status(500).json({ msg: `Server Error: ${err.message}` });
     }
 });
 
-// ==========================================
-// 🔐 LOGIN ROUTE (WITH RETROACTIVE PATCH)
-// ==========================================
 router.post('/login', async (req, res) => {
     try {
         const { email, password, role } = req.body;
@@ -53,7 +44,7 @@ router.post('/login', async (req, res) => {
         
         if (!user) return res.status(400).json({ msg: "Identity not found in the Grid." });
         if (user.password !== password) return res.status(400).json({ msg: "Invalid Cryptographic Password." });
-        if (!process.env.JWT_SECRET) return res.status(500).json({ msg: "SERVER CONFIG ERROR: JWT_SECRET missing." });
+        if (!process.env.JWT_SECRET) return res.status(500).json({ msg: "SERVER CONFIG ERROR." });
 
         if (!user.gridId) {
             user.gridId = generateGridId(user.role);
@@ -61,27 +52,22 @@ router.post('/login', async (req, res) => {
         }
 
         const safeId = user._id.toString();
+        
+        // 🌟 FIXED: THE EMAIL IS NOW CRYPTOGRAPHICALLY STAMPED INTO THE TOKEN 🌟
         const token = jwt.sign(
-            { id: safeId, name: user.name, role: user.role, gridId: user.gridId },
+            { id: safeId, name: user.name, role: user.role, gridId: user.gridId, email: user.email },
             process.env.JWT_SECRET,
             { expiresIn: '1d' }
         );
 
-        res.json({ 
-            token, 
-            user: { id: safeId, name: user.name, role: user.role, email: user.email, gridId: user.gridId } 
-        });
+        res.json({ token, user: { id: safeId, name: user.name, role: user.role, email: user.email, gridId: user.gridId } });
     } catch (err) {
         res.status(500).json({ msg: `System Failure: ${err.message}` });
     }
 });
 
-// ==========================================
-// 🏥 NEW: FETCH ALL PATIENTS FOR DOCTOR
-// ==========================================
 router.get('/patients', authenticate, async (req, res) => {
     try {
-        // Find all users with the role of 'patient', return only needed fields
         const patients = await User.find({ role: 'patient' }).select('name email gridId');
         res.json(patients);
     } catch (err) {

@@ -19,11 +19,11 @@
         .dropdown-menu { transform-origin: top; transition: transform 0.2s ease, opacity 0.2s ease; z-index: 100; }
         .dropdown-menu.hidden { transform: scaleY(0.95); opacity: 0; pointer-events: none; }
         
-        /* 🖨️ THE STEALTH PRINT ENGINE 🖨️ */
+        /* 🖨️ THE FIXED PRINT ENGINE 🖨️ */
         @media print {
-            body * { visibility: hidden; }
-            #printArea, #printArea * { visibility: visible; }
-            #printArea { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; }
+            body { height: auto !important; overflow: visible !important; background: white !important; }
+            body > *:not(#printArea):not(script) { display: none !important; }
+            #printArea { display: block !important; position: static; width: 100%; padding: 0; }
         }
     </style>
 </head>
@@ -31,46 +31,35 @@
 
     <aside class="w-24 lg:w-72 bg-slate-900 text-white flex flex-col transition-all duration-300 z-20 shadow-2xl relative">
         <div class="h-24 flex items-center justify-center lg:justify-start lg:px-8 border-b border-slate-800">
-            <div class="w-10 h-10 bg-teal-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-teal-500/30 shrink-0">
-                <i class="fa-solid fa-user-doctor"></i>
-            </div>
+            <div class="w-10 h-10 bg-teal-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-teal-500/30 shrink-0"><i class="fa-solid fa-user-doctor"></i></div>
             <h1 class="hidden lg:block ml-4 text-xl font-black tracking-tighter">Holmes <span class="text-teal-400">eRx</span></h1>
         </div>
         <nav class="flex-1 py-8 flex flex-col gap-2 px-4">
             <button onclick="switchTab('rxPad')" id="navRxPad" class="nav-btn active flex items-center p-4 rounded-2xl bg-teal-500/10 text-teal-400 transition-all">
-                <i class="fa-solid fa-pen-nib text-xl lg:mr-4 w-6 text-center"></i>
-                <span class="hidden lg:block font-bold text-sm">Write Prescription</span>
+                <i class="fa-solid fa-pen-nib text-xl lg:mr-4 w-6 text-center"></i><span class="hidden lg:block font-bold text-sm">Write Prescription</span>
             </button>
             <button onclick="switchTab('history')" id="navHistory" class="nav-btn flex items-center p-4 rounded-2xl hover:bg-slate-800 text-slate-400 hover:text-white transition-all">
-                <i class="fa-solid fa-clock-rotate-left text-xl lg:mr-4 w-6 text-center"></i>
-                <span class="hidden lg:block font-bold text-sm">Rx History & Labs</span>
+                <i class="fa-solid fa-clock-rotate-left text-xl lg:mr-4 w-6 text-center"></i><span class="hidden lg:block font-bold text-sm">Rx History & Labs</span>
             </button>
         </nav>
         <div class="p-4 border-t border-slate-800">
             <div class="hidden lg:block mb-4 px-4 text-center">
                 <p id="drNameDisplay" class="font-black text-sm text-white truncate">Dr. Holmes</p>
-                <div class="bg-slate-800/50 border border-slate-700 rounded-lg mt-2 py-1">
-                    <p id="drGridIdDisplay" class="text-xs font-mono font-bold text-teal-400 tracking-wider">ID: PENDING</p>
-                </div>
+                <div class="bg-slate-800/50 border border-slate-700 rounded-lg mt-2 py-1"><p id="drGridIdDisplay" class="text-xs font-mono font-bold text-teal-400 tracking-wider">ID: PENDING</p></div>
             </div>
             <button onclick="logout()" class="w-full flex items-center justify-center p-4 rounded-2xl hover:bg-rose-500/10 text-slate-400 hover:text-rose-500 transition-all">
-                <i class="fa-solid fa-power-off text-xl lg:mr-3"></i>
-                <span class="hidden lg:block font-bold text-sm uppercase tracking-widest">Disconnect</span>
+                <i class="fa-solid fa-power-off text-xl lg:mr-3"></i><span class="hidden lg:block font-bold text-sm uppercase tracking-widest">Disconnect</span>
             </button>
         </div>
     </aside>
 
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative bg-slate-50">
         <header class="h-24 glass-panel border-b border-slate-200 flex items-center justify-between px-8 shrink-0 z-10">
-            <div>
-                <h2 id="pageTitle" class="text-2xl font-black text-slate-900 tracking-tighter">Clinical Pad</h2>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">National Grid Connected</p>
-            </div>
+            <div><h2 id="pageTitle" class="text-2xl font-black text-slate-900 tracking-tighter">Clinical Pad</h2><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">National Grid Connected</p></div>
         </header>
 
         <div class="flex-1 overflow-y-auto custom-scrollbar p-8">
             <div id="viewRxPad" class="max-w-5xl mx-auto space-y-6 block">
-                
                 <div class="bg-white rounded-[32px] p-8 shadow-sm border border-slate-200 flex justify-between items-center">
                     <div class="flex-1">
                         <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Select Patient</label>
@@ -81,25 +70,20 @@
                         </div>
                     </div>
                     <div id="patientStatusBadge" class="hidden text-right ml-4">
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Grid Status</p>
-                        <span class="bg-indigo-50 text-indigo-600 border border-indigo-200 px-3 py-1.5 rounded-lg text-xs font-black uppercase"><i class="fa-solid fa-file-waveform mr-1"></i> History Synced</span>
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Grid Status</p><span class="bg-indigo-50 text-indigo-600 border border-indigo-200 px-3 py-1.5 rounded-lg text-xs font-black uppercase"><i class="fa-solid fa-file-waveform mr-1"></i> History Synced</span>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div class="lg:col-span-2 bg-white rounded-[32px] shadow-sm border border-slate-200 p-6 flex flex-col">
                         <h3 class="font-black text-slate-900 uppercase tracking-widest text-xs mb-4"><i class="fa-solid fa-capsules text-teal-500 mr-2"></i> Medications</h3>
-                        
                         <div class="grid grid-cols-12 gap-2 mb-4 relative">
                             <div class="col-span-4" id="drugDropdownContainer">
                                 <input type="text" id="medName" oninput="searchDrugs(this.value)" placeholder="Search Drug..." class="premium-input w-full bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm font-bold outline-none">
                                 <div id="drugDropdown" class="dropdown-menu hidden absolute w-full mt-2 bg-white border border-slate-200 rounded-2xl shadow-2xl max-h-48 overflow-y-auto custom-scrollbar"></div>
                             </div>
                             <input type="text" id="medDose" placeholder="Dose" class="col-span-3 premium-input bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm font-bold outline-none">
-                            <select id="medTiming" class="col-span-3 premium-input bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm font-bold outline-none">
-                                <option value="After Meal">After Meal</option>
-                                <option value="Before Meal">Before Meal</option>
-                            </select>
+                            <select id="medTiming" class="col-span-3 premium-input bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm font-bold outline-none"><option value="After Meal">After Meal</option><option value="Before Meal">Before Meal</option></select>
                             <input type="text" id="medDuration" placeholder="Days" class="col-span-2 premium-input bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm font-bold outline-none">
                         </div>
 
@@ -111,9 +95,7 @@
                             </div>
                         </div>
 
-                        <button onclick="attemptAddMedication()" class="w-full bg-slate-100 hover:bg-teal-50 hover:text-teal-600 border border-transparent hover:border-teal-200 text-slate-600 p-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all mb-4">
-                            + Add to Prescription
-                        </button>
+                        <button onclick="attemptAddMedication()" class="w-full bg-slate-100 hover:bg-teal-50 hover:text-teal-600 border border-transparent hover:border-teal-200 text-slate-600 p-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all mb-4">+ Add to Prescription</button>
                         <div id="medListDisplay" class="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar min-h-[150px]"></div>
                     </div>
 
@@ -136,10 +118,7 @@
 
             <div id="viewHistory" class="hidden">
                 <div class="bg-white rounded-[32px] shadow-sm border border-slate-200 overflow-hidden">
-                    <div class="p-8 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
-                        <h3 class="font-black text-slate-900 uppercase tracking-widest text-xs"><i class="fa-solid fa-vault text-slate-400 mr-2"></i> Master Rx Archive</h3>
-                        <button onclick="fetchHistory()" class="text-[10px] font-black uppercase tracking-widest bg-slate-200 hover:bg-slate-300 px-4 py-2 rounded-full transition-colors">Refresh</button>
-                    </div>
+                    <div class="p-8 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center"><h3 class="font-black text-slate-900 uppercase tracking-widest text-xs"><i class="fa-solid fa-vault text-slate-400 mr-2"></i> Master Rx Archive</h3><button onclick="fetchHistory()" class="text-[10px] font-black uppercase tracking-widest bg-slate-200 hover:bg-slate-300 px-4 py-2 rounded-full transition-colors">Refresh</button></div>
                     <div class="p-4"><div id="historyList" class="divide-y divide-slate-100 max-h-[60vh] overflow-y-auto custom-scrollbar"></div></div>
                 </div>
             </div>
@@ -161,10 +140,7 @@
     <div id="rxModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 p-6 opacity-0 pointer-events-none transition-all duration-300">
         <div class="bg-white rounded-[32px] w-full max-w-[800px] shadow-2xl relative overflow-hidden border border-slate-100 glass-panel transform scale-95 transition-transform duration-300" id="rxModalContent">
             <div class="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                <div>
-                    <h3 class="text-xl font-black text-slate-900 uppercase tracking-tighter">Prescription Detail</h3>
-                    <p id="modalDrName" class="text-xs font-bold text-indigo-600 mt-1">Dr. Name</p>
-                </div>
+                <div><h3 class="text-xl font-black text-slate-900 uppercase tracking-tighter">Prescription Detail</h3><p id="modalDrName" class="text-xs font-bold text-indigo-600 mt-1">Dr. Name</p></div>
                 <div class="flex items-center gap-3">
                     <button onclick="printCurrentRecord()" class="bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-teal-600 transition-colors"><i class="fa-solid fa-print mr-2"></i> Formal PDF</button>
                     <button onclick="closeRxModal()" class="w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center hover:bg-rose-500 hover:text-white transition-colors"><i class="fa-solid fa-xmark"></i></button>
@@ -187,12 +163,9 @@
             <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl"><i class="fa-solid fa-check"></i></div>
             <h2 class="text-3xl font-black text-slate-900 tracking-tighter mb-2">RECORD BROADCASTED</h2>
             <div class="bg-slate-50 p-6 rounded-2xl mb-6 border border-slate-200">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Prescription Rx No.</p>
-                <p id="successBroadcastId" class="font-mono font-black text-2xl text-slate-800"></p>
-                <div class="h-px bg-slate-200 my-4"></div>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Prescription Rx No.</p><p id="successBroadcastId" class="font-mono font-black text-2xl text-slate-800"></p><div class="h-px bg-slate-200 my-4"></div>
                 <div class="flex justify-center mb-4"><div id="successQr" class="p-3 bg-white rounded-xl border-2 border-slate-200 shadow-sm flex items-center justify-center min-h-[150px] min-w-[150px]"></div></div>
-                <p class="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em] mb-2">Secure OTP Key</p>
-                <p id="successOtp" class="font-mono font-black text-5xl text-emerald-600 tracking-[0.1em]"></p>
+                <p class="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em] mb-2">Secure OTP Key</p><p id="successOtp" class="font-mono font-black text-5xl text-emerald-600 tracking-[0.1em]"></p>
             </div>
             <div class="flex gap-4">
                 <button onclick="printCurrentRecord()" class="flex-1 bg-teal-600 hover:bg-teal-700 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest"><i class="fa-solid fa-print mr-2"></i> Print PDF</button>
@@ -210,7 +183,7 @@
         const drName = localStorage.getItem('eRx_UserName');
         let medications = []; let investigations = []; let allPatients = []; let currentFetchedDrugs = []; 
         let patientActiveMeds = []; let pendingMedToAdd = null; let doctorPrescriptions = [];
-        let currentRxForPrint = null; // Store for printing
+        let currentRxForPrint = null; 
 
         const interactionDB = { "Aspirin": ["Ibuprofen", "Warfarin", "Naproxen"], "Fexofenadine": ["Erythromycin", "Ketoconazole"], "Napa": ["Ketoconazole"] };
         function parseJwt(t) { try { return JSON.parse(atob(t.split('.')[1])); } catch(e) { return {}; } }
@@ -288,7 +261,7 @@
                 const res = await fetch(`${API_BASE_URL}/api/prescriptions`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ doctorId: drId, patientId: pEmail, medications, investigations }) });
                 const data = await res.json();
                 if(res.ok) {
-                    currentRxForPrint = { ...data, doctorId: { name: drName }, patientId: pEmail }; // Save for print
+                    currentRxForPrint = { ...data, doctorId: { name: drName }, patientId: pEmail };
                     document.getElementById('successBroadcastId').innerText = data.broadcastId; document.getElementById('successOtp').innerText = data.otp;
                     document.getElementById('successQr').innerHTML = ''; new QRCode(document.getElementById('successQr'), { text: JSON.stringify({ bId: data.broadcastId, otp: data.otp }), width: 130, height: 130, colorDark : "#0f172a" });
                     document.getElementById('successModal').classList.remove('opacity-0', 'pointer-events-none'); document.getElementById('successModalContent').classList.remove('scale-95');
@@ -311,7 +284,7 @@
 
         async function openRxModal(index) {
             const rx = doctorPrescriptions[index];
-            currentRxForPrint = rx; // Save for print
+            currentRxForPrint = rx;
             document.getElementById('modalDrName').innerText = `Dr. ${drName}`;
             document.getElementById('modalBroadcastId').innerText = rx.broadcastId; document.getElementById('modalOtp').innerText = rx.otp;
             document.getElementById('modalMedList').innerHTML = rx.medications.map(m => `<div class="bg-slate-50 p-3 rounded-xl border"><div><p class="font-black text-sm">${m.brandName}</p></div></div>`).join('');

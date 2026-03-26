@@ -19,22 +19,15 @@
     <nav class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
         <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 cyan-gradient rounded-xl flex items-center justify-center text-white shadow-lg">
-                    <i class="fa-solid fa-microscope"></i>
-                </div>
-                <div>
-                    <h1 class="text-xl font-black text-slate-900 tracking-tighter leading-none">Diagnostic <span class="text-cyan-600">Terminal</span></h1>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">National Health Grid</p>
-                </div>
+                <div class="w-10 h-10 cyan-gradient rounded-xl flex items-center justify-center text-white shadow-lg"><i class="fa-solid fa-microscope"></i></div>
+                <div><h1 class="text-xl font-black text-slate-900 tracking-tighter leading-none">Diagnostic <span class="text-cyan-600">Terminal</span></h1><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">National Health Grid</p></div>
             </div>
             <div class="flex items-center gap-6">
                 <div class="text-right hidden md:block">
                     <p id="pathologistNameDisplay" class="text-sm font-black text-slate-900">Loading Agent...</p>
                     <p id="pathologistIdDisplay" class="text-[10px] font-bold text-cyan-600 uppercase tracking-widest font-mono">ID: PENDING</p>
                 </div>
-                <button onclick="logout()" class="bg-slate-100 hover:bg-rose-100 hover:text-rose-600 text-slate-600 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-colors">
-                    <i class="fa-solid fa-power-off mr-1"></i> Disconnect
-                </button>
+                <button onclick="logout()" class="bg-slate-100 hover:bg-rose-100 hover:text-rose-600 text-slate-600 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-colors"><i class="fa-solid fa-power-off mr-1"></i> Disconnect</button>
             </div>
         </div>
     </nav>
@@ -45,9 +38,7 @@
             <div class="relative z-10">
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-white text-2xl font-black tracking-tighter"><i class="fa-solid fa-vial-circle-check text-cyan-500 mr-2"></i> Verify Lab Order</h2>
-                    <button onclick="startScanner()" class="bg-cyan-500/20 hover:bg-cyan-500 hover:text-white text-cyan-400 border border-cyan-500/30 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2">
-                        <i class="fa-solid fa-camera"></i> Scan Patient Token
-                    </button>
+                    <button onclick="startScanner()" class="bg-cyan-500/20 hover:bg-cyan-500 hover:text-white text-cyan-400 border border-cyan-500/30 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2"><i class="fa-solid fa-camera"></i> Scan Patient Token</button>
                 </div>
 
                 <div id="scannerContainer" class="hidden mb-6 bg-black rounded-2xl overflow-hidden border-2 border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.5)]">
@@ -65,9 +56,7 @@
                         <input type="text" id="searchOtp" required placeholder="----" maxlength="4" class="w-full bg-slate-800 border border-slate-700 text-white p-4 rounded-2xl font-mono text-center text-2xl tracking-[0.5em] outline-none focus:border-cyan-500">
                     </div>
                     <div class="md:col-span-3 mt-2">
-                        <button type="submit" id="searchBtn" class="w-full cyan-gradient text-white py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-lg hover:shadow-cyan-500/30 transition-all">
-                            Authenticate Request
-                        </button>
+                        <button type="submit" id="searchBtn" class="w-full cyan-gradient text-white py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-lg hover:shadow-cyan-500/30 transition-all">Authenticate Request</button>
                     </div>
                 </form>
             </div>
@@ -78,11 +67,9 @@
                 <div><p class="text-[10px] font-black text-cyan-600 uppercase tracking-widest mb-1">Target Identified</p><h3 id="resPatientName" class="text-2xl font-black text-slate-900 tracking-tighter">Patient Name</h3></div>
                 <div class="text-right"><span id="resStatusBadge" class="px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest border border-cyan-200 bg-cyan-50 text-cyan-700">Authenticated</span></div>
             </div>
-
             <div class="p-8">
                 <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Required Investigations</h4>
                 <div id="resTestList" class="flex flex-wrap gap-2 mb-8"></div>
-
                 <div class="bg-cyan-50 border border-cyan-100 p-6 rounded-[24px]">
                     <h4 class="text-[10px] font-black text-cyan-700 uppercase tracking-widest mb-4"><i class="fa-solid fa-cloud-arrow-up mr-2"></i> Upload Lab Results to Grid</h4>
                     <form id="labForm" onsubmit="event.preventDefault(); submitLabReport();" class="space-y-4">
@@ -102,98 +89,60 @@
     <script>
         const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
         const token = localStorage.getItem('eRx_Token');
-        let currentRxId = null; 
-        let html5QrcodeScanner = null; 
+        let currentRxId = null; let html5QrcodeScanner = null; 
 
         function parseJwt(t) { try { return JSON.parse(atob(t.split('.')[1])); } catch(e) { return {}; } }
         const decoded = parseJwt(token);
-
         if (!token || decoded.role !== 'pathologist') window.location.href = 'index.html';
 
         document.getElementById('pathologistNameDisplay').innerText = decoded.name || 'Diagnostic Agent';
         document.getElementById('pathologistIdDisplay').innerText = `ID: ${decoded.gridId || 'PENDING'}`;
-
         function logout() { localStorage.clear(); window.location.href = 'index.html'; }
 
-        // 📷 OPTICAL SCANNER
         function startScanner() {
             document.getElementById('scannerContainer').classList.remove('hidden');
             html5QrcodeScanner = new Html5Qrcode("reader");
-            html5QrcodeScanner.start(
-                { facingMode: "environment" }, 
-                { fps: 10, qrbox: { width: 250, height: 250 } },
+            html5QrcodeScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } },
                 (decodedText) => {
                     try {
                         const data = JSON.parse(decodedText);
-                        document.getElementById('searchBroadcastId').value = data.bId;
-                        document.getElementById('searchOtp').value = data.otp;
-                        stopScanner();
-                        verifyPrescription();
-                    } catch(e) { console.error("Invalid Token format."); }
-                },
-                (errorMessage) => {}
+                        document.getElementById('searchBroadcastId').value = data.bId; document.getElementById('searchOtp').value = data.otp;
+                        stopScanner(); verifyPrescription();
+                    } catch(e) {}
+                }, (errorMessage) => {}
             ).catch(err => alert("Camera Access Denied."));
         }
 
         function stopScanner() {
-            if (html5QrcodeScanner) {
-                html5QrcodeScanner.stop().then(() => { document.getElementById('scannerContainer').classList.add('hidden'); }).catch(e => {});
-            } else { document.getElementById('scannerContainer').classList.add('hidden'); }
+            if (html5QrcodeScanner) { html5QrcodeScanner.stop().then(() => { document.getElementById('scannerContainer').classList.add('hidden'); }).catch(e => {}); } 
+            else { document.getElementById('scannerContainer').classList.add('hidden'); }
         }
 
-        // 🔐 VERIFY
         async function verifyPrescription() {
-            const btn = document.getElementById('searchBtn');
-            const bId = document.getElementById('searchBroadcastId').value.trim().toUpperCase();
-            const otp = document.getElementById('searchOtp').value.trim();
-            const viewer = document.getElementById('resultsViewer');
-            
+            const btn = document.getElementById('searchBtn'); const bId = document.getElementById('searchBroadcastId').value.trim().toUpperCase(); const otp = document.getElementById('searchOtp').value.trim(); const viewer = document.getElementById('resultsViewer');
             if(!bId || !otp) return alert("Enter ID and OTP.");
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Decrypting...';
-            viewer.classList.add('hidden');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Decrypting...'; viewer.classList.add('hidden');
 
             try {
                 const res = await fetch(`${API_BASE_URL}/api/prescriptions/verify?broadcastId=${bId}&otp=${otp}`, { headers: { 'Authorization': `Bearer ${token}` } });
                 const data = await res.json();
                 if (res.ok) {
-                    currentRxId = data._id; 
-                    document.getElementById('resPatientName').innerText = data.patientId ? data.patientId.name : 'Unknown Patient';
-                    
-                    if(data.investigations && data.investigations.length > 0) {
-                        document.getElementById('resTestList').innerHTML = data.investigations.map(t => `<span class="bg-indigo-50 border border-indigo-100 text-indigo-700 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest">${t}</span>`).join('');
-                    } else {
-                        document.getElementById('resTestList').innerHTML = '<span class="text-slate-400 font-bold text-sm">No specific tests requested on this order.</span>';
-                    }
+                    currentRxId = data._id; document.getElementById('resPatientName').innerText = data.patientId ? data.patientId.name : 'Unknown Patient';
+                    if(data.investigations && data.investigations.length > 0) { document.getElementById('resTestList').innerHTML = data.investigations.map(t => `<span class="bg-indigo-50 border border-indigo-100 text-indigo-700 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest">${t}</span>`).join(''); } 
+                    else { document.getElementById('resTestList').innerHTML = '<span class="text-slate-400 font-bold text-sm">No specific tests requested.</span>'; }
                     viewer.classList.remove('hidden');
                 } else alert(data.msg);
-            } catch(err) { alert(`Grid Error: ${err.message}`); } 
-            finally { btn.innerHTML = 'Authenticate Request'; }
+            } catch(err) {} finally { btn.innerHTML = 'Authenticate Request'; }
         }
 
-        // 🔬 UPLOAD LAB
         async function submitLabReport() {
             if(!currentRxId) return;
-            const btn = document.getElementById('submitLabBtn');
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Transmitting...';
-
-            const payload = {
-                prescriptionId: currentRxId,
-                testName: document.getElementById('labTestName').value,
-                resultValue: document.getElementById('labResult').value,
-                unit: document.getElementById('labUnit').value,
-                referenceRange: document.getElementById('labRef').value
-            };
-
+            const btn = document.getElementById('submitLabBtn'); btn.innerHTML = 'Transmitting...';
+            const payload = { prescriptionId: currentRxId, testName: document.getElementById('labTestName').value, resultValue: document.getElementById('labResult').value, unit: document.getElementById('labUnit').value, referenceRange: document.getElementById('labRef').value };
             try {
-                const res = await fetch(`${API_BASE_URL}/api/labs`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload)
-                });
-                if(res.ok) {
-                    alert("Lab Report Transmitted to Doctor's Terminal Successfully.");
-                    document.getElementById('labForm').reset();
-                } else { const data = await res.json(); alert(data.msg); }
-            } catch(err) { alert(`Grid Error: ${err.message}`); } 
-            finally { btn.innerHTML = 'Transmit Report to Doctor'; }
+                const res = await fetch(`${API_BASE_URL}/api/labs`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) });
+                if(res.ok) { alert("Lab Report Transmitted."); document.getElementById('labForm').reset(); } else { const data = await res.json(); alert(data.msg); }
+            } catch(err) {} finally { btn.innerHTML = 'Transmit Report to Doctor'; }
         }
     </script>
 </body>
