@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; }
         .glass-panel { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(12px); }
@@ -29,7 +30,7 @@
             <div class="flex items-center gap-6">
                 <div class="text-right hidden md:block">
                     <p id="pharmacistNameDisplay" class="text-sm font-black text-slate-900">Loading Agent...</p>
-                    <p class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Licensed Pharmacist</p>
+                    <p id="pharmacistIdDisplay" class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest font-mono">ID: PENDING</p>
                 </div>
                 <button onclick="logout()" class="bg-slate-100 hover:bg-rose-100 hover:text-rose-600 text-slate-600 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-colors">
                     <i class="fa-solid fa-power-off mr-1"></i> Disconnect
@@ -44,7 +45,17 @@
             <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#10b981 1px, transparent 1px); background-size: 30px 30px;"></div>
             
             <div class="relative z-10">
-                <h2 class="text-white text-2xl font-black tracking-tighter mb-6"><i class="fa-solid fa-shield-halved text-emerald-500 mr-2"></i> Verify Grid Prescription</h2>
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-white text-2xl font-black tracking-tighter"><i class="fa-solid fa-shield-halved text-emerald-500 mr-2"></i> Verify Grid Prescription</h2>
+                    <button onclick="startScanner()" class="bg-emerald-500/20 hover:bg-emerald-500 hover:text-white text-emerald-400 border border-emerald-500/30 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-camera"></i> Scan Patient Token
+                    </button>
+                </div>
+
+                <div id="scannerContainer" class="hidden mb-6 bg-black rounded-2xl overflow-hidden border-2 border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.5)]">
+                    <div id="reader" class="w-full"></div>
+                    <button onclick="stopScanner()" class="w-full bg-slate-800 text-white py-2 text-xs font-black uppercase tracking-widest hover:bg-rose-600 transition-colors">Close Scanner</button>
+                </div>
                 
                 <form id="searchForm" onsubmit="event.preventDefault(); verifyPrescription();" class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div class="md:col-span-2">
@@ -96,22 +107,72 @@
     <script>
         const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
         const token = localStorage.getItem('eRx_Token');
-        const role = localStorage.getItem('eRx_UserRole');
-        let currentRxId = null; // Store the ID of the fetched prescription
+        
+        let currentRxId = null; 
+        let html5QrcodeScanner = null; // Holds the camera instance
 
-        // Security Check
-        if (!token || role !== 'pharmacist') {
-            window.location.href = 'index.html';
-        }
+        // Security Check & Decoder
+        function parseJwt(t) { try { return JSON.parse(atob(t.split('.')[1])); } catch(e) { return {}; } }
+        const decoded = parseJwt(token);
+
+        if (!token || decoded.role !== 'pharmacist') { window.location.href = 'index.html'; }
 
         // Initialize UI
         document.getElementById('pharmacistNameDisplay').innerText = localStorage.getItem('eRx_UserName') || 'Licensed Pharmacist';
+        document.getElementById('pharmacistIdDisplay').innerText = `ID: ${decoded.gridId || 'PENDING'}`;
 
-        function logout() {
-            localStorage.clear();
-            window.location.href = 'index.html';
+        function logout() { localStorage.clear(); window.location.href = 'index.html'; }
+
+        // ==========================================
+        // 📷 OPTICAL SCANNER LOGIC
+        // ==========================================
+        function startScanner() {
+            document.getElementById('scannerContainer').classList.remove('hidden');
+            
+            // Initialize the scanner engine
+            html5QrcodeScanner = new Html5Qrcode("reader");
+            
+            // Request camera (preferring the back camera on mobile devices)
+            html5QrcodeScanner.start(
+                { facingMode: "environment" }, 
+                { fps: 10, qrbox: { width: 250, height: 250 } },
+                (decodedText, decodedResult) => {
+                    try {
+                        // Attempt to parse the JSON string embedded in the QR code
+                        const data = JSON.parse(decodedText);
+                        
+                        // Auto-fill the inputs!
+                        document.getElementById('searchBroadcastId').value = data.bId;
+                        document.getElementById('searchOtp').value = data.otp;
+                        
+                        // Success! Stop the camera and hide the viewfinder
+                        stopScanner();
+                        
+                        // Automatically hit the "Authenticate" button
+                        verifyPrescription();
+                    } catch(e) {
+                        console.error("Scanned code is not a valid Holmes Grid Token.");
+                    }
+                },
+                (errorMessage) => {
+                    // This triggers constantly while searching for a code, we ignore it.
+                }
+            ).catch(err => alert("Camera Access Denied or Unavailable."));
         }
 
+        function stopScanner() {
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.stop().then(() => {
+                    document.getElementById('scannerContainer').classList.add('hidden');
+                }).catch(err => console.error("Failed to stop scanner."));
+            } else {
+                document.getElementById('scannerContainer').classList.add('hidden');
+            }
+        }
+
+        // ==========================================
+        // 🔐 DECRYPTION LOGIC
+        // ==========================================
         async function verifyPrescription() {
             const btn = document.getElementById('searchBtn');
             const bId = document.getElementById('searchBroadcastId').value.trim().toUpperCase();
@@ -124,7 +185,6 @@
             viewer.classList.add('hidden');
 
             try {
-                // Fetch prescription securely using ID and OTP
                 const res = await fetch(`${API_BASE_URL}/api/prescriptions/verify?broadcastId=${bId}&otp=${otp}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -132,27 +192,24 @@
                 const data = await res.json();
 
                 if (res.ok) {
-                    currentRxId = data._id; // Save ID for dispensing later
+                    currentRxId = data._id; 
                     
-                    // Populate UI
                     document.getElementById('resPatientName').innerText = data.patientId ? data.patientId.name : 'Unknown Patient';
                     document.getElementById('resDoctorInfo').innerText = `Authorized by: Dr. ${data.doctorId ? data.doctorId.name : 'Unknown'}`;
                     
-                    // Status Badge Logic
                     const badge = document.getElementById('resStatusBadge');
                     const actionArea = document.getElementById('dispenseActionArea');
                     
                     if(data.status === 'Dispensed') {
                         badge.className = 'px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest bg-rose-100 text-rose-700 border border-rose-200';
                         badge.innerText = 'Already Dispensed';
-                        actionArea.classList.add('hidden'); // Hide the dispense button
+                        actionArea.classList.add('hidden'); 
                     } else {
                         badge.className = 'px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest bg-emerald-100 text-emerald-700 border border-emerald-200';
                         badge.innerText = 'Active & Valid';
-                        actionArea.classList.remove('hidden'); // Show the dispense button
+                        actionArea.classList.remove('hidden'); 
                     }
 
-                    // Populate Meds
                     document.getElementById('resMedList').innerHTML = data.medications.map(m => `
                         <div class="bg-white p-4 rounded-xl border border-slate-200 flex justify-between items-center shadow-sm">
                             <div>
@@ -176,7 +233,6 @@
 
         async function dispenseMedication() {
             if(!currentRxId) return;
-            
             const btn = document.getElementById('dispenseBtn');
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Processing...';
             
@@ -188,7 +244,6 @@
 
                 if(res.ok) {
                     alert("Success! Prescription has been securely marked as Dispensed.");
-                    // Refresh the view to show it is now locked
                     verifyPrescription(); 
                 } else {
                     const data = await res.json();
