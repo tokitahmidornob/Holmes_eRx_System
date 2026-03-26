@@ -2,23 +2,19 @@ const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
 
-// 🌟 UPGRADED SCHEMA: Now pulling full clinical metadata
+// 🌟 UNIVERSAL SCHEMA PATCH 🌟
+// By using { strict: false }, we force Mongoose to fetch EVERY column in your database, 
+// even if we don't know the exact spelling of the column name!
 const Medicine = mongoose.models.Medicine || mongoose.model('Medicine', new mongoose.Schema({
-    brandName: String,
-    genericName: String,
-    strength: String,
-    indications: String,    // The medical use case
-    sideEffects: String,    // Known adverse effects
-    dosage: String,         // Default adult dosage
-    administration: String  // How it should be taken
-}), 'medicines');
+    brandName: String
+}, { strict: false }), 'medicines');
 
 router.get('/', async (req, res) => {
     try {
         const query = req.query.search;
         if (!query) return res.json([]);
 
-        // Searching by brand name, limiting to top 15 results for optimal speed
+        // Search by brand name
         const drugs = await Medicine.find({ 
             brandName: { $regex: query, $options: 'i' } 
         }).limit(15);

@@ -19,7 +19,6 @@
         .dropdown-menu { transform-origin: top; transition: transform 0.2s ease, opacity 0.2s ease; z-index: 100; }
         .dropdown-menu.hidden { transform: scaleY(0.95); opacity: 0; pointer-events: none; }
         
-        /* 🖨️ THE FIXED PRINT ENGINE 🖨️ */
         @media print {
             body { height: auto !important; overflow: visible !important; background: white !important; }
             body > *:not(#printArea):not(script) { display: none !important; }
@@ -77,6 +76,7 @@
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div class="lg:col-span-2 bg-white rounded-[32px] shadow-sm border border-slate-200 p-6 flex flex-col">
                         <h3 class="font-black text-slate-900 uppercase tracking-widest text-xs mb-4"><i class="fa-solid fa-capsules text-teal-500 mr-2"></i> Medications</h3>
+                        
                         <div class="grid grid-cols-12 gap-2 mb-4 relative">
                             <div class="col-span-4" id="drugDropdownContainer">
                                 <input type="text" id="medName" oninput="searchDrugs(this.value)" placeholder="Search Drug..." class="premium-input w-full bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm font-bold outline-none">
@@ -211,6 +211,7 @@
                 if(res.ok) { const history = await res.json(); patientActiveMeds = []; history.forEach(rx => { if(rx.status === 'Active') rx.medications.forEach(m => patientActiveMeds.push(m.brandName.toLowerCase())); }); }
             } catch(e) {}
         }
+        
         let searchTimeout;
         async function searchDrugs(query) {
             const dropdown = document.getElementById('drugDropdown');
@@ -227,10 +228,27 @@
                 } catch(e) { dropdown.innerHTML = 'Error'; }
             }, 300);
         }
+
+        // 🌟 THE SMART PARSER FIX 🌟
         function selectDrug(index) {
-            const drug = currentFetchedDrugs[index]; document.getElementById('medName').value = drug.brandName; document.getElementById('medDose').value = drug.dosage || ''; document.getElementById('drugDropdown').classList.add('hidden');
-            document.getElementById('metaIndications').innerText = drug.indications || 'None'; document.getElementById('metaSideEffects').innerText = drug.sideEffects || 'None'; document.getElementById('clinicalMetadataCard').classList.remove('hidden');
+            const drug = currentFetchedDrugs[index]; 
+            
+            // Diagnostics: Logs the exact database structure to F12 Console
+            console.log("Raw Drug Data:", drug);
+
+            document.getElementById('medName').value = drug.brandName || drug.brand_name || ''; 
+            document.getElementById('medDose').value = drug.dosage || drug.Dosage || drug.dose || ''; 
+            document.getElementById('drugDropdown').classList.add('hidden');
+            
+            // Smart Multi-Check Parser
+            const indications = drug.indications || drug.Indication || drug.indication || drug.uses || drug.therapeuticClass || 'None';
+            const sideEffects = drug.sideEffects || drug.SideEffects || drug.side_effects || drug.adverse_effects || 'None';
+
+            document.getElementById('metaIndications').innerText = indications; 
+            document.getElementById('metaSideEffects').innerText = sideEffects; 
+            document.getElementById('clinicalMetadataCard').classList.remove('hidden');
         }
+
         function attemptAddMedication() {
             const n = document.getElementById('medName').value; const ds = document.getElementById('medDose').value; const t = document.getElementById('medTiming').value; const dr = document.getElementById('medDuration').value;
             if(!n || !ds || !dr) return alert("Fill all fields.");
