@@ -40,8 +40,8 @@ const PatientSchema = new mongoose.Schema({
 
 const PractitionerRoleSchema = new mongoose.Schema({
     personId: { type: mongoose.Schema.Types.ObjectId, ref: 'Person', required: true },
-    roleType: { type: String, enum: ['Doctor', 'Pharmacist', 'Nurse', 'Admin'], required: true },
-    licenseNumber: { type: String, unique: true, sparse: true }, // Auto-indexed
+    roleType: { type: String, enum: ['Doctor', 'Pharmacist', 'Nurse', 'Admin', 'Pathologist'], required: true },
+    licenseNumber: { type: String, unique: true, sparse: true }, 
     specialty: [{ type: String }],
     audit: AuditMetadata
 });

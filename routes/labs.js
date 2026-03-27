@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const LabReport = require('../models/LabReport');
-const Prescription = const { Prescription } = require('../models/GridModels');; // 🌟 Added to fetch Doctor/Patient links
+const { Prescription } = require('../models/GridModels');
 const jwt = require('jsonwebtoken');
 
 // Security Tripwire

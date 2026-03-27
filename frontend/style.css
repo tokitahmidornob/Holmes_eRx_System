@@ -121,3 +121,16 @@ button.bg-slate-900.text-white:hover {
 
 /* 7. HIDE BACKGROUND ACCENTS (Removes the old soft blurry blobs) */
 .blur-\[120px\] { display: none !important; }
+
+/* 8. DRUG DATABASE & AUTOCOMPLETE FIX */
+datalist, option, .autocomplete-items, [id*="dropdown"] {
+    background-color: var(--obsidian) !important;
+    color: var(--cyan) !important;
+    font-family: 'Rajdhani', sans-serif !important;
+    font-weight: bold !important;
+    z-index: 9999 !important;
+}
+select option {
+    background-color: var(--obsidian) !important;
+    color: var(--cyan) !important;
+}

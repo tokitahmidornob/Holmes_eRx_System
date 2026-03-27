@@ -34,7 +34,19 @@
         </div>
 
         <div class="p-8 lg:p-10">
-            <div id="loginForm" class="space-y-6 block fade-in-up" style="animation-delay: 0.1s;">
+            <div id="loginForm" class="space-y-5 block fade-in-up" style="animation-delay: 0.1s;">
+                <div>
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 mb-2 block">Access Role</label>
+                    <div class="flex items-center rounded-2xl px-4 py-3 transition-all relative">
+                        <i class="fa-solid fa-user-shield text-slate-500 mr-3 absolute left-4 z-10"></i>
+                        <select id="loginRole" class="w-full bg-transparent outline-none text-sm font-bold pl-8 appearance-none cursor-pointer">
+                            <option value="patient">Citizen (Patient)</option>
+                            <option value="doctor">Practitioner (Doctor)</option>
+                            <option value="pharmacist">Authority (Pharmacist)</option>
+                            <option value="pathologist">Pathology (Lab)</option>
+                        </select>
+                    </div>
+                </div>
                 <div>
                     <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 mb-2 block">Grid Identity (Email)</label>
                     <div class="flex items-center rounded-2xl px-4 py-3 transition-all relative">
@@ -49,7 +61,7 @@
                         <input type="password" id="loginPassword" class="w-full bg-transparent outline-none text-sm font-bold pl-8" placeholder="••••••••">
                     </div>
                 </div>
-                <button onclick="login()" id="loginBtn" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl mt-4 flex items-center justify-center gap-3 transition-all">
+                <button onclick="login()" id="loginBtn" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl mt-4 flex items-center justify-center gap-3 transition-all hover:border-teal-400">
                     <i class="fa-solid fa-right-to-bracket"></i> Authenticate
                 </button>
             </div>
@@ -65,6 +77,7 @@
                         <option value="patient">Citizen (Patient)</option>
                         <option value="doctor">Practitioner (Doctor)</option>
                         <option value="pharmacist">Authority (Pharmacist)</option>
+                        <option value="pathologist">Pathology (Lab)</option>
                     </select>
                 </div>
                 <div>
@@ -75,7 +88,7 @@
                     <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 mb-2 block">Secure Passphrase</label>
                     <input type="password" id="regPassword" class="w-full rounded-xl px-4 py-3 text-sm font-bold outline-none transition-colors" placeholder="••••••••">
                 </div>
-                <button onclick="register()" id="registerBtn" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl mt-4 flex items-center justify-center gap-3 transition-all">
+                <button onclick="register()" id="registerBtn" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl mt-4 flex items-center justify-center gap-3 transition-all hover:border-indigo-400">
                     <i class="fa-solid fa-fingerprint"></i> Initialize Identity
                 </button>
             </div>
@@ -126,11 +139,13 @@
         function routeUser(role) {
             if (role === 'doctor') window.location.href = 'dashboard.html';
             else if (role === 'pharmacist') window.location.href = 'pharmacist_portal.html';
+            else if (role === 'pathologist') window.location.href = 'pathology_portal.html';
             else if (role === 'admin') window.location.href = 'admin_portal.html';
             else window.location.href = 'patient_portal.html'; 
         }
 
         async function login() {
+            const role = document.getElementById('loginRole').value;
             const email = document.getElementById('loginEmail').value.trim();
             const password = document.getElementById('loginPassword').value.trim();
             if (!email || !password) return showToast("Credentials are required.");
@@ -140,9 +155,10 @@
             btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Authenticating...'; btn.disabled = true;
 
             try {
+                // Notice we pass the role here if your backend needs it, otherwise backend ignores it and just uses email
                 const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
+                    body: JSON.stringify({ email, password, role }) 
                 });
                 const data = await res.json();
                 
@@ -150,6 +166,7 @@
                     sessionStorage.setItem('eRx_Token', data.token);
                     sessionStorage.setItem('eRx_UserName', data.user.name);
                     showToast("Access Granted.", "success");
+                    // Route based on what the server returned, not what the user selected, for security
                     setTimeout(() => routeUser(data.user.role), 500); 
                 } else showToast(data.msg, "error");
             } catch (err) { showToast("Grid Terminal Offline.", "error"); } finally { btn.innerHTML = ogHtml; btn.disabled = false; }
