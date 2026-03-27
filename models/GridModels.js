@@ -198,6 +198,33 @@ const AuditEventSchema = new mongoose.Schema({
 }, { capped: { size: 1073741824 } }); // Capped at 1GB for high-speed audit logging
 
 // ==========================================
+// 🚀 HYPER-SCALING B-TREE INDEXES
+// ==========================================
+
+// 1. Identity Lookups (Lightning fast logins and MPI searches)
+PersonSchema.index({ loginIdentity: 1 }, { unique: true });
+PatientSchema.index({ nationalHealthId: 1 });
+PatientSchema.index({ nationalId: 1 });
+PractitionerRoleSchema.index({ licenseNumber: 1 });
+
+// 2. Relational Lookups (Instantly find a Patient profile from a Person ID)
+PatientSchema.index({ personId: 1 });
+PractitionerRoleSchema.index({ personId: 1 });
+
+// 3. Cryptographic Payload Lookups (Instantly find prescriptions for Pharmacy & Patient Vaults)
+PrescriptionSchema.index({ broadcastId: 1 }, { unique: true });
+PrescriptionSchema.index({ patientId: 1, createdAt: -1 }); // Compound index for Vault sorting
+PrescriptionSchema.index({ practitionerRoleId: 1, createdAt: -1 }); 
+
+// 4. Clinical Dossier Lookups (Instantly load Allergies/Meds for the Contraindication Engine)
+AllergyProfileSchema.index({ patientId: 1 });
+ConditionProfileSchema.index({ patientId: 1 });
+MedicationProfileSchema.index({ patientId: 1 });
+
+
+
+
+// ==========================================
 // 🏁 MASTER EXPORTS
 // ==========================================
 module.exports = {
