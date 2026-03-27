@@ -3,82 +3,70 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const { Person, Patient, PractitionerRole } = require('../models/GridModels');
 
-// 🔒 SECURITY TRIPWIRE
-const authenticate = (req, res, next) => {
-    const authHeader = req.header('Authorization');
-    if (!authHeader) return res.status(401).json({ msg: 'Access Denied.' });
+// Cryptographic Token Verification
+const verifyToken = (req, res, next) => {
+    const token = req.header('Authorization');
+    if (!token) return res.status(401).json({ msg: "Grid Access Denied." });
     try {
-        req.user = jwt.verify(authHeader.split(' ')[1], process.env.JWT_SECRET || 'holmes_emergency_grid_secret_2026');
+        req.user = jwt.verify(token.replace('Bearer ', ''), process.env.JWT_SECRET || 'holmes_emergency_grid_secret_2026');
         next();
-    } catch (err) { res.status(401).json({ msg: 'Invalid Token.' }); }
+    } catch (err) { 
+        res.status(400).json({ msg: "Invalid Identity Token." }); 
+    }
 };
 
 // ==========================================
-// 1. FETCH IDENTITY DOSSIER
+// 📥 GET: FETCH CURRENT IDENTITY
 // ==========================================
-router.get('/', authenticate, async (req, res) => {
+router.get('/', verifyToken, async (req, res) => {
     try {
         const person = await Person.findById(req.user.id);
-        if (!person) return res.status(404).json({ msg: 'Identity not found in National Grid.' });
-
-        let roleSpecificData = {};
-        let profileCompletion = 50; // Base completion
-
+        let roleData = null;
+        
         if (req.user.role === 'patient') {
-            const pat = await Patient.findOne({ personId: person._id });
-            roleSpecificData = pat ? { nhi: pat.nationalHealthId, nid: pat.nationalId || '' } : {};
-            if (pat && pat.nationalId && person.contact.primaryMobile !== '0000000000') profileCompletion = 100;
+            roleData = await Patient.findOne({ personId: req.user.id });
         } else {
-            const prac = await PractitionerRole.findOne({ personId: person._id });
-            roleSpecificData = prac ? { license: prac.licenseNumber || '', status: prac.audit.verificationStatus } : {};
-            if (prac && prac.licenseNumber && person.contact.primaryMobile !== '0000000000') profileCompletion = 100;
+            roleData = await PractitionerRole.findOne({ personId: req.user.id });
         }
-
-        res.json({
-            person: {
-                name: person.legalFullName,
-                email: person.contact.primaryEmail,
-                phone: person.contact.primaryMobile === '0000000000' ? '' : person.contact.primaryMobile,
-                dob: person.dateOfBirth ? new Date(person.dateOfBirth).toISOString().split('T')[0] : '',
-                gender: person.genderLegal
-            },
-            roleData: roleSpecificData,
-            profileCompletion
-        });
-    } catch (err) {
-        console.error("PROFILE_FETCH_ERR:", err);
-        res.status(500).json({ msg: 'Grid Server Error.' });
+        
+        res.json({ person, roleData, role: req.user.role });
+    } catch (err) { 
+        console.error(err);
+        res.status(500).json({ msg: "Grid Error: Cannot fetch Identity Matrix." }); 
     }
 });
 
 // ==========================================
-// 2. UPDATE IDENTITY MATRIX
+// 📤 PUT: UPDATE ELABORATED PROFILE
 // ==========================================
-router.put('/update', authenticate, async (req, res) => {
+router.put('/', verifyToken, async (req, res) => {
     try {
-        const { phone, dob, gender, professionalLicense, nationalId } = req.body;
-        
-        // 1. Update Core Demographics
-        const person = await Person.findById(req.user.id);
-        if (phone) person.contact.primaryMobile = phone;
-        if (dob) person.dateOfBirth = dob;
-        if (gender) person.genderLegal = gender;
-        await person.save();
+        const { mobile, dob, gender, bloodGroup, nationalId, licenseNumber, specialty } = req.body;
 
-        // 2. Update Role-Specific Authority
-        if (req.user.role === 'patient' && nationalId) {
-            await Patient.findOneAndUpdate({ personId: person._id }, { nationalId: nationalId });
-        } else if ((req.user.role === 'doctor' || req.user.role === 'pharmacist') && professionalLicense) {
-            await PractitionerRole.findOneAndUpdate(
-                { personId: person._id }, 
-                { licenseNumber: professionalLicense, 'audit.verificationStatus': 'Pending Ministry Verification' }
-            );
+        // 1. Update Core Person Details (Shared by everyone)
+        await Person.findByIdAndUpdate(req.user.id, {
+            'contact.primaryMobile': mobile,
+            dateOfBirth: dob ? new Date(dob) : null,
+            genderLegal: gender
+        });
+
+        // 2. Update Role-Specific Details
+        if (req.user.role === 'patient') {
+            await Patient.findOneAndUpdate({ personId: req.user.id }, {
+                bloodGroup: bloodGroup, 
+                nationalId: nationalId
+            });
+        } else {
+            await PractitionerRole.findOneAndUpdate({ personId: req.user.id }, {
+                licenseNumber: licenseNumber, 
+                specialty: specialty ? specialty.split(',').map(s => s.trim()) : []
+            });
         }
-
-        res.json({ msg: 'Identity Matrix Updated Successfully. Cryptographic Hash Secured.' });
-    } catch (err) {
-        console.error("PROFILE_UPDATE_ERR:", err);
-        res.status(500).json({ msg: 'Failed to update Grid Identity.' });
+        
+        res.json({ msg: "Identity Matrix Successfully Updated and Sealed." });
+    } catch (err) { 
+        console.error(err);
+        res.status(500).json({ msg: "Grid Error: Failed to update Identity Matrix." }); 
     }
 });
 

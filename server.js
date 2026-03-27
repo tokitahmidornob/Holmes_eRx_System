@@ -47,6 +47,7 @@ app.use('/api/prescriptions', prescriptionRoutes);
 app.use('/api/pharmacy', require('./routes/pharmacy'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/analytics', require('./routes/analytics'));
+app.use('/api/patient', require('./routes/patient'));
 
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, '0.0.0.0', () => {

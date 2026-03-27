@@ -4,101 +4,94 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Citizen Portal | Holmes eRx</title>
-    <link rel="stylesheet" href="style.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <link rel="stylesheet" href="style.css">
     <style>
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
-        .glass-panel { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(16px); border: 1px solid rgba(226, 232, 240, 0.8); }
-        .fade-in-up { animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in-up { animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
-<body class="antialiased text-slate-800 bg-slate-50 flex h-screen overflow-hidden" onclick="closeAllDropdowns(event)">
+<body class="antialiased min-h-screen flex bg-slate-950">
 
-    <div class="lg:hidden fixed top-0 w-full h-16 bg-indigo-900 text-white flex items-center justify-between px-4 z-40 shadow-md">
-        <div class="flex items-center gap-3">
-            <div class="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center shadow-lg"><i class="fa-solid fa-shield-heart text-sm"></i></div>
-            <h1 class="font-black tracking-tighter text-lg">Holmes <span class="text-indigo-300">Citizen</span></h1>
-        </div>
-        <button onclick="toggleMobileMenu()" class="text-indigo-200 hover:text-white p-2 rounded-lg outline-none transition-colors"><i class="fa-solid fa-bars text-xl"></i></button>
-    </div>
-
-    <div id="mobileOverlay" class="fixed inset-0 bg-indigo-900/60 backdrop-blur-sm z-40 hidden lg:hidden transition-opacity opacity-0" onclick="toggleMobileMenu()"></div>
-
-    <aside id="mainSidebar" class="fixed lg:static inset-y-0 left-0 transform -translate-x-full lg:translate-x-0 w-64 lg:w-72 bg-indigo-900 text-white flex flex-col transition-transform duration-300 ease-in-out z-50 shadow-2xl shrink-0 h-full">
-        <div class="h-24 hidden lg:flex items-center justify-start px-8 border-b border-indigo-800">
-            <div class="w-10 h-10 bg-indigo-500 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/30 shrink-0"><i class="fa-solid fa-shield-heart"></i></div>
-            <h1 class="ml-4 text-xl font-black tracking-tighter">Holmes <span class="text-indigo-300">Citizen</span></h1>
-        </div>
-        
-        <nav class="flex-1 py-8 flex flex-col gap-2 px-4 mt-16 lg:mt-0 overflow-y-auto">
-            <p class="text-[10px] font-black text-indigo-300/50 uppercase tracking-widest px-4 mb-2">My Health</p>
-            <button onclick="switchTab('vault')" id="navVault" class="nav-btn active flex items-center p-4 rounded-2xl bg-indigo-500/20 text-indigo-300 transition-all hover:-translate-y-1">
-                <i class="fa-solid fa-pills text-xl mr-4 w-6 text-center"></i><span class="font-bold text-sm">Prescription Vault</span>
-            </button>
-            <button onclick="switchTab('dossier')" id="navDossier" class="nav-btn flex items-center p-4 rounded-2xl hover:bg-indigo-800 text-indigo-300/70 hover:text-white transition-all hover:-translate-y-1">
-                <i class="fa-solid fa-file-medical text-xl mr-4 w-6 text-center"></i><span class="font-bold text-sm">Clinical Dossier</span>
-            </button>
-        </nav>
-        
-        <div class="p-4 border-t border-indigo-800 bg-indigo-900/95 backdrop-blur">
-            <div class="mb-4 px-4 text-center">
-                <p id="citizenNameDisplay" class="font-black text-sm text-white truncate">Loading...</p>
-                <div class="bg-indigo-800/80 border border-indigo-700 rounded-lg mt-2 py-1"><p id="citizenNhiDisplay" class="text-[10px] font-mono font-bold text-indigo-300 tracking-wider">NHI: PENDING</p></div>
+    <aside class="w-64 glass-panel border-r border-slate-800 flex flex-col justify-between z-20" style="background: rgba(176, 38, 255, 0.05) !important; border-color: rgba(176, 38, 255, 0.2) !important;">
+        <div>
+            <div class="h-20 flex items-center gap-3 px-6 border-b border-indigo-500/20">
+                <div class="w-8 h-8 bg-indigo-500/20 rounded-lg flex items-center justify-center border border-indigo-500/50">
+                    <i class="fa-solid fa-shield-halved text-indigo-400"></i>
+                </div>
+                <h1 class="text-xl font-black tracking-tighter text-white">Holmes</h1>
             </div>
-            <button onclick="logout()" class="w-full flex items-center justify-center p-4 rounded-2xl bg-rose-500/10 hover:bg-rose-500 text-rose-300 hover:text-white transition-all group">
-                <i class="fa-solid fa-power-off text-xl mr-3 group-hover:rotate-180 transition-transform duration-500"></i><span class="font-bold text-sm uppercase tracking-widest">Sign Out</span>
+            <div class="p-6 space-y-2">
+                <p class="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-4">My Health</p>
+                <button class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-indigo-500 text-white font-bold text-sm shadow-[0_0_15px_rgba(176,38,255,0.4)] transition-all border-none">
+                    <i class="fa-solid fa-file-medical"></i> Clinical Dossier
+                </button>
+                <button class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-indigo-400 hover:bg-indigo-500/10 font-bold text-sm transition-all border border-transparent">
+                    <i class="fa-solid fa-pills"></i> Prescription Vault
+                </button>
+            </div>
+        </div>
+        
+        <div class="p-6 border-t border-indigo-500/20">
+            <div class="bg-slate-900/50 rounded-xl p-4 border border-indigo-500/20 text-center">
+                <p id="patientNameDisplay" class="text-sm font-black text-white mb-1">Citizen</p>
+                <p id="patientNhiDisplay" class="text-[10px] font-black text-indigo-400 uppercase tracking-widest bg-indigo-500/10 py-1 rounded-md border border-indigo-500/20">NHI: PENDING</p>
+            </div>
+            <button onclick="logout()" class="w-full mt-4 flex items-center justify-center gap-2 px-4 py-3 rounded-xl hover:bg-rose-500/10 text-slate-400 hover:text-rose-400 font-bold text-sm transition-all border border-transparent hover:border-rose-500/30">
+                <i class="fa-solid fa-power-off"></i> Sign Out
             </button>
         </div>
     </aside>
 
-    <main class="flex-1 flex flex-col h-screen overflow-y-auto relative w-full pt-16 lg:pt-0 custom-scrollbar">
-        <header class="h-20 lg:h-24 glass-panel border-b border-slate-200 flex items-center justify-between px-6 lg:px-10 shrink-0 sticky top-0 z-30">
+    <main class="flex-1 flex flex-col relative z-10 overflow-y-auto custom-scrollbar">
+        <header class="h-20 glass-panel border-b border-slate-800 flex items-center px-10 sticky top-0 z-30">
             <div>
-                <h2 id="pageTitle" class="text-xl lg:text-2xl font-black text-slate-900 tracking-tighter">Prescription Vault</h2>
-                <p class="text-[9px] lg:text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1 flex items-center"><i class="fa-solid fa-lock text-indigo-500 mr-1.5"></i> End-to-End Encrypted</p>
+                <h2 class="text-2xl font-black text-white tracking-tighter">Clinical Dossier</h2>
+                <p class="text-[10px] font-black text-emerald-400 uppercase tracking-widest mt-1 flex items-center gap-1"><i class="fa-solid fa-lock text-xs"></i> End-to-End Encrypted</p>
             </div>
         </header>
 
-        <div class="p-4 lg:p-10 max-w-5xl mx-auto w-full">
+        <div class="p-10 max-w-5xl mx-auto w-full space-y-6 fade-in-up">
             
-            <div id="viewVault" class="space-y-6 block fade-in-up">
-                <div class="glass-panel rounded-[32px] shadow-sm border border-slate-200 overflow-hidden">
-                    <div class="p-6 lg:p-8 border-b border-slate-100 bg-white/50 flex justify-between items-center">
-                        <h3 class="font-black text-slate-900 uppercase tracking-widest text-sm flex items-center"><i class="fa-solid fa-box-archive text-indigo-400 mr-3 text-lg"></i> My Active Prescriptions</h3>
-                        <button onclick="fetchRxVault()" class="text-[10px] font-black uppercase tracking-widest bg-white border border-slate-200 px-4 py-2 rounded-full hover:bg-slate-50 transition-all shadow-sm"><i class="fa-solid fa-rotate-right mr-1"></i> Sync</button>
-                    </div>
-                    <div class="p-2 lg:p-4"><div id="rxList" class="divide-y divide-slate-100 min-h-[50vh]"></div></div>
-                </div>
-            </div>
-
-            <div id="viewDossier" class="hidden space-y-6 fade-in-up">
+            <div class="glass-panel p-8 rounded-[32px] border border-slate-800">
+                <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-hand-holding-medical text-rose-500"></i> Self-Report an Allergy
+                </h3>
                 
-                <div class="glass-panel rounded-[32px] p-6 lg:p-8 shadow-sm border border-slate-200">
-                    <h3 class="font-black text-slate-900 uppercase tracking-widest text-xs mb-6 flex items-center"><i class="fa-solid fa-hand-holding-medical text-rose-500 mr-2 text-lg"></i> Self-Report an Allergy</h3>
-                    <div class="flex flex-col md:flex-row gap-4 bg-slate-50 p-2 rounded-2xl border border-slate-100">
-                        <input type="text" id="allergyInput" placeholder="Enter Substance (e.g. Penicillin, Peanuts)..." class="flex-1 p-4 rounded-xl border border-transparent text-sm font-bold bg-white shadow-sm outline-none focus:ring-2 focus:ring-rose-500">
-                        <select id="allergyRisk" class="p-4 rounded-xl border border-transparent text-sm font-bold bg-white shadow-sm outline-none focus:ring-2 focus:ring-rose-500 cursor-pointer text-slate-600">
+                <div class="flex flex-col md:flex-row gap-4">
+                    <div class="flex-1">
+                        <input type="text" id="allergyName" placeholder="e.g. Peanuts, Penicillin" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none focus:border-rose-500 transition-colors">
+                    </div>
+                    <div class="w-full md:w-64">
+                        <select id="allergySeverity" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none focus:border-rose-500 transition-colors cursor-pointer appearance-none">
                             <option value="High">High Risk (Severe)</option>
+                            <option value="Moderate">Moderate Risk</option>
                             <option value="Low">Low Risk (Mild)</option>
                         </select>
-                        <button onclick="reportAllergy()" class="bg-rose-500 hover:bg-rose-600 text-white px-8 py-4 rounded-xl font-black transition-all shadow-md hover:-translate-y-1"><i class="fa-solid fa-plus mr-2"></i> Add Record</button>
                     </div>
-                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-4 ml-2"><i class="fa-solid fa-circle-info mr-1"></i> Self-reported allergies will be visible to your doctor during prescribing.</p>
+                    <button id="addAllergyBtn" onclick="recordAllergy()" class="bg-rose-500 hover:bg-rose-400 text-white px-8 py-3 rounded-xl font-black text-sm transition-all shadow-[0_0_15px_rgba(255,0,60,0.3)] hover:shadow-[0_0_25px_rgba(255,0,60,0.5)] flex items-center justify-center gap-2 whitespace-nowrap border-none">
+                        <i class="fa-solid fa-plus"></i> Add Record
+                    </button>
                 </div>
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-4"><i class="fa-solid fa-circle-info mr-1"></i> Self-reported allergies will be visible to your doctor during prescribing.</p>
+            </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="bg-white rounded-[24px] p-6 border border-rose-100 shadow-sm border-t-[6px] border-t-rose-500">
-                        <h3 class="text-[10px] font-black text-rose-600 uppercase tracking-widest mb-4 flex items-center"><i class="fa-solid fa-triangle-exclamation mr-1.5"></i> My Recorded Allergies</h3>
-                        <div id="dossierAllergies" class="space-y-3 max-h-64 overflow-y-auto custom-scrollbar pr-2"></div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="glass-panel p-6 rounded-3xl border border-rose-500/20">
+                    <h3 class="text-[10px] font-black text-rose-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-triangle-exclamation"></i> My Recorded Allergies
+                    </h3>
+                    <div id="allergyList" class="space-y-3">
+                        <p class="text-sm font-bold text-slate-500">No allergies recorded.</p>
                     </div>
-                    <div class="bg-white rounded-[24px] p-6 border border-teal-100 shadow-sm border-t-[6px] border-t-teal-500">
-                        <h3 class="text-[10px] font-black text-teal-600 uppercase tracking-widest mb-4 flex items-center"><i class="fa-solid fa-pills mr-1.5"></i> Ongoing Medications</h3>
-                        <div id="dossierActiveMeds" class="space-y-3 max-h-64 overflow-y-auto custom-scrollbar pr-2"></div>
+                </div>
+                <div class="glass-panel p-6 rounded-3xl border border-teal-500/20">
+                    <h3 class="text-[10px] font-black text-teal-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-capsules"></i> Ongoing Medications
+                    </h3>
+                    <div id="medicationList" class="space-y-3">
+                        <p class="text-sm font-bold text-slate-500">No active medications.</p>
                     </div>
                 </div>
             </div>
@@ -106,189 +99,81 @@
         </div>
     </main>
 
-    <div id="handoffModal" class="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/95 backdrop-blur-md p-4 opacity-0 pointer-events-none transition-all duration-300">
-        <div class="bg-white rounded-[40px] w-full max-w-md p-8 lg:p-10 text-center shadow-2xl transform scale-90 transition-all duration-400 border border-indigo-100 relative overflow-hidden" id="handoffModalContent">
-            <div class="absolute top-0 left-0 w-full h-2 bg-indigo-500"></div>
-            <button onclick="closeHandoffModal()" class="absolute top-6 right-6 w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 hover:bg-rose-500 hover:text-white transition-colors"><i class="fa-solid fa-xmark"></i></button>
-            
-            <h3 class="text-xl font-black text-slate-900 tracking-tighter mb-1 mt-2">Pharmacy Handoff</h3>
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-8">Show this screen to the pharmacist</p>
-            
-            <div class="bg-slate-50 border border-slate-200 p-6 rounded-3xl mb-6 shadow-inner">
-                <p class="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Grid Broadcast ID</p>
-                <p id="handoffBroadcastId" class="font-mono font-black text-lg text-slate-800 bg-white py-2 rounded-xl border border-slate-200"></p>
-                
-                <div class="flex justify-center my-6"><div id="handoffQr" class="p-3 bg-white rounded-2xl border-2 border-slate-200 shadow-sm"></div></div>
-                
-                <p class="text-[9px] font-black text-indigo-500 uppercase tracking-[0.2em] mb-2">Decryption OTP</p>
-                <p id="handoffOtp" class="font-mono font-black text-5xl text-indigo-600 tracking-[0.1em] drop-shadow-sm bg-white py-3 rounded-xl border border-indigo-100"></p>
-            </div>
-            
-            <p class="text-xs font-bold text-slate-500 mb-2"><i class="fa-solid fa-user-doctor mr-1"></i> Prescribed by <span id="handoffDoc" class="text-slate-800"></span></p>
-        </div>
-    </div>
-
-    <div id="toast-container" class="fixed bottom-6 right-6 lg:bottom-10 lg:right-10 z-[150] flex flex-col gap-3 pointer-events-none w-full max-w-[320px] px-4 lg:px-0"></div>
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[150] flex flex-col gap-3 pointer-events-none w-full max-w-[320px] px-4 lg:px-0"></div>
 
     <script>
         const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
-        const token = sessionStorage.getItem('eRx_Token');
-        const userName = sessionStorage.getItem('eRx_UserName');
-        let myPatientId = null;
-        let myPrescriptions = [];
 
-        function parseJwt(t) { try { return JSON.parse(atob(t.split('.')[1])); } catch(e) { return {}; } }
-        const decoded = parseJwt(token);
-        
-        if (!token || decoded.role !== 'patient') {
-            alert("Unauthorized. Citizen Clearance Required.");
-            window.location.href = 'index.html';
+        // 1. Verify Grid Access
+        const token = sessionStorage.getItem('eRx_Token');
+        if (!token) window.location.href = 'auth.html';
+
+        // 2. Populate Identity Data
+        const userName = sessionStorage.getItem('eRx_UserName');
+        if(userName) {
+            document.getElementById('patientNameDisplay').innerText = userName;
         }
 
-        document.getElementById('citizenNameDisplay').innerText = userName;
-
+        // 3. System Alert Function
         function showToast(message, type = 'error') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
-            const colors = type === 'error' ? 'bg-white border-rose-500' : 'bg-white border-indigo-500';
-            const iconColor = type === 'error' ? 'text-rose-500 bg-rose-50' : 'text-indigo-500 bg-indigo-50';
+            const colors = type === 'error' ? 'glass-panel border-rose-500' : 'glass-panel border-emerald-500';
+            const iconColor = type === 'error' ? 'text-rose-500 bg-rose-500/10' : 'text-emerald-500 bg-emerald-500/10';
             const icon = type === 'error' ? 'fa-triangle-exclamation' : 'fa-check';
+            
             toast.className = `flex items-center p-4 rounded-2xl shadow-xl border-l-4 transform transition-all duration-500 translate-y-10 opacity-0 ${colors}`;
-            toast.innerHTML = `<div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${iconColor}"><i class="fa-solid ${icon}"></i></div><div class="ml-3"><p class="text-xs font-black text-slate-800 uppercase tracking-widest leading-tight">${type === 'error' ? 'System Alert' : 'Success'}</p><p class="text-xs font-bold text-slate-500 mt-0.5">${message}</p></div>`;
+            toast.innerHTML = `<div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${iconColor}"><i class="fa-solid ${icon}"></i></div><div class="ml-3"><p class="text-xs font-black text-white uppercase tracking-widest leading-tight">${type === 'error' ? 'System Alert' : 'Success'}</p><p class="text-xs font-bold text-slate-400 mt-0.5">${message}</p></div>`;
             container.appendChild(toast);
             requestAnimationFrame(() => toast.classList.remove('translate-y-10', 'opacity-0'));
             setTimeout(() => { toast.classList.add('translate-y-10', 'opacity-0'); setTimeout(() => toast.remove(), 500); }, 4000);
         }
 
-        function toggleMobileMenu() {
-            const sidebar = document.getElementById('mainSidebar');
-            const overlay = document.getElementById('mobileOverlay');
-            if (sidebar.classList.contains('-translate-x-full')) {
-                sidebar.classList.remove('-translate-x-full');
-                overlay.classList.remove('hidden'); requestAnimationFrame(() => overlay.classList.remove('opacity-0'));
-            } else {
-                sidebar.classList.add('-translate-x-full');
-                overlay.classList.add('opacity-0'); setTimeout(() => overlay.classList.add('hidden'), 300);
-            }
+        // 4. Secure Disconnect
+        function logout() {
+            sessionStorage.clear();
+            window.location.href = 'auth.html';
         }
 
-        // 🚀 INITIALIZATION
-        async function initCitizenData() {
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/patients/my-record`, { headers: { 'Authorization': `Bearer ${token}` } });
-                if(res.ok) {
-                    const data = await res.json();
-                    myPatientId = data.patient._id;
-                    document.getElementById('citizenNhiDisplay').innerText = data.patient.nationalHealthId;
-                    fetchRxVault();
-                }
-            } catch(e) { showToast("Failed to connect to National Grid", "error"); }
-        }
+        // 5. THE ALLERGY TRANSMITTER
+        async function recordAllergy() {
+            const substance = document.getElementById('allergyName').value.trim();
+            const severity = document.getElementById('allergySeverity').value;
 
-        // 🗄️ FETCH PRESCRIPTION VAULT
-        async function fetchRxVault() {
-            const list = document.getElementById('rxList'); 
-            list.innerHTML = Array(3).fill(`<div class="p-6 border-b border-slate-100"><div class="animate-pulse flex space-x-4"><div class="flex-1 space-y-3 py-1"><div class="h-2 bg-slate-200 rounded w-3/4"></div><div class="h-2 bg-slate-200 rounded w-1/2"></div></div></div></div>`).join('');
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/prescriptions/patient/me`, { headers: { 'Authorization': `Bearer ${token}` } });
-                myPrescriptions = await res.json();
-                if(!myPrescriptions || myPrescriptions.length === 0) return list.innerHTML = '<div class="p-16 text-center"><i class="fa-solid fa-prescription-bottle text-4xl text-slate-200 mb-3 block"></i><p class="text-xs font-bold text-slate-400 uppercase tracking-widest">No Prescriptions Found</p></div>';
-                
-                list.innerHTML = myPrescriptions.map((rx, i) => `
-                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 px-6 py-6 hover:bg-slate-50 transition-colors group border-b border-slate-100 fade-in-up" style="animation-delay: ${i * 0.05}s">
-                        <div class="flex-1 w-full md:w-auto">
-                            <p class="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-1"><i class="fa-regular fa-calendar mr-1"></i>${new Date(rx.createdAt).toLocaleDateString()}</p>
-                            <p class="text-base font-black text-slate-800 mb-2"><i class="fa-solid fa-user-doctor text-slate-300 mr-2"></i>${rx.doctorName}</p>
-                            <div class="flex flex-wrap gap-2">${rx.medications.map(m => `<span class="bg-slate-100 text-slate-600 px-2 py-1 rounded text-[10px] font-bold">${m.brandName}</span>`).join('')}</div>
-                        </div>
-                        <div class="flex flex-col items-end gap-3">
-                            <span class="px-4 py-1.5 rounded-full border text-[9px] font-black uppercase tracking-widest shadow-sm ${rx.status === 'Dispensed' ? 'bg-slate-100 text-slate-400 border-slate-200' : 'bg-emerald-50 text-emerald-600 border-emerald-200'}">${rx.status}</span>
-                            ${rx.status === 'Active' ? `<button onclick="openHandoffModal(${i})" class="bg-indigo-500 hover:bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest px-6 py-3 rounded-xl shadow-md transition-all flex items-center gap-2 hover:-translate-y-1"><i class="fa-solid fa-qrcode"></i> Get Meds</button>` : ''}
-                        </div>
-                    </div>
-                `).join('');
-            } catch (err) { list.innerHTML = '<div class="p-10 text-center text-rose-500 font-bold uppercase tracking-widest text-xs">Failed to sync Vault.</div>'; }
-        }
+            if (!substance) return showToast("Please specify the allergy substance.");
 
-        // 📱 PHARMACY HANDOFF
-        function openHandoffModal(index) {
-            const rx = myPrescriptions[index];
-            document.getElementById('handoffBroadcastId').innerText = rx.broadcastId; 
-            document.getElementById('handoffOtp').innerText = rx.otp;
-            document.getElementById('handoffDoc').innerText = rx.doctorName;
-            
-            document.getElementById('handoffQr').innerHTML = ''; 
-            new QRCode(document.getElementById('handoffQr'), { text: JSON.stringify({ bId: rx.broadcastId, otp: rx.otp }), width: 150, height: 150, colorDark : "#1e1b4b", colorLight: "#f8fafc", correctLevel : QRCode.CorrectLevel.H });
-            
-            document.getElementById('handoffModal').classList.remove('opacity-0', 'pointer-events-none'); 
-            document.getElementById('handoffModalContent').classList.remove('scale-90');
-        }
-        function closeHandoffModal() { document.getElementById('handoffModalContent').classList.add('scale-90'); setTimeout(() => document.getElementById('handoffModal').classList.add('opacity-0', 'pointer-events-none'), 300); }
-
-        // 📂 FETCH DOSSIER
-        async function fetchDossier() {
-            if(!myPatientId) return;
-            document.getElementById('dossierAllergies').innerHTML = '<div class="py-4 text-center"><i class="fa-solid fa-spinner fa-spin text-rose-300"></i></div>';
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/clinical/dossier/${myPatientId}`, { headers: { 'Authorization': `Bearer ${token}` } });
-                if(res.ok) {
-                    const dossier = await res.json();
-                    const allergies = dossier.allergies || [];
-                    if(allergies.length > 0) {
-                        document.getElementById('dossierAllergies').innerHTML = allergies.map(a => `<div class="bg-rose-50 p-4 rounded-2xl mb-2 border border-rose-100 flex justify-between items-center"><p class="font-black text-sm text-rose-800">${a.substance}</p><div class="text-right"><p class="text-[9px] font-bold text-rose-500 uppercase tracking-wider">${a.verificationStatus}</p><p class="text-[9px] font-black bg-white px-2 py-0.5 rounded mt-1 inline-block border border-rose-100 text-rose-600">${a.criticality} Risk</p></div></div>`).join('');
-                    } else { document.getElementById('dossierAllergies').innerHTML = '<div class="py-8 text-center"><i class="fa-solid fa-shield-halved text-slate-200 text-3xl mb-2 block"></i><span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">No Recorded Allergies</span></div>'; }
-
-                    const meds = dossier.activeMedications || [];
-                    if(meds.length > 0) {
-                        document.getElementById('dossierActiveMeds').innerHTML = meds.map(m => `<div class="bg-teal-50 p-4 rounded-2xl mb-2 border border-teal-100 flex justify-between items-center"><p class="font-black text-sm text-teal-800">${m.brandName}</p><span class="text-[9px] font-black bg-white px-3 py-1 rounded-full border border-teal-100 text-teal-600">Active</span></div>`).join('');
-                    } else { document.getElementById('dossierActiveMeds').innerHTML = '<div class="py-8 text-center"><i class="fa-solid fa-capsules text-slate-200 text-3xl mb-2 block"></i><span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">No Active Meds</span></div>'; }
-                }
-            } catch(e) { showToast("Dossier Unreachable", "error"); }
-        }
-
-        // ⚠️ SELF-REPORT ALLERGY
-        async function reportAllergy() {
-            if(!myPatientId) return;
-            const substance = document.getElementById('allergyInput').value.trim();
-            const criticality = document.getElementById('allergyRisk').value;
-            if(!substance) return showToast("Please enter a substance name.");
+            // Lock Button
+            const btn = document.getElementById('addAllergyBtn');
+            const ogText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Transmitting...';
+            btn.disabled = true;
 
             try {
-                const res = await fetch(`${API_BASE_URL}/api/clinical/allergies`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ substance, criticality })
+                const res = await fetch(`${API_BASE_URL}/api/patient/allergy`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` 
+                    },
+                    body: JSON.stringify({ substance, criticality: severity })
                 });
-                if(res.ok) {
-                    showToast("Allergy recorded. Pending clinical verification.", "success");
-                    document.getElementById('allergyInput').value = '';
-                    fetchDossier(); // Refresh UI
-                } else { showToast("Failed to record allergy.", "error"); }
-            } catch(e) { showToast("Grid Network Failure", "error"); }
-        }
+                
+                const data = await res.json();
 
-        function switchTab(tab) {
-            document.getElementById('viewVault').classList.add('hidden'); document.getElementById('viewDossier').classList.add('hidden');
-            ['navVault', 'navDossier'].forEach(id => { document.getElementById(id).className = "nav-btn flex items-center p-4 rounded-2xl hover:bg-indigo-800 text-indigo-300/70 hover:text-white transition-all hover:-translate-y-1"; });
-            
-            if (tab === 'vault') {
-                document.getElementById('viewVault').classList.remove('hidden');
-                document.getElementById('navVault').className = "nav-btn active flex items-center p-4 rounded-2xl bg-indigo-500/20 text-indigo-300 transition-all hover:-translate-y-1";
-                document.getElementById('pageTitle').innerText = 'Prescription Vault';
-                fetchRxVault();
-            } else {
-                document.getElementById('viewDossier').classList.remove('hidden');
-                document.getElementById('navDossier').className = "nav-btn active flex items-center p-4 rounded-2xl bg-indigo-500/20 text-indigo-300 transition-all hover:-translate-y-1";
-                document.getElementById('pageTitle').innerText = 'Clinical Dossier';
-                fetchDossier();
+                if (res.ok) {
+                    showToast("Allergy securely logged in the Clinical Dossier.", "success");
+                    document.getElementById('allergyName').value = ''; // Clear input on success
+                } else {
+                    showToast(data.msg, "error");
+                }
+            } catch (err) {
+                showToast("Grid Transmission Failed.", "error");
+            } finally {
+                // Unlock Button
+                btn.innerHTML = ogText;
+                btn.disabled = false;
             }
-            if(window.innerWidth < 1024) toggleMobileMenu();
         }
-
-        function closeAllDropdowns(e) { /* Logic if needed later */ }
-        function logout() { sessionStorage.clear(); window.location.href = 'index.html'; }
-
-        // Boot
-        initCitizenData();
     </script>
 </body>
 </html>

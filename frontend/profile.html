@@ -3,234 +3,160 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Identity Matrix | Holmes Grid</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Identity Matrix | Holmes eRx</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
-        .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(16px); border: 1px solid rgba(226, 232, 240, 0.8); }
-        .fade-in-up { animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-        .locked-input { background-color: #f8fafc; cursor: not-allowed; border-color: #f1f5f9; color: #94a3b8; }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body class="antialiased text-slate-800 bg-slate-100 flex h-screen overflow-hidden">
+<body class="antialiased min-h-screen flex bg-slate-950 items-center justify-center p-6 relative overflow-hidden">
 
-    <main class="flex-1 flex flex-col h-screen overflow-y-auto relative w-full custom-scrollbar">
+    <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-teal-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+
+    <div class="glass-panel w-full max-w-3xl rounded-[40px] shadow-2xl overflow-hidden relative z-10 p-10 border border-teal-500/20">
         
-        <header id="themeHeader" class="h-20 lg:h-24 bg-slate-900 text-white border-b border-slate-800 flex items-center justify-between px-6 lg:px-10 shrink-0 sticky top-0 z-40 transition-colors duration-500">
-            <div class="flex items-center gap-4">
-                <button onclick="goBack()" class="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all shadow-inner"><i class="fa-solid fa-arrow-left"></i></button>
-                <div>
-                    <h2 class="text-xl lg:text-2xl font-black tracking-tighter">Identity Matrix</h2>
-                    <p class="text-[9px] lg:text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1 flex items-center"><i class="fa-solid fa-fingerprint mr-1.5 opacity-50"></i> Profile Configuration</p>
-                </div>
+        <div class="flex items-center justify-between border-b border-slate-800 pb-6 mb-8">
+            <div>
+                <h1 class="text-3xl font-black text-white tracking-tighter">Identity Matrix</h1>
+                <p class="text-[10px] font-black text-teal-400 uppercase tracking-widest mt-1">Global Verification Profile</p>
             </div>
-            <div id="statusBadge" class="hidden px-4 py-2 rounded-full border text-[10px] font-black uppercase tracking-widest bg-amber-500/20 text-amber-400 border-amber-500/30 flex items-center shadow-sm">
-                <div class="w-2 h-2 rounded-full bg-amber-500 animate-pulse mr-2"></div> Pending Verification
-            </div>
-        </header>
+            <button onclick="goBack()" class="w-10 h-10 bg-slate-900 rounded-full flex items-center justify-center text-slate-400 hover:text-white border border-slate-700 hover:border-teal-400 transition-all">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
 
-        <div class="p-4 lg:p-10 max-w-4xl mx-auto w-full space-y-8 pb-20 fade-in-up">
+        <div id="loading" class="text-center py-10 text-teal-400"><i class="fa-solid fa-circle-notch fa-spin text-3xl"></i></div>
+
+        <div id="profileForm" class="hidden space-y-6">
             
-            <div class="flex items-center justify-between mb-2">
-                <h3 class="text-sm font-black text-slate-900 uppercase tracking-widest"><i class="fa-solid fa-user-shield mr-2 text-slate-400"></i> Core Demographics</h3>
-                <span id="completionTracker" class="text-[10px] font-black bg-rose-100 text-rose-600 px-3 py-1 rounded-lg border border-rose-200">50% Complete</span>
-            </div>
-
-            <div class="glass-panel p-6 lg:p-8 rounded-[32px] shadow-sm grid grid-cols-1 md:grid-cols-2 gap-6 relative overflow-hidden">
-                <div class="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-bl-full -z-10"></div>
-                
-                <div>
-                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Legal Full Name <i class="fa-solid fa-lock text-slate-300 ml-1" title="Immutable"></i></label>
-                    <input type="text" id="profName" class="w-full p-4 rounded-xl border border-slate-200 text-sm font-bold outline-none locked-input" readonly>
-                </div>
-                <div>
-                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Grid Communication (Email) <i class="fa-solid fa-lock text-slate-300 ml-1" title="Immutable"></i></label>
-                    <input type="text" id="profEmail" class="w-full p-4 rounded-xl border border-slate-200 text-sm font-bold outline-none locked-input" readonly>
-                </div>
-            </div>
-
-            <h3 class="text-sm font-black text-slate-900 uppercase tracking-widest mt-10"><i class="fa-solid fa-sliders mr-2 text-slate-400"></i> Mutable Parameters</h3>
-
-            <div class="glass-panel p-6 lg:p-8 rounded-[32px] shadow-sm space-y-6">
-                
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 border-b border-slate-100 pb-8">
+            <div>
+                <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-4 border-b border-slate-800 pb-2">Core Identity</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Mobile Contact <span class="text-rose-500">*</span></label>
-                        <input type="text" id="profPhone" placeholder="01XXXXXXXXX" class="w-full p-4 rounded-xl border border-slate-200 text-sm font-bold outline-none focus:ring-2 focus:ring-slate-400 transition-shadow shadow-sm bg-white">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 mb-2 block">Legal Full Name (Locked)</label>
+                        <input type="text" id="fullName" disabled class="w-full bg-slate-900/50 border border-slate-800 rounded-xl px-4 py-3 text-sm font-bold text-slate-500 cursor-not-allowed">
                     </div>
                     <div>
-                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Date of Birth</label>
-                        <input type="date" id="profDob" class="w-full p-4 rounded-xl border border-slate-200 text-sm font-bold outline-none focus:ring-2 focus:ring-slate-400 transition-shadow shadow-sm bg-white cursor-pointer">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 mb-2 block">Mobile Contact</label>
+                        <input type="text" id="mobile" placeholder="01XXXXXXXXX" class="w-full bg-slate-900/50 border border-slate-700 focus:border-teal-500 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none">
                     </div>
                     <div>
-                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Legal Gender</label>
-                        <select id="profGender" class="w-full p-4 rounded-xl border border-slate-200 text-sm font-bold outline-none focus:ring-2 focus:ring-slate-400 transition-shadow shadow-sm bg-white cursor-pointer appearance-none">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 mb-2 block">Date of Birth</label>
+                        <input type="date" id="dob" class="w-full bg-slate-900/50 border border-slate-700 focus:border-teal-500 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 mb-2 block">Legal Gender</label>
+                        <select id="gender" class="w-full bg-slate-900/50 border border-slate-700 focus:border-teal-500 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none appearance-none">
+                            <option value="">Select Gender</option>
                             <option value="Male">Male</option>
                             <option value="Female">Female</option>
                             <option value="Other">Other</option>
                         </select>
                     </div>
                 </div>
-
-                <div id="roleSection" class="pt-2">
-                    <label id="roleLabel" class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block flex items-center justify-between">
-                        <span>Role Identifier <span class="text-rose-500">*</span></span>
-                    </label>
-                    <div class="flex gap-4">
-                        <div class="w-14 h-[54px] rounded-xl flex items-center justify-center text-white text-xl shadow-inner shrink-0" id="roleIconBox"></div>
-                        <input type="text" id="profRoleInput" class="w-full p-4 rounded-xl border border-slate-200 text-sm font-black outline-none focus:ring-2 transition-shadow shadow-sm bg-white uppercase tracking-wider" placeholder="Enter Registration Number...">
-                    </div>
-                    <p id="roleHelpText" class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-3 ml-1"></p>
-                </div>
-
             </div>
 
-            <button onclick="saveMatrix()" id="saveBtn" class="w-full bg-slate-900 hover:bg-slate-800 text-white py-5 rounded-[20px] font-black text-sm uppercase tracking-widest shadow-xl hover:-translate-y-1 transition-all-spring flex items-center justify-center gap-3">
-                <i class="fa-solid fa-cloud-arrow-up"></i> Synchronize to Grid
+            <div id="roleSpecificSection"></div>
+
+            <button onclick="saveProfile()" id="saveBtn" class="w-full bg-teal-500 hover:bg-teal-400 text-slate-950 py-4 rounded-xl font-black text-sm uppercase tracking-widest shadow-[0_0_20px_rgba(0,240,255,0.3)] transition-all flex items-center justify-center gap-2 mt-8">
+                <i class="fa-solid fa-microchip"></i> Synchronize Identity
             </button>
-
         </div>
-    </main>
+    </div>
 
-    <div id="toast-container" class="fixed bottom-6 right-6 lg:bottom-10 lg:right-10 z-[150] flex flex-col gap-3 pointer-events-none w-full max-w-[320px] px-4 lg:px-0"></div>
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[150] flex flex-col gap-3 pointer-events-none w-full max-w-[320px]"></div>
 
     <script>
         const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
         const token = sessionStorage.getItem('eRx_Token');
-        if (!token) window.location.href = 'index.html';
+        
+        if (!token) window.location.href = 'auth.html';
 
-        function parseJwt(t) { try { return JSON.parse(atob(t.split('.')[1])); } catch(e) { return {}; } }
-        const decoded = parseJwt(token);
-        const userRole = decoded.role; // 'doctor', 'pharmacist', or 'patient'
-
-        // 🎨 UI THEME ADAPTER
-        function adaptTheme() {
-            const header = document.getElementById('themeHeader');
-            const iconBox = document.getElementById('roleIconBox');
-            const label = document.getElementById('roleLabel');
-            const input = document.getElementById('profRoleInput');
-            const help = document.getElementById('roleHelpText');
-
-            if (userRole === 'doctor') {
-                header.className = "h-20 lg:h-24 bg-teal-900 text-white border-b border-teal-800 flex items-center justify-between px-6 lg:px-10 shrink-0 sticky top-0 z-40 transition-colors duration-500 shadow-lg";
-                iconBox.className = "w-14 h-[54px] rounded-xl flex items-center justify-center text-white text-xl shadow-inner shrink-0 bg-teal-500";
-                iconBox.innerHTML = '<i class="fa-solid fa-stethoscope"></i>';
-                label.innerHTML = 'BMDC License Number <span class="text-rose-500">*</span>';
-                input.placeholder = "e.g., A-12345";
-                input.classList.add('focus:ring-teal-400');
-                help.innerText = "Required for the Ministry of Health to verify your prescribing authority.";
-            } else if (userRole === 'pharmacist') {
-                header.className = "h-20 lg:h-24 bg-emerald-900 text-white border-b border-emerald-800 flex items-center justify-between px-6 lg:px-10 shrink-0 sticky top-0 z-40 transition-colors duration-500 shadow-lg";
-                iconBox.className = "w-14 h-[54px] rounded-xl flex items-center justify-center text-white text-xl shadow-inner shrink-0 bg-emerald-500";
-                iconBox.innerHTML = '<i class="fa-solid fa-mortar-pestle"></i>';
-                label.innerHTML = 'Pharmacy Council Registration <span class="text-rose-500">*</span>';
-                input.placeholder = "e.g., PHA-9876";
-                input.classList.add('focus:ring-emerald-400');
-                help.innerText = "Required to legally decrypt and dispense Grid payloads.";
-            } else {
-                header.className = "h-20 lg:h-24 bg-indigo-900 text-white border-b border-indigo-800 flex items-center justify-between px-6 lg:px-10 shrink-0 sticky top-0 z-40 transition-colors duration-500 shadow-lg";
-                iconBox.className = "w-14 h-[54px] rounded-xl flex items-center justify-center text-white text-xl shadow-inner shrink-0 bg-indigo-500";
-                iconBox.innerHTML = '<i class="fa-solid fa-id-card"></i>';
-                label.innerHTML = 'National ID (NID) or Birth Certificate <span class="text-rose-500">*</span>';
-                input.placeholder = "10 to 17 Digit NID...";
-                input.classList.add('focus:ring-indigo-400');
-                help.innerText = "Crucial for accurately linking your Master Patient Index across all hospitals.";
-            }
-        }
-
-        // 🎨 TOAST ENGINE
         function showToast(message, type = 'error') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
-            const colors = type === 'error' ? 'bg-white border-rose-500' : 'bg-white border-emerald-500';
-            const iconColor = type === 'error' ? 'text-rose-500 bg-rose-50' : 'text-emerald-500 bg-emerald-50';
-            const icon = type === 'error' ? 'fa-triangle-exclamation' : 'fa-check';
-            toast.className = `flex items-center p-4 rounded-2xl shadow-xl border-l-4 transform transition-all duration-500 translate-y-10 opacity-0 ${colors}`;
-            toast.innerHTML = `<div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${iconColor}"><i class="fa-solid ${icon}"></i></div><div class="ml-3"><p class="text-xs font-black text-slate-800 uppercase tracking-widest leading-tight">${type === 'error' ? 'System Alert' : 'Success'}</p><p class="text-xs font-bold text-slate-500 mt-0.5">${message}</p></div>`;
+            const colors = type === 'error' ? 'glass-panel border-rose-500 text-rose-400' : 'glass-panel border-teal-500 text-teal-400';
+            toast.className = `flex items-center p-4 rounded-2xl shadow-xl border-l-4 ${colors} transform transition-all`;
+            toast.innerHTML = `<div class="font-bold text-sm">${message}</div>`;
             container.appendChild(toast);
-            requestAnimationFrame(() => toast.classList.remove('translate-y-10', 'opacity-0'));
-            setTimeout(() => { toast.classList.add('translate-y-10', 'opacity-0'); setTimeout(() => toast.remove(), 500); }, 3000);
+            setTimeout(() => toast.remove(), 3000);
         }
 
-        // 🗄️ FETCH DATA
-        async function fetchProfile() {
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/profile`, { headers: { 'Authorization': `Bearer ${token}` } });
-                if (res.ok) {
-                    const data = await res.json();
-                    document.getElementById('profName').value = data.person.name;
-                    document.getElementById('profEmail').value = data.person.email;
-                    document.getElementById('profPhone').value = data.person.phone;
-                    document.getElementById('profDob').value = data.person.dob;
-                    document.getElementById('profGender').value = data.person.gender;
+        function goBack() {
+            window.history.back();
+        }
 
-                    if (userRole === 'patient') {
-                        document.getElementById('profRoleInput').value = data.roleData.nid;
+        async function loadProfile() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/profile`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+
+                if(res.ok) {
+                    // Populate Core
+                    document.getElementById('fullName').value = data.person.legalFullName;
+                    document.getElementById('mobile').value = data.person.contact.primaryMobile !== '0000000000' ? data.person.contact.primaryMobile : '';
+                    if(data.person.dateOfBirth) document.getElementById('dob').value = data.person.dateOfBirth.split('T')[0];
+                    document.getElementById('gender').value = data.person.genderLegal || '';
+
+                    // Inject Role Specifics
+                    const roleSection = document.getElementById('roleSpecificSection');
+                    let roleHtml = `<h3 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-4 border-b border-slate-800 pb-2 mt-6">Authority Credentials</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-4">`;
+
+                    if(data.role === 'patient') {
+                        roleHtml += `
+                            <div><label class="text-[10px] font-black text-indigo-400 uppercase tracking-widest ml-2 mb-2 block">National ID (NID)</label>
+                            <input type="text" id="nationalId" value="${data.roleData.nationalId && !data.roleData.nationalId.includes('PENDING') ? data.roleData.nationalId : ''}" placeholder="Enter NID" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none"></div>
+                            <div><label class="text-[10px] font-black text-indigo-400 uppercase tracking-widest ml-2 mb-2 block">Blood Group</label>
+                            <input type="text" id="bloodGroup" value="${data.roleData.bloodGroup || ''}" placeholder="e.g. O+" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none"></div>
+                        `;
                     } else {
-                        document.getElementById('profRoleInput').value = data.roleData.license;
-                        if (data.roleData.status) {
-                            const badge = document.getElementById('statusBadge');
-                            badge.classList.remove('hidden');
-                            if(data.roleData.status === 'Verified') {
-                                badge.className = "px-4 py-2 rounded-full border text-[10px] font-black uppercase tracking-widest bg-emerald-500/20 text-emerald-400 border-emerald-500/30 flex items-center shadow-sm";
-                                badge.innerHTML = '<i class="fa-solid fa-shield-check mr-2"></i> Authority Verified';
-                            }
-                        }
+                        roleHtml += `
+                            <div><label class="text-[10px] font-black text-amber-400 uppercase tracking-widest ml-2 mb-2 block">BMDC / License Number</label>
+                            <input type="text" id="licenseNumber" value="${data.roleData.licenseNumber || ''}" placeholder="Reg Number" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none"></div>
+                            <div><label class="text-[10px] font-black text-amber-400 uppercase tracking-widest ml-2 mb-2 block">Specialty (Comma Separated)</label>
+                            <input type="text" id="specialty" value="${data.roleData.specialty ? data.roleData.specialty.join(', ') : ''}" placeholder="Cardiology, Pediatrics" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none"></div>
+                        `;
                     }
+                    roleSection.innerHTML = roleHtml + `</div>`;
 
-                    const tracker = document.getElementById('completionTracker');
-                    if (data.profileCompletion === 100) {
-                        tracker.className = "text-[10px] font-black bg-emerald-100 text-emerald-600 px-3 py-1 rounded-lg border border-emerald-200";
-                        tracker.innerHTML = '<i class="fa-solid fa-check mr-1"></i> Matrix Complete';
-                    }
+                    document.getElementById('loading').classList.add('hidden');
+                    document.getElementById('profileForm').classList.remove('hidden');
                 }
-            } catch (err) { showToast("Grid Network Failure", "error"); }
+            } catch (err) { showToast("Failed to connect to Grid.", "error"); }
         }
 
-        // 💾 SAVE DATA
-        async function saveMatrix() {
-            const phone = document.getElementById('profPhone').value.trim();
-            const dob = document.getElementById('profDob').value;
-            const gender = document.getElementById('profGender').value;
-            const identifier = document.getElementById('profRoleInput').value.trim();
-
-            if (!phone || !identifier) return showToast("Phone and Identifier are strictly required.");
-
+        async function saveProfile() {
             const btn = document.getElementById('saveBtn');
-            const ogHtml = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Securing Hash...'; btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Synchronizing...';
+            btn.disabled = true;
+
+            const payload = {
+                mobile: document.getElementById('mobile').value,
+                dob: document.getElementById('dob').value,
+                gender: document.getElementById('gender').value,
+                bloodGroup: document.getElementById('bloodGroup') ? document.getElementById('bloodGroup').value : undefined,
+                nationalId: document.getElementById('nationalId') ? document.getElementById('nationalId').value : undefined,
+                licenseNumber: document.getElementById('licenseNumber') ? document.getElementById('licenseNumber').value : undefined,
+                specialty: document.getElementById('specialty') ? document.getElementById('specialty').value : undefined,
+            };
 
             try {
-                const payload = { phone, dob, gender };
-                if (userRole === 'patient') payload.nationalId = identifier;
-                else payload.professionalLicense = identifier;
-
-                const res = await fetch(`${API_BASE_URL}/api/profile/update`, {
-                    method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                const res = await fetch(`${API_BASE_URL}/api/profile`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify(payload)
                 });
-                
-                if (res.ok) {
-                    showToast("Profile Secured.", "success");
-                    fetchProfile(); // Refresh completion badge
-                } else { showToast("Matrix Update Failed.", "error"); }
-            } catch (err) { showToast("Grid Output Failure.", "error"); } finally { btn.innerHTML = ogHtml; btn.disabled = false; }
+                const data = await res.json();
+                if(res.ok) showToast(data.msg, "success");
+                else showToast(data.msg, "error");
+            } catch (err) { showToast("Sync Failed.", "error"); } finally {
+                btn.innerHTML = '<i class="fa-solid fa-microchip"></i> Synchronize Identity';
+                btn.disabled = false;
+            }
         }
 
-        // 🚦 MASTER ROUTER BACK BUTTON
-        function goBack() {
-            if (userRole === 'doctor') window.location.href = 'dashboard.html';
-            else if (userRole === 'pharmacist') window.location.href = 'pharmacist_portal.html';
-            else window.location.href = 'patient_portal.html';
-        }
-
-        adaptTheme();
-        fetchProfile();
+        window.onload = loadProfile;
     </script>
 </body>
 </html>
