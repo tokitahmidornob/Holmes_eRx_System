@@ -30,9 +30,15 @@ router.post('/register', async (req, res) => {
 
         // 4. Create Role-Specific Profile
         if (role === 'patient') {
-            // 🚨 FIX: Automatically generate a unique National Health ID
+            // 🚨 FIX: Generate NHI and a temporary NID to bypass the Phantom Index crash
             const nhi = 'NHI-' + Math.floor(1000000000 + Math.random() * 9000000000).toString();
-            const patient = new Patient({ personId: person._id, nationalHealthId: nhi });
+            const placeholderNid = 'NID-PENDING-' + Date.now().toString(); 
+            
+            const patient = new Patient({ 
+                personId: person._id, 
+                nationalHealthId: nhi,
+                nationalId: placeholderNid // Bypasses the strict unique null constraint
+            });
             await patient.save();
         } else {
             const roleMapping = {
@@ -51,7 +57,8 @@ router.post('/register', async (req, res) => {
         res.status(201).json({ msg: 'Identity Initialized.' });
     } catch (err) {
         console.error("REGISTER_ERR:", err);
-        res.status(500).json({ msg: 'Grid Server Error during registration.' });
+        // 🚨 UPGRADE: Sends the exact database error directly to your screen!
+        res.status(500).json({ msg: 'Grid Error: ' + err.message });
     }
 });
 
