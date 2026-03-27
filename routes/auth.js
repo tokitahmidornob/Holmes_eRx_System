@@ -22,7 +22,7 @@ router.post('/register', async (req, res) => {
         // 3. Create Core Person Document
         person = new Person({
             loginIdentity: email,
-            passwordHash: passwordHash, // Fixed to match GridModels
+            passwordHash: passwordHash, 
             legalFullName: name,
             contact: { primaryEmail: email, primaryMobile: '0000000000' }
         });
@@ -30,10 +30,11 @@ router.post('/register', async (req, res) => {
 
         // 4. Create Role-Specific Profile
         if (role === 'patient') {
-            const patient = new Patient({ personId: person._id });
+            // 🚨 FIX: Automatically generate a unique National Health ID
+            const nhi = 'NHI-' + Math.floor(1000000000 + Math.random() * 9000000000).toString();
+            const patient = new Patient({ personId: person._id, nationalHealthId: nhi });
             await patient.save();
         } else {
-            // Map frontend role to Backend Enum
             const roleMapping = {
                 'doctor': 'Doctor',
                 'pharmacist': 'Pharmacist',
