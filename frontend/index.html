@@ -4,179 +4,187 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Grid Authentication | Holmes eRx</title>
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#14b8a6">
-    <link rel="apple-touch-icon" href="/icons/icon-192.png">
-    
-    <link rel="stylesheet" href="styles.css">
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(226, 232, 240, 0.8); }
+        .fade-in-up { animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .input-focus-ring:focus-within { box-shadow: 0 0 0 2px rgba(20, 184, 166, 0.2); border-color: #14b8a6; }
+    </style>
 </head>
-<body class="antialiased text-slate-800 min-h-screen flex items-center justify-center p-4">
+<body class="antialiased text-slate-800 bg-slate-900 min-h-screen flex items-center justify-center relative overflow-hidden selection:bg-teal-200">
 
-    <main class="glass-panel w-full max-w-[500px] rounded-[40px] p-8 md:p-12 shadow-2xl relative overflow-hidden hover-lift">
-        <div class="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-teal-500/20 rounded-full blur-[120px] pointer-events-none"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-500/20 rounded-full blur-[120px] pointer-events-none"></div>
 
-        <div class="text-center mb-8 relative z-10">
-            <div class="w-16 h-16 bg-slate-900 text-teal-400 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-teal-500/20">
-                <i class="fa-solid fa-network-wired text-2xl"></i>
+    <div class="glass-panel w-full max-w-md mx-4 rounded-[40px] shadow-2xl overflow-hidden relative z-10 fade-in-up">
+        
+        <div class="pt-10 pb-6 px-10 text-center">
+            <div class="w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-slate-900/30">
+                <i class="fa-solid fa-network-wired text-teal-400 text-2xl"></i>
             </div>
-            <p class="text-[10px] font-black text-teal-600 uppercase tracking-[0.2em] mb-1">Secure Access Terminal</p>
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Secure Access Terminal</p>
             <h1 class="text-3xl font-black text-slate-900 tracking-tighter">Grid Authentication</h1>
         </div>
 
-        <div class="flex border-b border-slate-200 mb-8 relative z-10">
-            <button onclick="switchTab('login')" id="tabLogin" class="flex-1 pb-4 text-xs font-black uppercase tracking-widest border-b-2 border-teal-500 text-teal-600 transition-colors">Secure Login</button>
-            <button onclick="switchTab('register')" id="tabRegister" class="flex-1 pb-4 text-xs font-black uppercase tracking-widest border-b-2 border-transparent text-slate-400 hover:text-slate-600 transition-colors">Register Profile</button>
+        <div class="flex border-b border-slate-200 px-6">
+            <button onclick="switchTab('login')" id="tabLogin" class="flex-1 pb-4 text-xs font-black uppercase tracking-widest text-teal-600 border-b-2 border-teal-500 transition-colors">Secure Login</button>
+            <button onclick="switchTab('register')" id="tabRegister" class="flex-1 pb-4 text-xs font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-colors">Register Profile</button>
         </div>
 
-        <div id="alertBox" class="hidden mb-6 p-4 rounded-xl text-xs font-bold text-center transition-all relative z-10"></div>
+        <div class="p-8 lg:p-10">
+            <div id="loginForm" class="space-y-6 block fade-in-up" style="animation-delay: 0.1s;">
+                <div>
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-2 block">Grid Identity (Email)</label>
+                    <div class="flex items-center bg-slate-50 rounded-2xl border border-slate-200 px-4 py-3 input-focus-ring transition-all">
+                        <i class="fa-solid fa-envelope text-slate-400 mr-3"></i>
+                        <input type="email" id="loginEmail" class="w-full bg-transparent outline-none text-sm font-bold text-slate-800" placeholder="citizen@grid.com">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-2 block">Security Passphrase</label>
+                    <div class="flex items-center bg-slate-50 rounded-2xl border border-slate-200 px-4 py-3 input-focus-ring transition-all">
+                        <i class="fa-solid fa-lock text-slate-400 mr-3"></i>
+                        <input type="password" id="loginPassword" class="w-full bg-transparent outline-none text-sm font-bold text-slate-800" placeholder="••••••••">
+                    </div>
+                </div>
+                <button onclick="login()" id="loginBtn" class="w-full bg-slate-900 hover:bg-teal-600 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-slate-900/20 hover:-translate-y-1 transition-all mt-4 flex items-center justify-center gap-3">
+                    <i class="fa-solid fa-right-to-bracket"></i> Authenticate
+                </button>
+            </div>
 
-        <form id="loginForm" class="space-y-5 relative z-10" onsubmit="event.preventDefault(); handleAuth('login');">
-            <div>
-                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Access Role</label>
-                <select id="loginRole" class="premium-input w-full p-4 rounded-2xl text-sm font-bold text-slate-700 outline-none">
-                    <option value="doctor">Doctor (Prescriber)</option>
-                    <option value="pathologist">Pathologist (Diagnostic)</option>
-                    <option value="pharmacist">Pharmacist (Dispensary)</option>
-                    <option value="patient">Patient (Citizen)</option>
-                </select>
+            <div id="registerForm" class="space-y-5 hidden fade-in-up">
+                <div>
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-2 block">Legal Full Name</label>
+                    <input type="text" id="regName" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-teal-500 transition-colors" placeholder="John Doe">
+                </div>
+                <div>
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-2 block">Access Role</label>
+                    <select id="regRole" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-teal-500 transition-colors cursor-pointer appearance-none">
+                        <option value="patient">Citizen (Patient)</option>
+                        <option value="doctor">Practitioner (Doctor)</option>
+                        <option value="pharmacist">Authority (Pharmacist)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-2 block">Email Address</label>
+                    <input type="email" id="regEmail" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-teal-500 transition-colors" placeholder="name@domain.com">
+                </div>
+                <div>
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-2 block">Secure Passphrase</label>
+                    <input type="password" id="regPassword" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-teal-500 transition-colors" placeholder="••••••••">
+                </div>
+                <button onclick="register()" id="registerBtn" class="w-full bg-slate-900 hover:bg-indigo-600 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl hover:-translate-y-1 transition-all mt-4 flex items-center justify-center gap-3">
+                    <i class="fa-solid fa-fingerprint"></i> Initialize Identity
+                </button>
             </div>
-            <div>
-                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Email Address</label>
-                <input type="email" id="loginEmail" required placeholder="name@grid.com" class="premium-input w-full p-4 rounded-2xl text-sm font-bold outline-none">
-            </div>
-            <div>
-                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Security Passphrase</label>
-                <input type="password" id="loginPassword" required placeholder="••••••••" class="premium-input w-full p-4 rounded-2xl text-sm font-bold outline-none">
-            </div>
-            <button type="submit" id="loginBtn" class="w-full bg-slate-900 hover:bg-teal-600 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl hover:-translate-y-1 transition-all mt-4 flex items-center justify-center gap-3">
-                <i class="fa-solid fa-right-to-bracket"></i> Authenticate
-            </button>
-        </form>
+        </div>
+    </div>
 
-        <form id="registerForm" class="hidden space-y-5 relative z-10" onsubmit="event.preventDefault(); handleAuth('register');">
-            <div>
-                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Full Legal Name</label>
-                <input type="text" id="regName" required placeholder="Sherlock Holmes" class="premium-input w-full p-4 rounded-2xl text-sm font-bold outline-none">
-            </div>
-            <div>
-                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Designated Role</label>
-                <select id="regRole" class="premium-input w-full p-4 rounded-2xl text-sm font-bold text-slate-700 outline-none">
-                    <option value="doctor">Doctor (Prescriber)</option>
-                    <option value="pathologist">Pathologist (Diagnostic)</option>
-                    <option value="pharmacist">Pharmacist (Dispensary)</option>
-                    <option value="patient">Patient (Citizen)</option>
-                </select>
-            </div>
-            <div>
-                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Email Address</label>
-                <input type="email" id="regEmail" required placeholder="name@grid.com" class="premium-input w-full p-4 rounded-2xl text-sm font-bold outline-none">
-            </div>
-            <div>
-                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Create Passphrase</label>
-                <input type="password" id="regPassword" required placeholder="••••••••" class="premium-input w-full p-4 rounded-2xl text-sm font-bold outline-none">
-            </div>
-            <button type="submit" id="registerBtn" class="w-full bg-slate-900 hover:bg-indigo-600 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl hover:-translate-y-1 transition-all mt-4 flex items-center justify-center gap-3">
-                <i class="fa-solid fa-user-plus"></i> Initialize Identity
-            </button>
-        </form>
-    </main>
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[150] flex flex-col gap-3 pointer-events-none w-full max-w-[320px] px-4 lg:px-0"></div>
 
     <script>
         const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
 
-        // Check if user is already logged in
+        // Check if already logged in
         if (sessionStorage.getItem('eRx_Token')) {
-            const role = sessionStorage.getItem('eRx_UserRole');
-            const roleMap = { 'doctor': 'dashboard.html', 'patient': 'patient_dashboard.html', 'pharmacist': 'pharmacy_dashboard.html', 'pathologist': 'pathology_portal.html' };
-            window.location.href = roleMap[role] || 'index.html';
+            const role = parseJwt(sessionStorage.getItem('eRx_Token')).role;
+            routeUser(role);
+        }
+
+        function parseJwt(t) { try { return JSON.parse(atob(t.split('.')[1])); } catch(e) { return {}; } }
+
+        // 🎨 TOAST ENGINE
+        function showToast(message, type = 'error') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const colors = type === 'error' ? 'bg-white border-rose-500' : 'bg-white border-emerald-500';
+            const iconColor = type === 'error' ? 'text-rose-500 bg-rose-50' : 'text-emerald-500 bg-emerald-50';
+            const icon = type === 'error' ? 'fa-triangle-exclamation' : 'fa-check';
+            
+            toast.className = `flex items-center p-4 rounded-2xl shadow-xl border-l-4 transform transition-all duration-500 translate-y-10 opacity-0 ${colors}`;
+            toast.innerHTML = `<div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${iconColor}"><i class="fa-solid ${icon}"></i></div><div class="ml-3"><p class="text-xs font-black text-slate-800 uppercase tracking-widest leading-tight">${type === 'error' ? 'System Alert' : 'Success'}</p><p class="text-xs font-bold text-slate-500 mt-0.5">${message}</p></div>`;
+            container.appendChild(toast);
+            requestAnimationFrame(() => { toast.classList.remove('translate-y-10', 'opacity-0'); });
+            setTimeout(() => { toast.classList.add('translate-y-10', 'opacity-0'); setTimeout(() => toast.remove(), 500); }, 4000);
         }
 
         function switchTab(tab) {
             document.getElementById('loginForm').classList.add('hidden');
             document.getElementById('registerForm').classList.add('hidden');
-            document.getElementById('tabLogin').classList.replace('border-teal-500', 'border-transparent');
-            document.getElementById('tabLogin').classList.replace('text-teal-600', 'text-slate-400');
-            document.getElementById('tabRegister').classList.replace('border-teal-500', 'border-transparent');
-            document.getElementById('tabRegister').classList.replace('text-teal-600', 'text-slate-400');
+            document.getElementById('tabLogin').className = "flex-1 pb-4 text-xs font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 border-b-2 border-transparent transition-colors";
+            document.getElementById('tabRegister').className = "flex-1 pb-4 text-xs font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 border-b-2 border-transparent transition-colors";
 
             if (tab === 'login') {
                 document.getElementById('loginForm').classList.remove('hidden');
-                document.getElementById('tabLogin').classList.replace('border-transparent', 'border-teal-500');
-                document.getElementById('tabLogin').classList.replace('text-slate-400', 'text-teal-600');
+                document.getElementById('tabLogin').className = "flex-1 pb-4 text-xs font-black uppercase tracking-widest text-teal-600 border-b-2 border-teal-500 transition-colors";
             } else {
                 document.getElementById('registerForm').classList.remove('hidden');
-                document.getElementById('tabRegister').classList.replace('border-transparent', 'border-teal-500');
-                document.getElementById('tabRegister').classList.replace('text-slate-400', 'text-teal-600');
+                document.getElementById('tabRegister').className = "flex-1 pb-4 text-xs font-black uppercase tracking-widest text-indigo-600 border-b-2 border-indigo-500 transition-colors";
             }
         }
 
-        function showAlert(msg, type) {
-            const alertBox = document.getElementById('alertBox');
-            alertBox.innerHTML = `<i class="fa-solid ${type === 'error' ? 'fa-triangle-exclamation' : 'fa-check'} mr-2"></i> ${msg}`;
-            alertBox.className = `mb-6 p-4 rounded-2xl text-xs font-black uppercase tracking-widest text-center transition-all ${type === 'error' ? 'bg-rose-100 text-rose-600 border border-rose-200' : 'bg-teal-100 text-teal-600 border border-teal-200'}`;
-            alertBox.classList.remove('hidden');
+        // 🚦 THE MASTER ROUTER LOGIC
+        function routeUser(role) {
+            if (role === 'doctor') {
+                window.location.href = 'dashboard.html';
+            } else if (role === 'pharmacist') {
+                window.location.href = 'pharmacist_portal.html';
+            } else {
+                window.location.href = 'patient_portal.html'; 
+            }
         }
 
-        async function handleAuth(action) {
-            const btn = document.getElementById(action === 'login' ? 'loginBtn' : 'registerBtn');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
-            document.getElementById('alertBox').classList.add('hidden');
+        // 🔐 LOGIN ENGINE
+        async function login() {
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            if (!email || !password) return showToast("Credentials are required.");
 
-            const endpoint = action === 'login' ? '/api/auth/login' : '/api/auth/register';
-            const payload = action === 'login' ? {
-                email: document.getElementById('loginEmail').value,
-                password: document.getElementById('loginPassword').value,
-                role: document.getElementById('loginRole').value
-            } : {
-                name: document.getElementById('regName').value,
-                email: document.getElementById('regEmail').value,
-                password: document.getElementById('regPassword').value,
-                role: document.getElementById('regRole').value
-            };
+            const btn = document.getElementById('loginBtn');
+            const ogHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Authenticating...'; btn.disabled = true;
 
             try {
-                const res = await fetch(API_BASE_URL + endpoint, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
                 });
                 const data = await res.json();
-
+                
                 if (res.ok) {
-                    if (action === 'register') {
-                        showAlert('Identity Initialized. Proceed to Login.', 'success');
-                        setTimeout(() => switchTab('login'), 2000);
-                    } else {
-                        sessionStorage.setItem('eRx_Token', data.token);
-                        sessionStorage.setItem('eRx_UserId', data.user.id);
-                        sessionStorage.setItem('eRx_UserName', data.user.name);
-                        sessionStorage.setItem('eRx_UserRole', data.user.role);
-                        
-                        const roleMap = {
-                            'doctor': 'dashboard.html',
-                            'patient': 'patient_dashboard.html',
-                            'pharmacist': 'pharmacy_dashboard.html',
-                            'pathologist': 'pathology_portal.html'
-                        };
-                        window.location.href = roleMap[data.user.role] || 'index.html';
-                    }
-                } else {
-                    showAlert(data.msg || 'Authentication Failed', 'error');
-                }
-            } catch (err) {
-                showAlert('Grid Connection Failure. Verify Network.', 'error');
-            } finally {
-                btn.innerHTML = originalText;
-            }
+                    sessionStorage.setItem('eRx_Token', data.token);
+                    sessionStorage.setItem('eRx_UserName', data.user.name);
+                    showToast("Access Granted.", "success");
+                    setTimeout(() => routeUser(data.user.role), 500); // Trigger Router
+                } else { showToast(data.msg, "error"); }
+            } catch (err) { showToast("Grid Terminal Offline.", "error"); } finally { btn.innerHTML = ogHtml; btn.disabled = false; }
         }
 
-        // PWA Engine Integration
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(err => console.log('PWA Failed', err)); });
+        // 📝 REGISTER ENGINE
+        async function register() {
+            const name = document.getElementById('regName').value.trim();
+            const role = document.getElementById('regRole').value;
+            const email = document.getElementById('regEmail').value.trim();
+            const password = document.getElementById('regPassword').value.trim();
+            if (!name || !email || !password) return showToast("All fields are strictly required.");
+
+            const btn = document.getElementById('registerBtn');
+            const ogHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Initializing...'; btn.disabled = true;
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password, role })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showToast("Identity Successfully Initialized. Proceed to Login.", "success");
+                    setTimeout(() => switchTab('login'), 1500);
+                } else { showToast(data.msg, "error"); }
+            } catch (err) { showToast("Grid Initialization Failure.", "error"); } finally { btn.innerHTML = ogHtml; btn.disabled = false; }
         }
     </script>
 </body>
