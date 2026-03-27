@@ -2,114 +2,108 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-
 const { Person, Patient, PractitionerRole } = require('../models/GridModels');
 
 // ==========================================
-// 1. INITIALIZE IDENTITY (Registration)
+// 1. REGISTER NEW GRID IDENTITY
 // ==========================================
 router.post('/register', async (req, res) => {
     try {
-        const { name, email, password, role, dob, gender, phone } = req.body;
+        const { name, email, password, role } = req.body;
 
-        if (!email || !password || !name) {
-            return res.status(400).json({ msg: 'Missing vital registration data.' });
-        }
+        // 1. Check if Identity already exists
+        let person = await Person.findOne({ loginIdentity: email });
+        if (person) return res.status(400).json({ msg: 'Identity already exists in the Grid.' });
 
-        let existingPerson = await Person.findOne({ loginIdentity: email });
-        if (existingPerson) return res.status(400).json({ msg: 'Identity already exists in National Grid.' });
+        // 2. Cryptographically Hash Password
+        const salt = await bcrypt.genSalt(10);
+        const passwordHash = await bcrypt.hash(password, salt);
 
-        const timestamp = Date.now().toString().slice(-6);
-        const uuid = `BD-${new Date().getFullYear()}-${timestamp}`;
-
-        const salt = await bcrypt.genSalt(12);
-        const hashedPassword = await bcrypt.hash(password, salt);
-
-        const newPerson = new Person({
-            internalUuid: uuid,
+        // 3. Create Core Person Document
+        person = new Person({
             loginIdentity: email,
-            password: hashedPassword,
+            passwordHash: passwordHash, // Fixed to match GridModels
             legalFullName: name,
-            dateOfBirth: dob || new Date(), 
-            genderLegal: gender || 'Other',
-            contact: {
-                primaryMobile: phone || '0000000000',
-                primaryEmail: email
-            },
-            audit: { sourceOfTruth: 'Self_Registered_Portal' }
+            contact: { primaryEmail: email, primaryMobile: '0000000000' }
         });
+        await person.save();
 
-        const savedPerson = await newPerson.save();
-
+        // 4. Create Role-Specific Profile
         if (role === 'patient') {
-            await Patient.create({
-                personId: savedPerson._id,
-                enterpriseMrn: `MRN-${timestamp}`,
-                nationalHealthId: `NHI-${uuid}`
-            });
+            const patient = new Patient({ personId: person._id });
+            await patient.save();
         } else {
-            const roleTypeStr = role ? role.charAt(0).toUpperCase() + role.slice(1) : 'Doctor';
-            await PractitionerRole.create({
-                personId: savedPerson._id,
-                roleType: roleTypeStr, 
-                audit: { verificationStatus: 'Pending' }
+            // Map frontend role to Backend Enum
+            const roleMapping = {
+                'doctor': 'Doctor',
+                'pharmacist': 'Pharmacist',
+                'pathologist': 'Pathologist',
+                'admin': 'Admin'
+            };
+            const pracRole = new PractitionerRole({
+                personId: person._id,
+                roleType: roleMapping[role] || 'Doctor'
             });
+            await pracRole.save();
         }
 
-        res.status(201).json({ msg: 'National Identity Initialized. Pending Verification.' });
-
+        res.status(201).json({ msg: 'Identity Initialized.' });
     } catch (err) {
-        console.error("AUTH_REGISTER_ERR:", err);
-        res.status(500).json({ msg: 'Grid Initialization Failure: ' + err.message });
+        console.error("REGISTER_ERR:", err);
+        res.status(500).json({ msg: 'Grid Server Error during registration.' });
     }
 });
 
 // ==========================================
-// 2. SECURE ACCESS TERMINAL (Login)
+// 2. AUTHENTICATE & LOGIN
 // ==========================================
 router.post('/login', async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { email, password, role } = req.body;
 
-        if (!email || !password) {
-            return res.status(400).json({ msg: 'Email and Password are required.' });
-        }
-
+        // 1. Find Core Identity
         const person = await Person.findOne({ loginIdentity: email });
-        if (!person) return res.status(400).json({ msg: 'Invalid Grid Credentials.' });
+        if (!person) return res.status(400).json({ msg: 'Invalid Credentials.' });
 
-        const isMatch = await bcrypt.compare(password, person.password);
-        if (!isMatch) return res.status(400).json({ msg: 'Invalid Grid Credentials.' });
+        // 2. Verify Cryptographic Passphrase
+        // 🚨 This fixes the "Undefined" error by targeting passwordHash
+        const isMatch = await bcrypt.compare(password, person.passwordHash);
+        if (!isMatch) return res.status(400).json({ msg: 'Invalid Credentials.' });
 
-        // 🛡️ THE BULLETPROOF ROLE CHECK
-        let userRole = 'patient';
-        const checkPrac = await PractitionerRole.findOne({ personId: person._id });
-        
-        if (checkPrac) {
-            // Safely default to 'Doctor' if roleType is somehow undefined in the DB
-            userRole = (checkPrac.roleType || 'Doctor').toLowerCase();
+        // 3. Verify the user is logging into the correct Role Terminal
+        if (role === 'patient') {
+            const pat = await Patient.findOne({ personId: person._id });
+            if (!pat) return res.status(403).json({ msg: 'Identity is not registered as a Citizen.' });
+        } else {
+            const roleMapping = {
+                'doctor': 'Doctor',
+                'pharmacist': 'Pharmacist',
+                'pathologist': 'Pathologist',
+                'admin': 'Admin'
+            };
+            const prac = await PractitionerRole.findOne({ personId: person._id, roleType: roleMapping[role] });
+            if (!prac) return res.status(403).json({ msg: `Identity is not registered as a ${roleMapping[role]}.` });
         }
 
+        // 4. Generate JWT Security Token
         const payload = {
             id: person._id,
-            uuid: person.internalUuid,
-            role: userRole,
-            name: person.legalFullName
+            name: person.legalFullName,
+            role: role 
         };
 
-        const secret = process.env.JWT_SECRET || 'holmes_emergency_grid_secret_2026';
-
-        jwt.sign(payload, secret, { expiresIn: '12h' }, (err, token) => {
-            if (err) {
-                console.error("JWT_SIGN_ERR:", err);
-                return res.status(500).json({ msg: 'Token Encryption Failed: ' + err.message });
+        jwt.sign(
+            payload,
+            process.env.JWT_SECRET || 'holmes_emergency_grid_secret_2026',
+            { expiresIn: '12h' },
+            (err, token) => {
+                if (err) throw err;
+                res.json({ token, user: payload });
             }
-            res.json({ token, user: payload });
-        });
-
+        );
     } catch (err) {
-        console.error("LOGIN_CRASH:", err);
-        res.status(500).json({ msg: 'Terminal Error: ' + err.message }); 
+        console.error("LOGIN_ERR:", err);
+        res.status(500).json({ msg: 'Grid Server Error during login.' });
     }
 });
 
