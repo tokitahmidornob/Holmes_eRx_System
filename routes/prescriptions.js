@@ -124,4 +124,42 @@ router.get('/doctor/:doctorId', authenticate, async (req, res) => {
     }
 });
 
+/**
+ * 🗄️ FETCH CITIZEN'S VAULT (Master Rx History for Patients)
+ */
+router.get('/patient/me', authenticate, async (req, res) => {
+    try {
+        if (req.user.role !== 'patient') return res.status(403).json({ msg: 'Citizen Clearance Required.' });
+        
+        // Find the specific Patient profile linked to this User
+        const targetPatient = await Patient.findOne({ personId: req.user.id });
+        if (!targetPatient) return res.json([]);
+
+        // Fetch all prescriptions belonging to this patient
+        const history = await Prescription.find({ patientId: targetPatient._id })
+            .populate({
+                path: 'practitionerRoleId',
+                populate: { path: 'personId', select: 'legalFullName' }
+            })
+            .sort({ createdAt: -1 });
+
+        // Map for the frontend
+        const mappedHistory = history.map(rx => ({
+            _id: rx._id,
+            broadcastId: rx.broadcastId,
+            otp: rx.otp,
+            doctorName: rx.practitionerRoleId?.personId?.legalFullName || 'Unknown Doctor',
+            status: rx.status,
+            createdAt: rx.createdAt,
+            medications: rx.medications,
+            investigations: rx.investigations
+        }));
+
+        res.json(mappedHistory);
+    } catch (err) {
+        console.error("RX_PATIENT_HISTORY_ERR:", err);
+        res.status(500).json({ msg: 'Vault Unreachable.' });
+    }
+});
+
 module.exports = router;
