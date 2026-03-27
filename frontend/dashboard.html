@@ -4,202 +4,237 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Enterprise Terminal | Holmes eRx</title>
-    <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        /* Modern Scrollbar & Glass Effects */
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
-        .dossier-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .glass-panel { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(12px); border: 1px solid rgba(226, 232, 240, 0.8); }
+        .glass-panel { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(226, 232, 240, 0.8); }
+        
+        /* Smooth Transitions */
+        .transition-all-spring { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .fade-in-up { animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Shimmer Loading Skeleton */
+        .skeleton { background: #e2e8f0; background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 0.4) 20%, rgba(255, 255, 255, 0) 40%, rgba(255, 255, 255, 0) 100%); background-repeat: no-repeat; background-size: 200px 100%; animation: shimmer 1.5s infinite linear; border-radius: 8px; }
+        @keyframes shimmer { 0% { background-position: -200px 0; } 100% { background-position: calc(200px + 100%) 0; } }
     </style>
 </head>
-<body class="antialiased text-slate-800 flex h-screen overflow-hidden bg-slate-50" onclick="closeAllDropdowns(event)">
+<body class="antialiased text-slate-800 bg-slate-50 flex h-screen overflow-hidden" onclick="closeAllDropdowns(event)">
 
-    <aside class="w-24 lg:w-72 bg-slate-900 text-white flex flex-col transition-all duration-300 z-20 shadow-2xl shrink-0">
-        <div class="h-24 flex items-center justify-center lg:justify-start lg:px-8 border-b border-slate-800">
-            <div class="w-10 h-10 bg-teal-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-teal-500/30 shrink-0"><i class="fa-solid fa-user-doctor"></i></div>
-            <h1 class="hidden lg:block ml-4 text-xl font-black tracking-tighter">Holmes <span class="text-teal-400">Grid</span></h1>
+    <div class="lg:hidden fixed top-0 w-full h-16 bg-slate-900 text-white flex items-center justify-between px-4 z-40 shadow-md">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 bg-teal-500 rounded-lg flex items-center justify-center shadow-lg"><i class="fa-solid fa-user-doctor text-sm"></i></div>
+            <h1 class="font-black tracking-tighter text-lg">Holmes <span class="text-teal-400">Grid</span></h1>
+        </div>
+        <button onclick="toggleMobileMenu()" class="text-slate-300 hover:text-white p-2 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none transition-colors">
+            <i class="fa-solid fa-bars text-xl"></i>
+        </button>
+    </div>
+
+    <div id="mobileOverlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 hidden lg:hidden transition-opacity opacity-0" onclick="toggleMobileMenu()"></div>
+
+    <aside id="mainSidebar" class="fixed lg:static inset-y-0 left-0 transform -translate-x-full lg:translate-x-0 w-64 lg:w-72 bg-slate-900 text-white flex flex-col transition-transform duration-300 ease-in-out z-50 shadow-2xl shrink-0 h-full">
+        <div class="h-24 hidden lg:flex items-center justify-start px-8 border-b border-slate-800">
+            <div class="w-10 h-10 bg-teal-500 rounded-xl flex items-center justify-center shadow-lg shadow-teal-500/30 shrink-0"><i class="fa-solid fa-user-doctor"></i></div>
+            <h1 class="ml-4 text-xl font-black tracking-tighter">Holmes <span class="text-teal-400">Grid</span></h1>
         </div>
         
-        <nav class="flex-1 py-8 flex flex-col gap-2 px-4">
-            <button onclick="switchTab('rxPad')" id="navRxPad" class="nav-btn active flex items-center p-4 rounded-2xl bg-teal-500/10 text-teal-400 transition-all hover:-translate-y-1">
-                <i class="fa-solid fa-pen-nib text-xl lg:mr-4 w-6 text-center"></i><span class="hidden lg:block font-bold text-sm">Clinical Pad</span>
+        <nav class="flex-1 py-8 flex flex-col gap-2 px-4 mt-16 lg:mt-0 overflow-y-auto custom-scrollbar">
+            <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest px-4 mb-2">Main Terminal</p>
+            <button onclick="switchTab('rxPad')" id="navRxPad" class="nav-btn active flex items-center p-4 rounded-2xl bg-teal-500/10 text-teal-400 transition-all-spring hover:-translate-y-1">
+                <i class="fa-solid fa-pen-nib text-xl mr-4 w-6 text-center"></i><span class="font-bold text-sm">Clinical Pad</span>
             </button>
-            <button onclick="switchTab('history')" id="navHistory" class="nav-btn flex items-center p-4 rounded-2xl hover:bg-slate-800 text-slate-400 hover:text-white transition-all hover:-translate-y-1">
-                <i class="fa-solid fa-vault text-xl lg:mr-4 w-6 text-center"></i><span class="hidden lg:block font-bold text-sm">Master Archive</span>
+            <button onclick="switchTab('history')" id="navHistory" class="nav-btn flex items-center p-4 rounded-2xl hover:bg-slate-800 text-slate-400 hover:text-white transition-all-spring hover:-translate-y-1">
+                <i class="fa-solid fa-vault text-xl mr-4 w-6 text-center"></i><span class="font-bold text-sm">Master Archive</span>
             </button>
             
-            <button onclick="window.location.href='profile.html'" id="navProfile" class="nav-btn flex items-center p-4 rounded-2xl hover:bg-slate-800 text-slate-400 hover:text-white transition-all hover:-translate-y-1 relative">
-                <i class="fa-solid fa-id-card-clip text-xl lg:mr-4 w-6 text-center"></i>
-                <span class="hidden lg:block font-bold text-sm">Identity Matrix</span>
+            <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest px-4 mt-6 mb-2">Settings</p>
+            <button onclick="window.location.href='profile.html'" id="navProfile" class="nav-btn flex items-center p-4 rounded-2xl hover:bg-slate-800 text-slate-400 hover:text-white transition-all-spring hover:-translate-y-1 relative">
+                <i class="fa-solid fa-id-card-clip text-xl mr-4 w-6 text-center"></i><span class="font-bold text-sm">Identity Matrix</span>
                 <div id="profileWarningDot" class="hidden absolute right-4 w-3 h-3 rounded-full bg-rose-500 animate-pulse shadow-[0_0_10px_rgba(244,63,94,0.8)]"></div>
             </button>
         </nav>
         
-        <div class="p-4 border-t border-slate-800">
-            <div class="hidden lg:block mb-4 px-4 text-center">
-                <p id="drNameDisplay" class="font-black text-sm text-white truncate">Loading...</p>
-                <div class="bg-slate-800/50 border border-slate-700 rounded-lg mt-2 py-1"><p id="drGridIdDisplay" class="text-xs font-mono font-bold text-teal-400 tracking-wider">ID: PENDING</p></div>
+        <div class="p-4 border-t border-slate-800 bg-slate-900/95 backdrop-blur">
+            <div class="mb-4 px-4 text-center">
+                <p id="drNameDisplay" class="font-black text-sm text-white truncate">Loading Identity...</p>
+                <div class="bg-slate-800/80 border border-slate-700 rounded-lg mt-2 py-1"><p id="drGridIdDisplay" class="text-[10px] font-mono font-bold text-teal-400 tracking-wider">ID: PENDING</p></div>
             </div>
-            <button onclick="logout()" class="w-full flex items-center justify-center p-4 rounded-2xl hover:bg-rose-500/10 text-slate-400 hover:text-rose-500 transition-all hover:-translate-y-1">
-                <i class="fa-solid fa-power-off text-xl lg:mr-3"></i><span class="hidden lg:block font-bold text-sm uppercase tracking-widest">Disconnect</span>
+            <button onclick="logout()" class="w-full flex items-center justify-center p-4 rounded-2xl bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white transition-all-spring hover:-translate-y-1 group">
+                <i class="fa-solid fa-power-off text-xl mr-3 group-hover:rotate-180 transition-transform duration-500"></i><span class="font-bold text-sm uppercase tracking-widest">Disconnect</span>
             </button>
         </div>
     </aside>
 
-    <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
-        <header class="h-24 glass-panel border-b border-slate-200 flex items-center justify-between px-8 shrink-0 z-10 shadow-sm">
-            <div><h2 id="pageTitle" class="text-2xl font-black text-slate-900 tracking-tighter">Clinical Pad</h2><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1"><i class="fa-solid fa-network-wired text-teal-500 mr-1"></i> National Grid Connected</p></div>
-            <div id="activePatientBanner" class="hidden bg-indigo-50 border border-indigo-100 px-6 py-2 rounded-full flex items-center gap-3 shadow-sm">
+    <main class="flex-1 flex flex-col h-screen overflow-hidden relative w-full pt-16 lg:pt-0">
+        <header class="h-20 lg:h-24 glass-panel border-b border-slate-200 flex items-center justify-between px-6 lg:px-8 shrink-0 z-10">
+            <div>
+                <h2 id="pageTitle" class="text-xl lg:text-2xl font-black text-slate-900 tracking-tighter">Clinical Pad</h2>
+                <p class="text-[9px] lg:text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1 flex items-center"><i class="fa-solid fa-circle-nodes text-teal-500 mr-1.5 animate-pulse"></i> Node Connected</p>
+            </div>
+            <div id="activePatientBanner" class="hidden bg-indigo-50 border border-indigo-100 px-4 py-2 lg:px-6 rounded-full flex items-center gap-2 lg:gap-3 shadow-sm transform transition-all-spring hover:scale-105 cursor-default">
                 <div class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></div>
-                <span class="text-xs font-black text-indigo-700 uppercase tracking-widest" id="bannerPatientName">Active Session</span>
+                <span class="text-[10px] lg:text-xs font-black text-indigo-700 uppercase tracking-widest truncate max-w-[100px] lg:max-w-xs" id="bannerPatientName">Active Session</span>
+                <button onclick="clearActivePatient()" class="ml-2 text-indigo-400 hover:text-rose-500 transition-colors" title="Close Session"><i class="fa-solid fa-times-circle text-lg"></i></button>
             </div>
         </header>
 
-        <div class="flex-1 overflow-y-auto custom-scrollbar p-6 lg:p-10">
-            <div id="viewRxPad" class="max-w-6xl mx-auto space-y-6 block">
+        <div class="flex-1 overflow-y-auto custom-scrollbar p-4 lg:p-10 scroll-smooth">
+            <div id="viewRxPad" class="max-w-6xl mx-auto space-y-6 block pb-20">
                 
-                <div class="glass-panel rounded-3xl p-8 shadow-sm hover:shadow-md transition-shadow flex flex-col lg:flex-row gap-6 justify-between items-center z-50 relative">
+                <div class="glass-panel rounded-[24px] p-6 lg:p-8 shadow-sm hover:shadow-md transition-shadow flex flex-col gap-4 z-30 relative fade-in-up">
                     <div class="flex-1 w-full relative" id="patientDropdownContainer">
-                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block"><i class="fa-solid fa-magnifying-glass mr-1"></i> Query Master Patient Index (MPI)</label>
-                        <div class="flex relative">
-                            <input type="text" id="patientSearchInput" oninput="searchPatients(this.value)" placeholder="Search by NID, Phone, or NHI..." autocomplete="off" class="w-full p-4 pl-12 rounded-2xl border border-slate-200 text-sm font-bold text-slate-800 outline-none focus:ring-2 focus:ring-teal-500 transition-all shadow-inner bg-slate-50">
-                            <i class="fa-solid fa-fingerprint absolute left-4 top-4 text-lg text-slate-400"></i>
+                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block"><i class="fa-solid fa-magnifying-glass mr-1.5 text-slate-400"></i> Query Master Patient Index (MPI)</label>
+                        <div class="flex relative group">
+                            <input type="text" id="patientSearchInput" oninput="searchPatients(this.value)" placeholder="Enter NID, Phone, or Grid NHI..." autocomplete="off" class="w-full p-4 lg:p-5 pl-12 rounded-2xl border border-slate-200 text-sm font-bold text-slate-800 outline-none focus:ring-2 focus:ring-teal-500 transition-all shadow-inner bg-slate-50/50 group-hover:bg-white">
+                            <i class="fa-solid fa-fingerprint absolute left-4 top-1/2 -translate-y-1/2 text-lg text-slate-400 group-focus-within:text-teal-500 transition-colors"></i>
                         </div>
                         <input type="hidden" id="selectedPatientId">
                         
-                        <div id="patientDropdown" class="hidden absolute w-full mt-2 bg-white border border-slate-200 rounded-2xl shadow-2xl max-h-80 overflow-y-auto custom-scrollbar z-50 divide-y divide-slate-100"></div>
+                        <div id="patientDropdown" class="hidden absolute w-full mt-2 bg-white/95 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-2xl max-h-80 overflow-y-auto custom-scrollbar z-50 divide-y divide-slate-100 transform origin-top transition-all-spring"></div>
                     </div>
                 </div>
 
-                <div id="clinicalDossierPanel" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-6 opacity-0 transform translate-y-4 dossier-card">
+                <div id="clinicalDossierPanel" class="hidden grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 transition-all duration-500 opacity-0 transform translate-y-8">
                     
-                    <div class="bg-white rounded-3xl p-6 border border-rose-100 shadow-sm border-t-4 border-t-rose-500">
-                        <h3 class="text-[10px] font-black text-rose-600 uppercase tracking-widest mb-4 flex justify-between"><span><i class="fa-solid fa-triangle-exclamation mr-1"></i> Verified Allergies</span> <span id="allergyCount" class="bg-rose-100 px-2 py-0.5 rounded text-rose-800">0</span></h3>
-                        <div id="dossierAllergies" class="space-y-2 max-h-32 overflow-y-auto custom-scrollbar pr-2">
-                            <p class="text-xs text-slate-400 font-bold italic">No data retrieved.</p>
+                    <div class="bg-white rounded-[24px] p-5 lg:p-6 border border-rose-100 shadow-sm border-t-[6px] border-t-rose-500 hover:shadow-md transition-shadow">
+                        <h3 class="text-[10px] font-black text-rose-600 uppercase tracking-widest mb-4 flex justify-between items-center"><span><i class="fa-solid fa-triangle-exclamation mr-1.5"></i> Verified Allergies</span> <span id="allergyCount" class="bg-rose-100 px-2 py-0.5 rounded-md text-rose-800 shadow-inner">0</span></h3>
+                        <div id="dossierAllergies" class="space-y-2 max-h-40 overflow-y-auto custom-scrollbar pr-2">
+                            <div class="flex flex-col items-center justify-center py-4 opacity-50"><i class="fa-solid fa-shield-virus text-2xl text-slate-300 mb-2"></i><p class="text-[10px] uppercase font-bold text-slate-400 text-center tracking-widest">Awaiting Patient Data</p></div>
                         </div>
                     </div>
 
-                    <div class="bg-white rounded-3xl p-6 border border-amber-100 shadow-sm border-t-4 border-t-amber-500">
-                        <h3 class="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-4 flex justify-between"><span><i class="fa-solid fa-heart-pulse mr-1"></i> Active Conditions</span> <span id="conditionCount" class="bg-amber-100 px-2 py-0.5 rounded text-amber-800">0</span></h3>
-                        <div id="dossierConditions" class="space-y-2 max-h-32 overflow-y-auto custom-scrollbar pr-2">
-                            <p class="text-xs text-slate-400 font-bold italic">No data retrieved.</p>
+                    <div class="bg-white rounded-[24px] p-5 lg:p-6 border border-amber-100 shadow-sm border-t-[6px] border-t-amber-500 hover:shadow-md transition-shadow">
+                        <h3 class="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-4 flex justify-between items-center"><span><i class="fa-solid fa-heart-pulse mr-1.5"></i> Active Conditions</span> <span id="conditionCount" class="bg-amber-100 px-2 py-0.5 rounded-md text-amber-800 shadow-inner">0</span></h3>
+                        <div id="dossierConditions" class="space-y-2 max-h-40 overflow-y-auto custom-scrollbar pr-2">
+                             <div class="flex flex-col items-center justify-center py-4 opacity-50"><i class="fa-solid fa-clipboard-list text-2xl text-slate-300 mb-2"></i><p class="text-[10px] uppercase font-bold text-slate-400 text-center tracking-widest">Awaiting Patient Data</p></div>
                         </div>
                     </div>
 
-                    <div class="bg-white rounded-3xl p-6 border border-teal-100 shadow-sm border-t-4 border-t-teal-500">
-                        <h3 class="text-[10px] font-black text-teal-600 uppercase tracking-widest mb-4 flex justify-between"><span><i class="fa-solid fa-pills mr-1"></i> Active Medications</span> <span id="medCount" class="bg-teal-100 px-2 py-0.5 rounded text-teal-800">0</span></h3>
-                        <div id="dossierActiveMeds" class="space-y-2 max-h-32 overflow-y-auto custom-scrollbar pr-2">
-                            <p class="text-xs text-slate-400 font-bold italic">No data retrieved.</p>
+                    <div class="bg-white rounded-[24px] p-5 lg:p-6 border border-teal-100 shadow-sm border-t-[6px] border-t-teal-500 hover:shadow-md transition-shadow">
+                        <h3 class="text-[10px] font-black text-teal-600 uppercase tracking-widest mb-4 flex justify-between items-center"><span><i class="fa-solid fa-pills mr-1.5"></i> Active Meds</span> <span id="medCount" class="bg-teal-100 px-2 py-0.5 rounded-md text-teal-800 shadow-inner">0</span></h3>
+                        <div id="dossierActiveMeds" class="space-y-2 max-h-40 overflow-y-auto custom-scrollbar pr-2">
+                             <div class="flex flex-col items-center justify-center py-4 opacity-50"><i class="fa-solid fa-prescription-bottle-medical text-2xl text-slate-300 mb-2"></i><p class="text-[10px] uppercase font-bold text-slate-400 text-center tracking-widest">Awaiting Patient Data</p></div>
                         </div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-                    <div class="lg:col-span-2 glass-panel rounded-3xl shadow-sm border border-slate-200 p-8">
-                        <h3 class="font-black text-slate-900 uppercase tracking-widest text-xs mb-6"><i class="fa-solid fa-prescription text-teal-500 mr-2 text-lg"></i> Formulate Therapy</h3>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6 fade-in-up" style="animation-delay: 0.1s;">
+                    <div class="lg:col-span-2 glass-panel rounded-[24px] shadow-sm border border-slate-200 p-6 lg:p-8">
+                        <h3 class="font-black text-slate-900 uppercase tracking-widest text-xs mb-6 flex items-center"><i class="fa-solid fa-prescription text-teal-500 mr-2 text-lg"></i> Formulate Therapy Payload</h3>
                         
-                        <div class="flex flex-wrap gap-3 mb-6 relative">
-                            <div class="flex-1 min-w-[200px]" id="drugDropdownContainer">
-                                <input type="text" id="medName" oninput="searchDrugs(this.value)" placeholder="Drug / Substance Name..." autocomplete="off" class="w-full p-4 rounded-xl border border-slate-200 text-sm font-bold bg-slate-50 focus:ring-2 focus:ring-teal-500 outline-none">
-                                <div id="drugDropdown" class="hidden absolute z-40 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl max-h-48 overflow-y-auto custom-scrollbar"></div>
+                        <div class="flex flex-col md:flex-row gap-3 mb-6 relative bg-slate-50 p-2 rounded-2xl border border-slate-100">
+                            <div class="flex-1 w-full" id="drugDropdownContainer">
+                                <input type="text" id="medName" placeholder="Drug / Substance..." autocomplete="off" class="w-full p-4 rounded-xl border border-transparent text-sm font-bold focus:ring-2 focus:ring-teal-500 outline-none bg-white shadow-sm">
                             </div>
-                            <input type="text" id="medDose" placeholder="Dosage" class="w-24 p-4 rounded-xl border border-slate-200 text-sm font-bold bg-slate-50 outline-none">
-                            <select id="medTiming" class="w-36 p-4 rounded-xl border border-slate-200 text-sm font-bold bg-slate-50 outline-none"><option value="After Meal">After Meal</option><option value="Before Meal">Before Meal</option></select>
-                            <input type="text" id="medDuration" placeholder="Days" class="w-24 p-4 rounded-xl border border-slate-200 text-sm font-bold bg-slate-50 outline-none">
-                            <button onclick="attemptAddMedication()" class="bg-slate-900 hover:bg-teal-600 text-white px-6 rounded-xl font-black transition-colors shadow-md hover:-translate-y-1"><i class="fa-solid fa-plus"></i></button>
+                            <div class="flex gap-2 w-full md:w-auto">
+                                <input type="text" id="medDose" placeholder="Dosage" class="w-1/3 md:w-24 p-4 rounded-xl border border-transparent text-sm font-bold bg-white shadow-sm outline-none focus:ring-2 focus:ring-teal-500">
+                                <select id="medTiming" class="w-1/3 md:w-36 p-4 rounded-xl border border-transparent text-sm font-bold bg-white shadow-sm outline-none focus:ring-2 focus:ring-teal-500 appearance-none cursor-pointer"><option value="After Meal">After Meal</option><option value="Before Meal">Before Meal</option></select>
+                                <input type="text" id="medDuration" placeholder="Days" class="w-1/3 md:w-24 p-4 rounded-xl border border-transparent text-sm font-bold bg-white shadow-sm outline-none focus:ring-2 focus:ring-teal-500">
+                            </div>
+                            <button onclick="attemptAddMedication()" class="w-full md:w-auto bg-slate-900 hover:bg-teal-600 text-white p-4 rounded-xl font-black transition-colors shadow-md hover:-translate-y-1 flex justify-center items-center"><i class="fa-solid fa-plus md:mr-0 mr-2"></i><span class="md:hidden">Add</span></button>
                         </div>
 
-                        <div id="medListDisplay" class="space-y-3 max-h-[250px] overflow-y-auto custom-scrollbar pr-2">
-                            <div class="p-8 text-center border-2 border-dashed border-slate-200 rounded-2xl"><p class="text-xs font-bold text-slate-400 uppercase tracking-widest">No therapies added to payload.</p></div>
+                        <div id="medListDisplay" class="space-y-3 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
+                            <div class="p-8 text-center border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50/50"><i class="fa-solid fa-mortar-pestle text-3xl text-slate-200 mb-3 block"></i><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">No therapies added to payload.</p></div>
                         </div>
                     </div>
 
-                    <div class="glass-panel rounded-3xl shadow-sm border border-slate-200 p-8">
-                        <h3 class="font-black text-slate-900 uppercase tracking-widest text-xs mb-6"><i class="fa-solid fa-microscope text-indigo-500 mr-2 text-lg"></i> Investigations</h3>
-                        <div class="flex gap-2 mb-6">
-                            <input type="text" id="testName" placeholder="LOINC / Test Name" class="flex-1 p-4 rounded-xl border border-slate-200 text-sm font-bold bg-slate-50 outline-none">
-                            <button onclick="addTest()" class="bg-indigo-50 hover:bg-indigo-600 hover:text-white text-indigo-600 px-5 rounded-xl transition-all font-black"><i class="fa-solid fa-plus"></i></button>
+                    <div class="glass-panel rounded-[24px] shadow-sm border border-slate-200 p-6 lg:p-8">
+                        <h3 class="font-black text-slate-900 uppercase tracking-widest text-xs mb-6 flex items-center"><i class="fa-solid fa-microscope text-indigo-500 mr-2 text-lg"></i> Investigations</h3>
+                        <div class="flex gap-2 mb-6 bg-slate-50 p-2 rounded-2xl border border-slate-100">
+                            <input type="text" id="testName" placeholder="LOINC / Test Name" class="flex-1 p-4 rounded-xl border border-transparent text-sm font-bold bg-white shadow-sm outline-none focus:ring-2 focus:ring-indigo-500">
+                            <button onclick="addTest()" class="bg-indigo-100 hover:bg-indigo-600 hover:text-white text-indigo-700 px-5 rounded-xl transition-all font-black shadow-sm"><i class="fa-solid fa-plus"></i></button>
                         </div>
                         <div id="testListDisplay" class="flex flex-wrap gap-2"></div>
                     </div>
                 </div>
 
-                <div class="flex justify-end pt-4 pb-12">
-                    <button onclick="generatePrescription()" id="generateBtn" class="bg-slate-900 hover:bg-teal-600 text-white px-12 py-5 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl hover:-translate-y-1 transition-all flex items-center gap-3">
-                        <i class="fa-solid fa-lock"></i> Cryptographically Seal & Broadcast
+                <div class="flex justify-end pt-8 pb-12 fade-in-up" style="animation-delay: 0.2s;">
+                    <button onclick="generatePrescription()" id="generateBtn" class="w-full md:w-auto bg-slate-900 hover:bg-teal-500 text-white px-8 lg:px-12 py-5 rounded-[20px] font-black text-xs lg:text-sm uppercase tracking-widest shadow-xl shadow-slate-900/20 hover:-translate-y-1 transition-all-spring flex items-center justify-center gap-3 relative overflow-hidden group">
+                        <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out"></div>
+                        <i class="fa-solid fa-satellite-dish relative z-10"></i> <span class="relative z-10">Seal & Broadcast Payload</span>
                     </button>
                 </div>
             </div>
 
-            <div id="viewHistory" class="hidden max-w-6xl mx-auto pb-12">
-                <div class="glass-panel rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-                    <div class="p-8 border-b border-slate-100 bg-slate-50 flex justify-between items-center"><h3 class="font-black text-slate-900 uppercase tracking-widest text-xs"><i class="fa-solid fa-vault text-slate-400 mr-2"></i> Master Rx Archive</h3><button onclick="fetchHistory()" class="text-[10px] font-black uppercase tracking-widest bg-white border border-slate-200 px-4 py-2 rounded-full hover:bg-slate-50 shadow-sm transition-all"><i class="fa-solid fa-rotate-right mr-1"></i> Sync</button></div>
-                    <div class="p-4"><div id="historyList" class="divide-y divide-slate-100 max-h-[70vh] overflow-y-auto custom-scrollbar"></div></div>
+            <div id="viewHistory" class="hidden max-w-6xl mx-auto pb-12 fade-in-up">
+                <div class="glass-panel rounded-[32px] shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="p-6 lg:p-8 border-b border-slate-100 bg-white/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <h3 class="font-black text-slate-900 uppercase tracking-widest text-sm flex items-center"><i class="fa-solid fa-vault text-slate-400 mr-3 text-lg"></i> Cryptographic Archive</h3>
+                        <button onclick="fetchHistory()" class="w-full md:w-auto text-[10px] font-black uppercase tracking-widest bg-white border border-slate-200 px-5 py-2.5 rounded-full hover:bg-slate-50 hover:shadow-md transition-all-spring"><i class="fa-solid fa-rotate-right mr-2 text-slate-400"></i> Sync Grid</button>
+                    </div>
+                    <div class="p-2 lg:p-4"><div id="historyList" class="divide-y divide-slate-100 max-h-[70vh] overflow-y-auto custom-scrollbar"></div></div>
                 </div>
             </div>
         </div>
     </main>
 
-    <div id="warningModal" class="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/90 p-4 opacity-0 pointer-events-none transition-opacity duration-300 backdrop-blur-sm">
-        <div class="bg-white rounded-[32px] w-full max-w-lg p-10 text-center shadow-2xl transform scale-95 transition-transform duration-300 border-4 border-rose-500" id="warningModalContent">
-            <div class="w-20 h-20 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl animate-pulse shadow-[0_0_30px_rgba(244,63,94,0.5)]"><i class="fa-solid fa-skull-crossbones"></i></div>
-            <h3 class="text-2xl font-black text-slate-900 tracking-tighter mb-2">CRITICAL CONTRAINDICATION</h3>
-            <div class="bg-rose-50 border border-rose-200 p-4 rounded-xl mb-8">
-                <p id="warningMessage" class="text-sm font-bold text-rose-700 leading-relaxed uppercase tracking-wide"></p>
+    <div id="warningModal" class="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/95 backdrop-blur-md p-4 opacity-0 pointer-events-none transition-all duration-300">
+        <div class="bg-white rounded-[32px] w-full max-w-lg p-8 lg:p-10 text-center shadow-2xl transform scale-90 translate-y-8 transition-all duration-400 cubic-bezier(0.175, 0.885, 0.32, 1.275)" id="warningModalContent">
+            <div class="relative w-24 h-24 mx-auto mb-6">
+                <div class="absolute inset-0 bg-rose-500 rounded-full animate-ping opacity-20"></div>
+                <div class="relative w-full h-full bg-rose-100 text-rose-600 rounded-full flex items-center justify-center text-4xl shadow-[0_0_40px_rgba(244,63,94,0.4)] border-4 border-white"><i class="fa-solid fa-skull-crossbones"></i></div>
             </div>
-            <div class="flex gap-4">
-                <button onclick="closeWarningModal()" class="flex-1 bg-slate-900 text-white py-4 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-slate-800 transition-colors">Acknowledge & Cancel</button>
+            <h3 class="text-2xl font-black text-slate-900 tracking-tighter mb-2">CONTRAINDICATION DETECTED</h3>
+            <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-6">Execution Halted by Grid Safety Protocols</p>
+            <div class="bg-rose-50 border border-rose-200 p-5 rounded-2xl mb-8 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-1 h-full bg-rose-500"></div>
+                <p id="warningMessage" class="text-sm font-bold text-rose-800 leading-relaxed uppercase tracking-wide text-left pl-2"></p>
             </div>
+            <button onclick="closeWarningModal()" class="w-full bg-slate-900 text-white py-4 lg:py-5 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-rose-600 transition-colors shadow-lg shadow-slate-900/20">Acknowledge & Cancel Rx</button>
         </div>
     </div>
 
-    <div id="toast-container" class="fixed bottom-6 right-6 z-[150] flex flex-col gap-3 pointer-events-none"></div>
-
-    <div id="rxModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/80 p-6 opacity-0 pointer-events-none transition-all duration-300 backdrop-blur-sm">
-        <div class="bg-white rounded-[32px] w-full max-w-[800px] shadow-2xl relative overflow-hidden transform scale-95 transition-transform duration-300" id="rxModalContent">
-            <div class="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                <div><h3 class="text-xl font-black text-slate-900 uppercase tracking-tighter">Cryptographic Record</h3></div>
-                <button onclick="closeRxModal()" class="w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center hover:bg-rose-500 hover:text-white transition-colors"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div class="p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
-                <div class="flex justify-between items-center bg-slate-900 p-6 rounded-[20px] shadow-inner text-white">
-                    <div><p class="text-[9px] font-black text-teal-400 uppercase tracking-widest mb-1">Grid Broadcast ID</p><p id="modalBroadcastId" class="font-mono font-bold text-lg tracking-wider"></p></div>
-                    <div class="text-right"><p class="text-[9px] font-black text-emerald-400 uppercase tracking-widest mb-1">Decryption OTP</p><p id="modalOtp" class="font-mono font-black text-emerald-400 text-3xl tracking-[0.2em] leading-none"></p></div>
-                </div>
-                <div><h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Payload Medications</h4><div id="modalMedList" class="space-y-2"></div></div>
-                <div id="modalTestSection"><h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 border-t pt-6">Investigations</h4><div id="modalTestList" class="flex flex-wrap gap-2"></div></div>
-            </div>
-        </div>
-    </div>
-
-    <div id="successModal" class="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/95 p-4 opacity-0 pointer-events-none transition-opacity duration-300">
-        <div class="glass-panel rounded-[40px] w-full max-w-lg p-10 text-center shadow-2xl transform scale-95 transition-transform duration-300" id="successModalContent">
-            <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl shadow-[0_0_30px_rgba(16,185,129,0.3)]"><i class="fa-solid fa-check-double"></i></div>
+    <div id="successModal" class="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/95 backdrop-blur-md p-4 opacity-0 pointer-events-none transition-all duration-300">
+        <div class="glass-panel bg-white/90 rounded-[40px] w-full max-w-lg p-8 lg:p-10 text-center shadow-2xl transform scale-90 transition-all duration-400 border border-emerald-100" id="successModalContent">
+            <div class="w-20 h-20 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl shadow-[0_0_30px_rgba(16,185,129,0.3)]"><i class="fa-solid fa-check-double"></i></div>
             <h2 class="text-3xl font-black text-slate-900 tracking-tighter mb-2">PAYLOAD SECURED</h2>
-            <div class="bg-white p-6 rounded-2xl mb-6 border border-slate-200">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Broadcast Reference</p><p id="successBroadcastId" class="font-mono font-black text-xl text-slate-800"></p>
-                <div class="h-px bg-slate-100 my-4"></div>
-                <div class="flex justify-center mb-4"><div id="successQr" class="p-3 bg-white rounded-xl border-2 border-slate-100 shadow-sm hover:scale-105 transition-transform duration-300"></div></div>
-                <p class="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em] mb-2">Patient Decryption Key</p><p id="successOtp" class="font-mono font-black text-5xl text-emerald-600 tracking-[0.1em]"></p>
+            <div class="bg-white p-6 rounded-3xl mb-8 border border-slate-100 shadow-sm relative">
+                <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full">Grid Immutable Record</div>
+                <p class="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 mt-4">Broadcast Reference</p>
+                <p id="successBroadcastId" class="font-mono font-black text-lg lg:text-xl text-slate-800 bg-slate-50 py-2 rounded-lg border border-slate-100"></p>
+                
+                <div class="h-px bg-slate-100 my-6"></div>
+                
+                <div class="flex justify-center mb-6"><div id="successQr" class="p-4 bg-white rounded-2xl border-2 border-slate-100 shadow-sm hover:scale-105 transition-transform duration-300"></div></div>
+                <p class="text-[9px] font-black text-emerald-500 uppercase tracking-[0.2em] mb-2">Patient Decryption Key</p>
+                <p id="successOtp" class="font-mono font-black text-5xl lg:text-6xl text-emerald-500 tracking-[0.1em] drop-shadow-sm"></p>
             </div>
-            <button onclick="closeSuccessAndRefresh()" class="w-full bg-slate-900 hover:bg-slate-800 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:-translate-y-1 transition-all">Clear Terminal</button>
+            <button onclick="closeSuccessAndRefresh()" class="w-full bg-slate-900 hover:bg-slate-800 text-white py-4 lg:py-5 rounded-2xl font-black text-xs uppercase tracking-widest hover:-translate-y-1 transition-all-spring shadow-xl">Clear Terminal for Next Patient</button>
         </div>
     </div>
+
+    <div id="rxModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4 lg:p-6 opacity-0 pointer-events-none transition-all duration-300">
+        <div class="bg-white rounded-[32px] w-full max-w-[800px] shadow-2xl relative overflow-hidden transform scale-95 transition-all duration-300 flex flex-col max-h-[90vh]" id="rxModalContent">
+            <div class="p-6 lg:p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
+                <div><h3 class="text-lg lg:text-xl font-black text-slate-900 uppercase tracking-tighter">Cryptographic Record</h3></div>
+                <button onclick="closeRxModal()" class="w-10 h-10 bg-white border border-slate-200 rounded-full flex items-center justify-center hover:bg-rose-500 hover:text-white transition-colors shadow-sm"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="p-6 lg:p-8 space-y-6 overflow-y-auto custom-scrollbar flex-1">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-slate-900 p-6 rounded-[24px] shadow-inner text-white">
+                    <div><p class="text-[9px] font-black text-teal-400 uppercase tracking-widest mb-1">Grid Broadcast ID</p><p id="modalBroadcastId" class="font-mono font-bold text-base lg:text-lg tracking-wider"></p></div>
+                    <div class="md:text-right w-full md:w-auto border-t md:border-t-0 md:border-l border-slate-700 pt-4 md:pt-0 md:pl-6"><p class="text-[9px] font-black text-emerald-400 uppercase tracking-widest mb-1">Decryption OTP</p><p id="modalOtp" class="font-mono font-black text-emerald-400 text-3xl tracking-[0.2em] leading-none"></p></div>
+                </div>
+                <div><h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center"><i class="fa-solid fa-pills mr-2"></i> Payload Medications</h4><div id="modalMedList" class="space-y-3"></div></div>
+                <div id="modalTestSection"><h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 border-t border-slate-100 pt-6 flex items-center"><i class="fa-solid fa-microscope mr-2"></i> Investigations</h4><div id="modalTestList" class="flex flex-wrap gap-2"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container" class="fixed bottom-6 right-6 lg:bottom-10 lg:right-10 z-[150] flex flex-col gap-3 pointer-events-none w-full max-w-[320px] px-4 lg:px-0"></div>
 
     <script>
         const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
         const token = sessionStorage.getItem('eRx_Token');
         const drName = sessionStorage.getItem('eRx_UserName');
         let medications = []; let investigations = []; let doctorPrescriptions = [];
-        
-        // 🌟 FHIR CLINICAL STATE 🌟
-        let currentPatientAllergies = [];
-        let currentPatientId = null; 
+        let currentPatientAllergies = []; let currentPatientId = null; 
 
         function parseJwt(t) { try { return JSON.parse(atob(t.split('.')[1])); } catch(e) { return {}; } }
         const decoded = parseJwt(token);
@@ -208,249 +243,255 @@
         document.getElementById('drNameDisplay').innerText = `Dr. ${drName}`;
         document.getElementById('drGridIdDisplay').innerText = decoded.uuid || 'ID-PENDING';
         
-        // Init Check
         checkProfileStatus(); fetchHistory();
 
-        // 🎨 TOAST ENGINE
+        // 📱 MOBILE MENU LOGIC
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById('mainSidebar');
+            const overlay = document.getElementById('mobileOverlay');
+            if (sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+                requestAnimationFrame(() => overlay.classList.remove('opacity-0'));
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('opacity-0');
+                setTimeout(() => overlay.classList.add('hidden'), 300);
+            }
+        }
+
+        // 🎨 ENHANCED TOAST ENGINE
         function showToast(message, type = 'error') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
-            const colors = type === 'error' ? 'bg-rose-600 text-white' : 'bg-emerald-600 text-white';
-            const icon = type === 'error' ? 'fa-triangle-exclamation' : 'fa-check-circle';
-            toast.className = `flex items-center gap-3 px-6 py-4 rounded-2xl shadow-xl transform transition-all duration-500 translate-y-10 opacity-0 ${colors}`;
-            toast.innerHTML = `<i class="fa-solid ${icon}"></i><span class="text-[10px] font-black uppercase tracking-widest">${message}</span>`;
+            const colors = type === 'error' ? 'bg-white border-rose-500' : 'bg-white border-emerald-500';
+            const iconColor = type === 'error' ? 'text-rose-500 bg-rose-50' : 'text-emerald-500 bg-emerald-50';
+            const icon = type === 'error' ? 'fa-triangle-exclamation' : 'fa-check';
+            
+            toast.className = `flex items-center p-4 rounded-2xl shadow-xl border-l-4 transform transition-all duration-500 translate-y-10 opacity-0 ${colors}`;
+            toast.innerHTML = `
+                <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${iconColor}"><i class="fa-solid ${icon}"></i></div>
+                <div class="ml-3"><p class="text-xs font-black text-slate-800 uppercase tracking-widest leading-tight">${type === 'error' ? 'System Alert' : 'Success'}</p><p class="text-xs font-bold text-slate-500 mt-0.5">${message}</p></div>
+            `;
             container.appendChild(toast);
             requestAnimationFrame(() => { toast.classList.remove('translate-y-10', 'opacity-0'); });
-            setTimeout(() => { toast.classList.add('translate-y-10', 'opacity-0'); setTimeout(() => toast.remove(), 500); }, 3000);
+            setTimeout(() => { toast.classList.add('translate-y-10', 'opacity-0'); setTimeout(() => toast.remove(), 500); }, 4000);
         }
 
         async function checkProfileStatus() {
             try {
                 const res = await fetch(`${API_BASE_URL}/api/profile`, { headers: { 'Authorization': `Bearer ${token}` } });
-                if(res.ok) {
-                    const user = await res.json();
-                    if(user.profileCompletion < 100) document.getElementById('profileWarningDot').classList.remove('hidden');
-                }
+                if(res.ok) { const user = await res.json(); if(user.profileCompletion < 100) document.getElementById('profileWarningDot').classList.remove('hidden'); }
             } catch(e) {}
         }
 
-        // 🔍 MASTER PATIENT INDEX SEARCH
+        // 🦴 SKELETON GENERATORS
+        function getSearchSkeleton() {
+            return Array(3).fill(`<div class="p-4 flex justify-between items-center"><div class="space-y-2"><div class="skeleton h-4 w-32"></div><div class="skeleton h-2 w-20"></div></div><div class="skeleton h-6 w-16 rounded-md"></div></div>`).join('');
+        }
+        function getDossierSkeleton() {
+            return Array(2).fill(`<div class="bg-slate-50/50 p-3 rounded-xl mb-2 border border-slate-100"><div class="skeleton h-3 w-24 mb-2"></div><div class="skeleton h-2 w-16"></div></div>`).join('');
+        }
+
         let searchTimeout;
         async function searchPatients(query) {
             const dropdown = document.getElementById('patientDropdown');
             if(query.length < 3) return dropdown.classList.add('hidden');
             
             dropdown.classList.remove('hidden'); 
-            dropdown.innerHTML = `<div class="p-6 text-center"><i class="fa-solid fa-spinner fa-spin text-teal-500 text-xl"></i></div>`;
+            dropdown.innerHTML = getSearchSkeleton();
             
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(async () => {
                 try {
-                    const res = await fetch(`${API_BASE_URL}/api/patients/search`, { 
-                        method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ query }) 
-                    });
+                    const res = await fetch(`${API_BASE_URL}/api/patients/search`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ query }) });
                     if(res.ok) {
                         const results = await res.json();
-                        if(results.length === 0) return dropdown.innerHTML = '<div class="p-6 text-xs text-slate-400 font-bold text-center">No Citizen found in National Grid.</div>';
-                        
+                        if(results.length === 0) return dropdown.innerHTML = '<div class="p-8 flex flex-col items-center"><i class="fa-solid fa-ghost text-3xl text-slate-200 mb-2"></i><span class="text-xs text-slate-400 font-bold uppercase tracking-widest">No Citizen Found</span></div>';
                         dropdown.innerHTML = results.map(p => `
-                            <div onclick="selectPatient('${p.patientId}', '${p.name}', '${p.nhi}')" class="p-4 hover:bg-slate-50 cursor-pointer transition-colors flex justify-between items-center group">
-                                <div><p class="font-black text-sm text-slate-800 group-hover:text-teal-600 transition-colors">${p.name}</p><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Age: ${p.age || 'N/A'} | ${p.gender || 'Unknown'}</p></div>
-                                <span class="text-[9px] font-black bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg border border-indigo-100 shadow-sm">${p.nhi || p.mrn}</span>
+                            <div onclick="selectPatient('${p.patientId}', '${p.name}', '${p.nhi}')" class="p-4 hover:bg-teal-50 cursor-pointer transition-colors flex justify-between items-center group">
+                                <div><p class="font-black text-sm text-slate-800 group-hover:text-teal-700 transition-colors">${p.name}</p><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1"><i class="fa-solid fa-cake-candles mr-1 opacity-50"></i> Age: ${p.age || 'N/A'} | ${p.gender || 'Unknown'}</p></div>
+                                <span class="text-[9px] font-black bg-white text-indigo-600 px-3 py-1.5 rounded-lg border border-indigo-100 shadow-sm group-hover:bg-indigo-50">${p.nhi || p.mrn}</span>
                             </div>
                         `).join('');
-                    } else { dropdown.innerHTML = '<div class="p-6 text-xs text-rose-500 font-bold text-center">Security Clearance Required to Search.</div>'; }
-                } catch(e) { dropdown.innerHTML = '<div class="p-6 text-xs text-rose-500 font-bold text-center">Grid connection failed.</div>'; }
+                    } else { dropdown.innerHTML = '<div class="p-6 text-xs text-rose-500 font-bold text-center uppercase tracking-widest">Clearance Required</div>'; }
+                } catch(e) { dropdown.innerHTML = '<div class="p-6 text-xs text-rose-500 font-bold text-center uppercase tracking-widest">Grid Network Failure</div>'; }
             }, 500);
         }
 
-        // 📂 SELECT PATIENT & FETCH FHIR DOSSIER
         async function selectPatient(patientId, name, nhi) {
             document.getElementById('patientSearchInput').value = `${name} (${nhi})`;
             document.getElementById('selectedPatientId').value = patientId; 
             document.getElementById('patientDropdown').classList.add('hidden');
             currentPatientId = patientId;
 
-            document.getElementById('bannerPatientName').innerText = `${name} Active`;
+            document.getElementById('bannerPatientName').innerText = `${name}`;
             document.getElementById('activePatientBanner').classList.remove('hidden');
 
             const dossierPanel = document.getElementById('clinicalDossierPanel');
             dossierPanel.classList.remove('hidden');
-            
-            // Trigger animation
-            requestAnimationFrame(() => {
-                dossierPanel.classList.remove('opacity-0', 'translate-y-4');
-                dossierPanel.classList.add('opacity-100', 'translate-y-0');
-            });
+            requestAnimationFrame(() => { dossierPanel.classList.remove('opacity-0', 'translate-y-8'); });
 
-            // Set Loading States
-            document.getElementById('dossierAllergies').innerHTML = '<i class="fa-solid fa-spinner fa-spin text-rose-300"></i>';
-            document.getElementById('dossierConditions').innerHTML = '<i class="fa-solid fa-spinner fa-spin text-amber-300"></i>';
-            document.getElementById('dossierActiveMeds').innerHTML = '<i class="fa-solid fa-spinner fa-spin text-teal-300"></i>';
+            // Set Skeletons
+            document.getElementById('dossierAllergies').innerHTML = getDossierSkeleton();
+            document.getElementById('dossierConditions').innerHTML = getDossierSkeleton();
+            document.getElementById('dossierActiveMeds').innerHTML = getDossierSkeleton();
 
             try {
                 const res = await fetch(`${API_BASE_URL}/api/clinical/dossier/${patientId}`, { headers: { 'Authorization': `Bearer ${token}` } });
                 if(res.ok) {
                     const dossier = await res.json();
                     
-                    // Populate Allergies (AND SAVE FOR CONTRAINDICATION ENGINE)
                     currentPatientAllergies = dossier.allergies || [];
                     document.getElementById('allergyCount').innerText = currentPatientAllergies.length;
                     if(currentPatientAllergies.length > 0) {
-                        document.getElementById('dossierAllergies').innerHTML = currentPatientAllergies.map(a => `<div class="bg-rose-50 p-2 rounded-lg mb-2 border border-rose-100"><p class="font-black text-xs text-rose-800">${a.substance}</p><p class="text-[9px] font-bold text-rose-500 uppercase">${a.verificationStatus} | ${a.criticality} Risk</p></div>`).join('');
-                    } else { document.getElementById('dossierAllergies').innerHTML = '<p class="text-xs text-slate-400 font-bold italic">No known allergies.</p>'; }
+                        document.getElementById('dossierAllergies').innerHTML = currentPatientAllergies.map(a => `<div class="bg-rose-50 p-3 rounded-xl mb-2 border border-rose-100 shadow-sm hover:shadow transition-shadow"><p class="font-black text-xs text-rose-800">${a.substance}</p><p class="text-[9px] font-bold text-rose-500 uppercase tracking-wider mt-1"><i class="fa-solid fa-check-circle mr-1"></i>${a.verificationStatus} | ${a.criticality} Risk</p></div>`).join('');
+                    } else { document.getElementById('dossierAllergies').innerHTML = '<div class="py-4 text-center"><i class="fa-solid fa-shield-halved text-slate-200 text-2xl mb-1 block"></i><span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">No Allergies</span></div>'; }
 
-                    // Populate Conditions
                     const conds = dossier.conditions || [];
                     document.getElementById('conditionCount').innerText = conds.length;
                     if(conds.length > 0) {
-                        document.getElementById('dossierConditions').innerHTML = conds.map(c => `<div class="bg-amber-50 p-2 rounded-lg mb-2 border border-amber-100"><p class="font-black text-xs text-amber-800">${c.name}</p><p class="text-[9px] font-bold text-amber-600 uppercase">${c.clinicalStatus}</p></div>`).join('');
-                    } else { document.getElementById('dossierConditions').innerHTML = '<p class="text-xs text-slate-400 font-bold italic">No active conditions.</p>'; }
+                        document.getElementById('dossierConditions').innerHTML = conds.map(c => `<div class="bg-amber-50 p-3 rounded-xl mb-2 border border-amber-100 shadow-sm hover:shadow transition-shadow"><p class="font-black text-xs text-amber-800">${c.name}</p><p class="text-[9px] font-bold text-amber-600 uppercase tracking-wider mt-1"><i class="fa-solid fa-activity mr-1"></i>${c.clinicalStatus}</p></div>`).join('');
+                    } else { document.getElementById('dossierConditions').innerHTML = '<div class="py-4 text-center"><i class="fa-solid fa-heart-circle-check text-slate-200 text-2xl mb-1 block"></i><span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">No Conditions</span></div>'; }
 
-                    // Populate Meds
                     const meds = dossier.activeMedications || [];
                     document.getElementById('medCount').innerText = meds.length;
                     if(meds.length > 0) {
-                        document.getElementById('dossierActiveMeds').innerHTML = meds.map(m => `<div class="bg-teal-50 p-2 rounded-lg mb-2 border border-teal-100"><p class="font-black text-xs text-teal-800">${m.brandName}</p><p class="text-[9px] font-bold text-teal-600 uppercase">Active Therapy</p></div>`).join('');
-                    } else { document.getElementById('dossierActiveMeds').innerHTML = '<p class="text-xs text-slate-400 font-bold italic">No active medications.</p>'; }
-
+                        document.getElementById('dossierActiveMeds').innerHTML = meds.map(m => `<div class="bg-teal-50 p-3 rounded-xl mb-2 border border-teal-100 shadow-sm hover:shadow transition-shadow"><p class="font-black text-xs text-teal-800">${m.brandName}</p><p class="text-[9px] font-bold text-teal-600 uppercase tracking-wider mt-1"><i class="fa-solid fa-capsules mr-1"></i>Active Therapy</p></div>`).join('');
+                    } else { document.getElementById('dossierActiveMeds').innerHTML = '<div class="py-4 text-center"><i class="fa-solid fa-box-open text-slate-200 text-2xl mb-1 block"></i><span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">No Active Meds</span></div>'; }
                 }
             } catch(e) { showToast("Failed to retrieve Clinical Dossier", "error"); }
         }
 
-        // 🚨 THE FRONTEND CONTRAINDICATION ENGINE 🚨
+        function clearActivePatient() {
+            currentPatientId = null; currentPatientAllergies = []; medications = []; investigations = [];
+            document.getElementById('patientSearchInput').value = '';
+            document.getElementById('activePatientBanner').classList.add('hidden');
+            
+            const dossier = document.getElementById('clinicalDossierPanel');
+            dossier.classList.add('opacity-0', 'translate-y-8');
+            setTimeout(() => dossier.classList.add('hidden'), 500);
+            renderMedications(); renderTests();
+        }
+
+        // 🚨 CONTRAINDICATION ENGINE
         function attemptAddMedication() {
-            if(!currentPatientId) return showToast("Select a patient from the Grid first.", "error");
+            if(!currentPatientId) return showToast("Select a patient from the Grid first.");
+            const n = document.getElementById('medName').value; const ds = document.getElementById('medDose').value; const t = document.getElementById('medTiming').value; const dr = document.getElementById('medDuration').value;
+            if(!n || !ds || !dr) return showToast("Please formulate the complete therapy.");
 
-            const n = document.getElementById('medName').value; 
-            const ds = document.getElementById('medDose').value; 
-            const t = document.getElementById('medTiming').value; 
-            const dr = document.getElementById('medDuration').value;
-            if(!n || !ds || !dr) return showToast("Please fill all therapy fields.");
-
-            const drugNameUpper = n.toUpperCase();
-
-            // 1. Check Live FHIR Allergies
-            const clash = currentPatientAllergies.find(a => drugNameUpper.includes(a.substance.toUpperCase()) || a.substance.toUpperCase().includes(drugNameUpper));
+            const clash = currentPatientAllergies.find(a => n.toUpperCase().includes(a.substance.toUpperCase()) || a.substance.toUpperCase().includes(n.toUpperCase()));
             
             if (clash) {
-                document.getElementById('warningMessage').innerHTML = `SYSTEM BLOCK: Patient has a recorded FHIR Allergy to <span class="text-rose-900 bg-rose-200 px-1 rounded">${clash.substance.toUpperCase()}</span>. Prescribing ${drugNameUpper} is strictly prohibited by Grid Protocols.`;
+                document.getElementById('warningMessage').innerHTML = `GRID BLOCK: Patient has a recorded FHIR Allergy to <span class="text-rose-900 bg-rose-200 px-1.5 py-0.5 rounded ml-1 font-black">${clash.substance.toUpperCase()}</span>. Prescribing <span class="font-black">${n.toUpperCase()}</span> is legally prohibited.`;
                 document.getElementById('warningModal').classList.remove('opacity-0', 'pointer-events-none'); 
-                document.getElementById('warningModalContent').classList.remove('scale-95');
-                return; // BLOCK ADDITION COMPLETELY
+                document.getElementById('warningModalContent').classList.remove('scale-90', 'translate-y-8');
+                return; 
             }
 
-            // 2. Safe to add
             medications.push({ brandName: n, dosage: ds, timing: t, duration: dr }); 
             renderMedications(); 
             document.getElementById('medName').value = ''; document.getElementById('medDose').value = ''; document.getElementById('medDuration').value = '';
+            document.getElementById('medName').focus(); // Keep cursor ready
         }
 
         function closeWarningModal() { 
-            document.getElementById('warningModalContent').classList.add('scale-95'); 
-            setTimeout(() => document.getElementById('warningModal').classList.add('opacity-0', 'pointer-events-none'), 200); 
-            document.getElementById('medName').value = ''; // Clear the dangerous input
+            document.getElementById('warningModalContent').classList.add('scale-90', 'translate-y-8'); 
+            setTimeout(() => document.getElementById('warningModal').classList.add('opacity-0', 'pointer-events-none'), 300); 
+            document.getElementById('medName').value = ''; 
         }
 
         function renderMedications() { 
             const list = document.getElementById('medListDisplay');
-            if(medications.length === 0) return list.innerHTML = `<div class="p-8 text-center border-2 border-dashed border-slate-200 rounded-2xl"><p class="text-xs font-bold text-slate-400 uppercase tracking-widest">No therapies added to payload.</p></div>`;
+            if(medications.length === 0) return list.innerHTML = `<div class="p-8 text-center border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50/50"><i class="fa-solid fa-mortar-pestle text-3xl text-slate-200 mb-3 block"></i><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">No therapies added to payload.</p></div>`;
             
             list.innerHTML = medications.map((m, i) => `
-                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex justify-between items-center group hover:border-teal-200 transition-colors">
-                    <div><p class="font-black text-sm text-slate-800">${m.brandName}</p><p class="text-[10px] font-bold text-slate-500 uppercase mt-1">${m.dosage} | ${m.timing}</p></div>
-                    <div class="flex items-center gap-3"><span class="text-[10px] font-black text-teal-700 bg-teal-50 border border-teal-100 px-3 py-1.5 rounded-lg shadow-sm">${m.duration}</span><button onclick="medications.splice(${i},1);renderMedications()" class="w-8 h-8 rounded-full bg-rose-50 text-rose-400 hover:bg-rose-500 hover:text-white transition-colors flex items-center justify-center"><i class="fa-solid fa-trash"></i></button></div>
+                <div class="bg-white p-4 lg:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-3 group hover:border-teal-300 transition-colors fade-in-up" style="animation-delay: ${i * 0.05}s">
+                    <div><p class="font-black text-sm lg:text-base text-slate-800">${m.brandName}</p><p class="text-[10px] font-bold text-slate-500 uppercase mt-1 tracking-wider"><i class="fa-solid fa-clock mr-1 text-slate-300"></i>${m.dosage} &bull; ${m.timing}</p></div>
+                    <div class="flex items-center justify-between w-full md:w-auto gap-4"><span class="text-[10px] font-black text-teal-700 bg-teal-50 border border-teal-100 px-4 py-2 rounded-xl shadow-sm whitespace-nowrap">${m.duration} Days</span><button onclick="medications.splice(${i},1);renderMedications()" class="w-10 h-10 rounded-xl bg-white border border-slate-200 text-rose-400 hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all shadow-sm flex items-center justify-center shrink-0"><i class="fa-solid fa-trash"></i></button></div>
                 </div>
             `).join(''); 
         }
 
-        function addTest() { const t = document.getElementById('testName').value; if(t) { investigations.push(t); renderTests(); document.getElementById('testName').value=''; } }
-        function renderTests() { document.getElementById('testListDisplay').innerHTML = investigations.map((t, i) => `<span class="bg-indigo-50 border border-indigo-100 text-indigo-700 px-4 py-2 rounded-xl text-xs font-black uppercase shadow-sm">${t} <button onclick="investigations.splice(${i},1);renderTests()" class="hover:text-rose-500 transition-colors ml-2"><i class="fa-solid fa-xmark"></i></button></span>`).join(''); }
+        function addTest() { const t = document.getElementById('testName').value; if(t) { investigations.push(t); renderTests(); document.getElementById('testName').value=''; document.getElementById('testName').focus(); } }
+        function renderTests() { document.getElementById('testListDisplay').innerHTML = investigations.map((t, i) => `<span class="bg-indigo-50 border border-indigo-100 text-indigo-700 px-4 py-2.5 rounded-xl text-[10px] font-black uppercase shadow-sm flex items-center fade-in-up"><i class="fa-solid fa-vial mr-2 opacity-50"></i>${t} <button onclick="investigations.splice(${i},1);renderTests()" class="hover:text-rose-500 hover:bg-indigo-100 w-5 h-5 rounded-full flex items-center justify-center transition-colors ml-2"><i class="fa-solid fa-xmark"></i></button></span>`).join(''); }
 
         // 🚀 THE CRYPTOGRAPHIC BROADCAST
         async function generatePrescription() {
             if(!currentPatientId || medications.length === 0) return showToast("Target Patient and Therapy Payload Required.");
-            
-            const btn = document.getElementById('generateBtn'); 
-            const originalHtml = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Encrypting Payload...';
-            btn.disabled = true;
+            const btn = document.getElementById('generateBtn'); const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> <span class="relative z-10">Encrypting Payload...</span>'; btn.disabled = true;
 
             try {
-                // Notice: We are now sending the exact Relational Patient ID
-                const res = await fetch(`${API_BASE_URL}/api/prescriptions`, { 
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, 
-                    body: JSON.stringify({ patientId: currentPatientId, medications, investigations }) 
-                });
+                const res = await fetch(`${API_BASE_URL}/api/prescriptions`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ patientId: currentPatientId, medications, investigations }) });
                 const data = await res.json();
                 
                 if(res.ok) {
-                    document.getElementById('successBroadcastId').innerText = data.broadcastId; 
-                    document.getElementById('successOtp').innerText = data.otp;
-                    document.getElementById('successQr').innerHTML = ''; 
-                    new QRCode(document.getElementById('successQr'), { text: JSON.stringify({ bId: data.broadcastId, otp: data.otp }), width: 150, height: 150, colorDark : "#0f172a" });
+                    document.getElementById('successBroadcastId').innerText = data.broadcastId; document.getElementById('successOtp').innerText = data.otp;
+                    document.getElementById('successQr').innerHTML = ''; new QRCode(document.getElementById('successQr'), { text: JSON.stringify({ bId: data.broadcastId, otp: data.otp }), width: 160, height: 160, colorDark : "#0f172a", colorLight: "#ffffff", correctLevel : QRCode.CorrectLevel.H });
                     
                     document.getElementById('successModal').classList.remove('opacity-0', 'pointer-events-none'); 
-                    document.getElementById('successModalContent').classList.remove('scale-95');
+                    document.getElementById('successModalContent').classList.remove('scale-90');
                 } else showToast(data.msg, "error");
             } catch(e) { showToast("Grid Network Failure", "error"); } finally { btn.innerHTML = originalHtml; btn.disabled = false; }
         }
 
         function closeSuccessAndRefresh() {
-            document.getElementById('successModalContent').classList.add('scale-95');
-            setTimeout(() => { 
-                document.getElementById('successModal').classList.add('opacity-0', 'pointer-events-none'); 
-                // Reset State
-                medications = []; investigations = []; currentPatientId = null; currentPatientAllergies = [];
-                document.getElementById('patientSearchInput').value = ''; 
-                document.getElementById('activePatientBanner').classList.add('hidden');
-                
-                const dossier = document.getElementById('clinicalDossierPanel');
-                dossier.classList.remove('opacity-100', 'translate-y-0');
-                dossier.classList.add('opacity-0', 'translate-y-4');
-                setTimeout(() => dossier.classList.add('hidden'), 300);
-
-                renderMedications(); renderTests(); fetchHistory(); 
-            }, 300);
+            document.getElementById('successModalContent').classList.add('scale-90');
+            setTimeout(() => { document.getElementById('successModal').classList.add('opacity-0', 'pointer-events-none'); clearActivePatient(); fetchHistory(); }, 300);
         }
 
         // 🗄️ FETCH MASTER ARCHIVE
         async function fetchHistory() {
             const list = document.getElementById('historyList'); 
-            list.innerHTML = `<div class="p-10 text-center"><i class="fa-solid fa-spinner fa-spin text-slate-400 text-2xl"></i></div>`;
+            list.innerHTML = Array(4).fill(`<div class="p-6 border-b border-slate-100 flex justify-between"><div class="skeleton h-4 w-32 mb-2"></div><div class="skeleton h-6 w-20 rounded-full"></div></div>`).join('');
             try {
                 const res = await fetch(`${API_BASE_URL}/api/prescriptions/doctor/me`, { headers: { 'Authorization': `Bearer ${token}` } });
                 doctorPrescriptions = await res.json();
-                if(!doctorPrescriptions || doctorPrescriptions.length === 0) return list.innerHTML = '<div class="p-10 text-center text-slate-400 font-bold">Archive is empty.</div>';
+                if(!doctorPrescriptions || doctorPrescriptions.length === 0) return list.innerHTML = '<div class="p-16 text-center"><i class="fa-solid fa-box-archive text-4xl text-slate-200 mb-3 block"></i><p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Archive is empty</p></div>';
                 
                 list.innerHTML = doctorPrescriptions.map((rx, i) => `
-                    <div class="grid grid-cols-12 gap-4 px-6 py-5 items-center hover:bg-slate-50 border-b transition-colors group cursor-pointer" onclick="openRxModal(${i})">
-                        <div class="col-span-3 text-xs font-bold text-slate-500">${new Date(rx.createdAt).toLocaleDateString()}</div>
-                        <div class="col-span-5 text-sm font-black text-slate-800 group-hover:text-teal-600 transition-colors">${rx.patientId}</div>
-                        <div class="col-span-2"><span class="px-3 py-1 rounded-lg border text-[9px] font-black uppercase ${rx.status === 'Dispensed' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-amber-50 text-amber-600 border-amber-100'}">${rx.status}</span></div>
-                        <div class="col-span-2 text-right"><i class="fa-solid fa-chevron-right text-slate-300 group-hover:text-teal-500 transition-colors"></i></div>
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 px-6 py-5 hover:bg-slate-50 transition-colors group cursor-pointer fade-in-up" style="animation-delay: ${i * 0.05}s" onclick="openRxModal(${i})">
+                        <div class="flex-1 w-full md:w-auto">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1"><i class="fa-regular fa-calendar mr-1"></i>${new Date(rx.createdAt).toLocaleDateString()}</p>
+                            <p class="text-sm lg:text-base font-black text-slate-800 group-hover:text-teal-600 transition-colors">${rx.patientId}</p>
+                        </div>
+                        <div class="flex items-center justify-between w-full md:w-auto gap-6">
+                            <span class="px-4 py-1.5 rounded-full border text-[9px] font-black uppercase tracking-widest shadow-sm ${rx.status === 'Dispensed' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-amber-50 text-amber-600 border-amber-200'}">${rx.status}</span>
+                            <div class="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center group-hover:border-teal-400 group-hover:bg-teal-50 transition-all shadow-sm"><i class="fa-solid fa-chevron-right text-slate-400 group-hover:text-teal-600"></i></div>
+                        </div>
                     </div>
                 `).join('');
-            } catch (err) { list.innerHTML = '<div class="p-10 text-center text-rose-500 font-bold">Failed to sync Archive.</div>'; }
+            } catch (err) { list.innerHTML = '<div class="p-10 text-center text-rose-500 font-bold uppercase tracking-widest text-xs">Failed to sync Archive.</div>'; }
         }
 
         function openRxModal(index) {
             const rx = doctorPrescriptions[index];
-            document.getElementById('modalBroadcastId').innerText = rx.broadcastId; 
-            document.getElementById('modalOtp').innerText = rx.otp;
-            document.getElementById('modalMedList').innerHTML = rx.medications.map(m => `<div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm"><p class="font-black text-sm text-slate-800">${m.brandName}</p><p class="text-[10px] font-bold text-slate-500 uppercase mt-1">${m.dosage} | ${m.duration}</p></div>`).join('');
-            if(rx.investigations && rx.investigations.length > 0) { 
-                document.getElementById('modalTestList').innerHTML = rx.investigations.map(t => `<span class="bg-indigo-50 border border-indigo-100 text-indigo-700 px-4 py-2 rounded-xl text-xs font-black uppercase shadow-sm">${t}</span>`).join(''); 
-                document.getElementById('modalTestSection').classList.remove('hidden'); 
-            } else { document.getElementById('modalTestSection').classList.add('hidden'); }
-
-            document.getElementById('rxModal').classList.remove('opacity-0', 'pointer-events-none'); 
-            document.getElementById('rxModalContent').classList.remove('scale-95');
+            document.getElementById('modalBroadcastId').innerText = rx.broadcastId; document.getElementById('modalOtp').innerText = rx.otp;
+            document.getElementById('modalMedList').innerHTML = rx.medications.map(m => `<div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm"><p class="font-black text-sm text-slate-800">${m.brandName}</p><p class="text-[10px] font-bold text-slate-500 uppercase mt-1 tracking-wider">${m.dosage} &bull; ${m.duration} Days</p></div>`).join('');
+            if(rx.investigations && rx.investigations.length > 0) { document.getElementById('modalTestList').innerHTML = rx.investigations.map(t => `<span class="bg-indigo-50 border border-indigo-100 text-indigo-700 px-4 py-2 rounded-xl text-[10px] font-black uppercase shadow-sm"><i class="fa-solid fa-vial mr-2 opacity-50"></i>${t}</span>`).join(''); document.getElementById('modalTestSection').classList.remove('hidden'); } else { document.getElementById('modalTestSection').classList.add('hidden'); }
+            document.getElementById('rxModal').classList.remove('opacity-0', 'pointer-events-none'); document.getElementById('rxModalContent').classList.remove('scale-95', 'translate-y-4');
         }
 
-        function closeRxModal() { document.getElementById('rxModalContent').classList.add('scale-95'); setTimeout(() => document.getElementById('rxModal').classList.add('opacity-0', 'pointer-events-none'), 200); }
-        function switchTab(tab) { document.getElementById('viewRxPad').classList.add('hidden'); document.getElementById('viewHistory').classList.add('hidden'); document.getElementById('navRxPad').classList.remove('bg-teal-500/10', 'text-teal-400'); document.getElementById('navRxPad').classList.add('hover:bg-slate-800', 'text-slate-400'); document.getElementById('navHistory').classList.remove('bg-teal-500/10', 'text-teal-400'); document.getElementById('navHistory').classList.add('hover:bg-slate-800', 'text-slate-400'); if (tab === 'rxPad') { document.getElementById('viewRxPad').classList.remove('hidden'); document.getElementById('navRxPad').classList.add('bg-teal-500/10', 'text-teal-400'); document.getElementById('navRxPad').classList.remove('hover:bg-slate-800', 'text-slate-400'); document.getElementById('pageTitle').innerText = 'Clinical Pad'; } else { document.getElementById('viewHistory').classList.remove('hidden'); document.getElementById('navHistory').classList.add('bg-teal-500/10', 'text-teal-400'); document.getElementById('navHistory').classList.remove('hover:bg-slate-800', 'text-slate-400'); document.getElementById('pageTitle').innerText = 'Master Archive'; fetchHistory(); } }
+        function closeRxModal() { document.getElementById('rxModalContent').classList.add('scale-95', 'translate-y-4'); setTimeout(() => document.getElementById('rxModal').classList.add('opacity-0', 'pointer-events-none'), 300); }
+        
+        function switchTab(tab) {
+            document.getElementById('viewRxPad').classList.add('hidden'); document.getElementById('viewHistory').classList.add('hidden');
+            ['navRxPad', 'navHistory'].forEach(id => { document.getElementById(id).className = "nav-btn flex items-center p-4 rounded-2xl hover:bg-slate-800 text-slate-400 hover:text-white transition-all-spring hover:-translate-y-1"; });
+            
+            if (tab === 'rxPad') {
+                document.getElementById('viewRxPad').classList.remove('hidden');
+                document.getElementById('navRxPad').className = "nav-btn active flex items-center p-4 rounded-2xl bg-teal-500/10 text-teal-400 transition-all-spring hover:-translate-y-1";
+                document.getElementById('pageTitle').innerText = 'Clinical Pad';
+            } else {
+                document.getElementById('viewHistory').classList.remove('hidden');
+                document.getElementById('navHistory').className = "nav-btn active flex items-center p-4 rounded-2xl bg-teal-500/10 text-teal-400 transition-all-spring hover:-translate-y-1";
+                document.getElementById('pageTitle').innerText = 'Master Archive';
+                fetchHistory();
+            }
+            if(window.innerWidth < 1024) toggleMobileMenu(); // Auto-close mobile menu
+        }
+
         function closeAllDropdowns(e) { if(!document.getElementById('patientDropdownContainer').contains(e.target)) document.getElementById('patientDropdown').classList.add('hidden'); }
         function logout() { sessionStorage.clear(); window.location.href = 'index.html'; }
     </script>
