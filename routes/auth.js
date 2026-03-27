@@ -115,5 +115,29 @@ router.post('/login', async (req, res) => {
     }
 });
 
+// ==========================================
+// ☢️ TEMPORARY GHOST INDEX ERADICATOR
+// ==========================================
+router.get('/fix-indexes', async (req, res) => {
+    try {
+        const { Person, Patient, PractitionerRole, Prescription } = require('../models/GridModels');
+        
+        // This command forces MongoDB to delete old rules that aren't in our new Schema
+        await Person.syncIndexes();
+        await Patient.syncIndexes();
+        await PractitionerRole.syncIndexes();
+        await Prescription.syncIndexes();
+
+        res.send(`
+            <div style="font-family: monospace; background: #05080f; color: #00FF66; padding: 50px; text-align: center; height: 100vh;">
+                <h1>=== GHOST INDEXES ERADICATED ===</h1>
+                <p>The database rules are now perfectly synchronized with the Master Schema.</p>
+                <p style="color: #FF003C; margin-top: 30px;">⚠️ CRITICAL: Remove this code from routes/auth.js and push to Vercel!</p>
+            </div>
+        `);
+    } catch (err) {
+        res.status(500).send("Eradication Failed: " + err.message);
+    }
+});
 
 module.exports = router;
