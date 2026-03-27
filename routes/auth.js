@@ -107,4 +107,28 @@ router.post('/login', async (req, res) => {
     }
 });
 
+// ==========================================
+// ☢️ TEMPORARY CLOUD PURGE (DELETE AFTER USE)
+// ==========================================
+router.get('/nuke-database', async (req, res) => {
+    try {
+        const { Person, Patient, PractitionerRole, Prescription } = require('../models/GridModels');
+        
+        await Person.deleteMany({});
+        await Patient.deleteMany({});
+        await PractitionerRole.deleteMany({});
+        await Prescription.deleteMany({});
+
+        res.send(`
+            <div style="font-family: monospace; background: #05080f; color: #00FF66; padding: 50px; text-align: center; height: 100vh;">
+                <h1>=== PURGE COMPLETE ===</h1>
+                <p>All legacy ghosts have been eradicated. The Grid is perfectly clean.</p>
+                <p style="color: #FF003C; margin-top: 30px;">⚠️ CRITICAL: Remove this code from routes/auth.js and push to Vercel immediately!</p>
+            </div>
+        `);
+    } catch (err) {
+        res.status(500).send("Purge Failed: " + err.message);
+    }
+});
+
 module.exports = router;
