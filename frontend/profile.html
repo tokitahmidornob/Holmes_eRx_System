@@ -3,282 +3,233 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enterprise Profile | Holmes eRx</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Identity Matrix | Holmes Grid</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .tab-content { display: none; animation: fadeIn 0.3s ease; }
-        .tab-content.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .nav-item.active { background-color: #f0fdfa; border-right: 3px solid #0d9488; color: #0d9488; font-weight: 800; }
-        .nav-item { transition: all 0.2s ease; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
+        .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(16px); border: 1px solid rgba(226, 232, 240, 0.8); }
+        .fade-in-up { animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        .locked-input { background-color: #f8fafc; cursor: not-allowed; border-color: #f1f5f9; color: #94a3b8; }
     </style>
 </head>
-<body class="antialiased text-slate-800 bg-slate-50 flex h-screen overflow-hidden">
+<body class="antialiased text-slate-800 bg-slate-100 flex h-screen overflow-hidden">
 
-    <aside class="w-72 bg-white border-r border-slate-200 flex flex-col z-20 shadow-sm shrink-0">
-        <div class="p-4 border-b border-slate-100">
-            <button onclick="goBack()" class="text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-teal-600 transition-colors flex items-center gap-2"><i class="fa-solid fa-arrow-left"></i> Return to Terminal</button>
-        </div>
-
-        <div class="p-8 text-center border-b border-slate-100">
-            <div class="w-20 h-20 mx-auto bg-slate-50 border-2 border-slate-100 text-slate-300 rounded-full flex items-center justify-center text-3xl mb-4 shadow-inner">
-                <i class="fa-solid fa-user-shield"></i>
-            </div>
-            <h2 id="displayUserName" class="text-lg font-black text-slate-900 tracking-tight">Loading...</h2>
-            <span id="displayUserRole" class="inline-block mt-2 px-3 py-1 bg-teal-50 text-teal-700 rounded-md text-[9px] font-black uppercase tracking-widest border border-teal-100">Retrieving Role</span>
-            
-            <div class="mt-6 text-left">
-                <div class="flex justify-between items-end mb-2">
-                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Verification Status</span>
-                    <span id="progressText" class="text-xs font-black text-teal-600">0%</span>
-                </div>
-                <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                    <div id="progressBar" class="h-full bg-teal-500 transition-all duration-1000 ease-out" style="width: 0%;"></div>
-                </div>
-            </div>
-        </div>
-
-        <nav class="flex-1 py-4 flex flex-col">
-            <button onclick="switchTab('identity')" id="nav-identity" class="nav-item active flex items-center px-8 py-4 text-sm font-bold text-slate-500 hover:bg-slate-50 hover:text-slate-900">
-                <i class="fa-solid fa-id-card w-6"></i> Demographics
-            </button>
-            <button onclick="switchTab('credentials')" id="nav-credentials" class="nav-item flex items-center px-8 py-4 text-sm font-bold text-slate-500 hover:bg-slate-50 hover:text-slate-900">
-                <i class="fa-solid fa-user-doctor w-6" id="credIcon"></i> <span id="credTabText">Credentials</span>
-            </button>
-            <button onclick="switchTab('security')" id="nav-security" class="nav-item flex items-center px-8 py-4 text-sm font-bold text-slate-500 hover:bg-slate-50 hover:text-slate-900">
-                <i class="fa-solid fa-shield-halved w-6"></i> Security & Audit
-            </button>
-        </nav>
-    </aside>
-
-    <main class="flex-1 h-screen overflow-y-auto custom-scrollbar relative">
-        <form id="profileForm" onsubmit="event.preventDefault(); saveProfile();" class="max-w-4xl mx-auto p-8 lg:p-12 pb-32">
-            
-            <div class="flex justify-between items-center mb-10">
+    <main class="flex-1 flex flex-col h-screen overflow-y-auto relative w-full custom-scrollbar">
+        
+        <header id="themeHeader" class="h-20 lg:h-24 bg-slate-900 text-white border-b border-slate-800 flex items-center justify-between px-6 lg:px-10 shrink-0 sticky top-0 z-40 transition-colors duration-500">
+            <div class="flex items-center gap-4">
+                <button onclick="goBack()" class="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all shadow-inner"><i class="fa-solid fa-arrow-left"></i></button>
                 <div>
-                    <h1 class="text-2xl font-black text-slate-900 tracking-tighter">Identity Matrix</h1>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">FHIR-Aligned National Record</p>
+                    <h2 class="text-xl lg:text-2xl font-black tracking-tighter">Identity Matrix</h2>
+                    <p class="text-[9px] lg:text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1 flex items-center"><i class="fa-solid fa-fingerprint mr-1.5 opacity-50"></i> Profile Configuration</p>
                 </div>
-                <button type="submit" id="saveBtn" class="bg-slate-900 hover:bg-teal-600 text-white px-8 py-3 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg hover:-translate-y-1 transition-all flex items-center gap-2">
-                    <i class="fa-solid fa-cloud-arrow-up"></i> Synchronize Vault
-                </button>
             </div>
+            <div id="statusBadge" class="hidden px-4 py-2 rounded-full border text-[10px] font-black uppercase tracking-widest bg-amber-500/20 text-amber-400 border-amber-500/30 flex items-center shadow-sm">
+                <div class="w-2 h-2 rounded-full bg-amber-500 animate-pulse mr-2"></div> Pending Verification
+            </div>
+        </header>
 
-            <div id="tab-identity" class="tab-content active space-y-6">
-                <div class="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm">
-                    <h3 class="text-xs font-black text-slate-800 uppercase tracking-widest mb-6 border-b border-slate-100 pb-4">Universal Identity (Mandatory)</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">National ID (NID)</label><input type="text" id="nid" class="premium-input w-full p-3 rounded-xl text-sm font-bold text-slate-800" placeholder="e.g. 1990123456789"></div>
-                        <div><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Verified Phone</label><input type="text" id="phone" class="premium-input w-full p-3 rounded-xl text-sm font-bold text-slate-800" placeholder="+880..."></div>
-                        <div><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Date of Birth</label><input type="date" id="dob" class="premium-input w-full p-3 rounded-xl text-sm font-bold text-slate-600"></div>
-                        <div><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Gender Legal</label><select id="gender" class="premium-input w-full p-3 rounded-xl text-sm font-bold text-slate-600"><option value="">Select...</option><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option></select></div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="tab-credentials" class="tab-content space-y-6">
-                <div id="dynamicRoleSection" class="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm"></div>
-                
-                <div class="bg-slate-50 rounded-2xl p-8 border border-slate-200 border-dashed text-center mt-6">
-                    <div class="w-12 h-12 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center mx-auto mb-3 text-xl"><i class="fa-solid fa-file-shield"></i></div>
-                    <h4 class="text-sm font-black text-slate-800 mb-1">Upload Compliance Documents</h4>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Attach Medical License or Digital Signature PDF</p>
-                    <button type="button" class="bg-white border border-slate-200 text-slate-600 px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest hover:bg-slate-100 transition-colors">Browse Files</button>
-                </div>
-            </div>
-
-            <div id="tab-security" class="tab-content space-y-6">
-                <div class="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm">
-                    <div class="flex justify-between items-center border-b border-slate-100 pb-6 mb-6">
-                        <div><h3 class="text-sm font-black text-slate-800">Two-Factor Authentication (2FA)</h3><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Required for EPCS / Controlled Substances</p></div>
-                        <div class="w-12 h-6 bg-slate-200 rounded-full relative cursor-not-allowed"><div class="w-4 h-4 bg-white rounded-full absolute top-1 left-1"></div></div>
-                    </div>
-                    
-                    <h3 class="text-xs font-black text-slate-800 uppercase tracking-widest mb-4">Recent Access Logs</h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-sm">
-                            <thead class="text-[9px] font-black text-slate-400 uppercase tracking-widest bg-slate-50">
-                                <tr><th class="p-3 rounded-tl-lg">Timestamp</th><th class="p-3">IP Address</th><th class="p-3">Device</th><th class="p-3 rounded-tr-lg">Status</th></tr>
-                            </thead>
-                            <tbody class="font-medium text-slate-600">
-                                <tr class="border-b border-slate-50"><td class="p-3 text-xs">Today, 08:32 AM</td><td class="p-3 text-xs font-mono">103.15.22.1</td><td class="p-3 text-xs">Chrome / Windows 11</td><td class="p-3"><span class="bg-emerald-50 text-emerald-600 px-2 py-1 rounded text-[9px] font-black uppercase">Success</span></td></tr>
-                                <tr><td class="p-3 text-xs">Yesterday, 11:45 PM</td><td class="p-3 text-xs font-mono">103.15.22.1</td><td class="p-3 text-xs">Safari / iOS</td><td class="p-3"><span class="bg-emerald-50 text-emerald-600 px-2 py-1 rounded text-[9px] font-black uppercase">Success</span></td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+        <div class="p-4 lg:p-10 max-w-4xl mx-auto w-full space-y-8 pb-20 fade-in-up">
             
-        </form>
+            <div class="flex items-center justify-between mb-2">
+                <h3 class="text-sm font-black text-slate-900 uppercase tracking-widest"><i class="fa-solid fa-user-shield mr-2 text-slate-400"></i> Core Demographics</h3>
+                <span id="completionTracker" class="text-[10px] font-black bg-rose-100 text-rose-600 px-3 py-1 rounded-lg border border-rose-200">50% Complete</span>
+            </div>
+
+            <div class="glass-panel p-6 lg:p-8 rounded-[32px] shadow-sm grid grid-cols-1 md:grid-cols-2 gap-6 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-bl-full -z-10"></div>
+                
+                <div>
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Legal Full Name <i class="fa-solid fa-lock text-slate-300 ml-1" title="Immutable"></i></label>
+                    <input type="text" id="profName" class="w-full p-4 rounded-xl border border-slate-200 text-sm font-bold outline-none locked-input" readonly>
+                </div>
+                <div>
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Grid Communication (Email) <i class="fa-solid fa-lock text-slate-300 ml-1" title="Immutable"></i></label>
+                    <input type="text" id="profEmail" class="w-full p-4 rounded-xl border border-slate-200 text-sm font-bold outline-none locked-input" readonly>
+                </div>
+            </div>
+
+            <h3 class="text-sm font-black text-slate-900 uppercase tracking-widest mt-10"><i class="fa-solid fa-sliders mr-2 text-slate-400"></i> Mutable Parameters</h3>
+
+            <div class="glass-panel p-6 lg:p-8 rounded-[32px] shadow-sm space-y-6">
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 border-b border-slate-100 pb-8">
+                    <div>
+                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Mobile Contact <span class="text-rose-500">*</span></label>
+                        <input type="text" id="profPhone" placeholder="01XXXXXXXXX" class="w-full p-4 rounded-xl border border-slate-200 text-sm font-bold outline-none focus:ring-2 focus:ring-slate-400 transition-shadow shadow-sm bg-white">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Date of Birth</label>
+                        <input type="date" id="profDob" class="w-full p-4 rounded-xl border border-slate-200 text-sm font-bold outline-none focus:ring-2 focus:ring-slate-400 transition-shadow shadow-sm bg-white cursor-pointer">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Legal Gender</label>
+                        <select id="profGender" class="w-full p-4 rounded-xl border border-slate-200 text-sm font-bold outline-none focus:ring-2 focus:ring-slate-400 transition-shadow shadow-sm bg-white cursor-pointer appearance-none">
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="roleSection" class="pt-2">
+                    <label id="roleLabel" class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block flex items-center justify-between">
+                        <span>Role Identifier <span class="text-rose-500">*</span></span>
+                    </label>
+                    <div class="flex gap-4">
+                        <div class="w-14 h-[54px] rounded-xl flex items-center justify-center text-white text-xl shadow-inner shrink-0" id="roleIconBox"></div>
+                        <input type="text" id="profRoleInput" class="w-full p-4 rounded-xl border border-slate-200 text-sm font-black outline-none focus:ring-2 transition-shadow shadow-sm bg-white uppercase tracking-wider" placeholder="Enter Registration Number...">
+                    </div>
+                    <p id="roleHelpText" class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-3 ml-1"></p>
+                </div>
+
+            </div>
+
+            <button onclick="saveMatrix()" id="saveBtn" class="w-full bg-slate-900 hover:bg-slate-800 text-white py-5 rounded-[20px] font-black text-sm uppercase tracking-widest shadow-xl hover:-translate-y-1 transition-all-spring flex items-center justify-center gap-3">
+                <i class="fa-solid fa-cloud-arrow-up"></i> Synchronize to Grid
+            </button>
+
+        </div>
     </main>
 
-    <div id="toast-container" class="fixed bottom-6 right-6 z-[150] flex flex-col gap-3 pointer-events-none"></div>
+    <div id="toast-container" class="fixed bottom-6 right-6 lg:bottom-10 lg:right-10 z-[150] flex flex-col gap-3 pointer-events-none w-full max-w-[320px] px-4 lg:px-0"></div>
 
     <script>
         const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
         const token = sessionStorage.getItem('eRx_Token');
-        let currentUserRole = '';
+        if (!token) window.location.href = 'index.html';
 
         function parseJwt(t) { try { return JSON.parse(atob(t.split('.')[1])); } catch(e) { return {}; } }
-        if (!token) window.location.href = 'index.html';
         const decoded = parseJwt(token);
-        currentUserRole = decoded.role;
-        
-        document.getElementById('displayUserRole').innerText = currentUserRole;
-        document.getElementById('displayUserName').innerText = sessionStorage.getItem('eRx_UserName') || 'Agent';
+        const userRole = decoded.role; // 'doctor', 'pharmacist', or 'patient'
 
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            document.getElementById(`tab-${tabId}`).classList.add('active');
-            document.getElementById(`nav-${tabId}`).classList.add('active');
+        // 🎨 UI THEME ADAPTER
+        function adaptTheme() {
+            const header = document.getElementById('themeHeader');
+            const iconBox = document.getElementById('roleIconBox');
+            const label = document.getElementById('roleLabel');
+            const input = document.getElementById('profRoleInput');
+            const help = document.getElementById('roleHelpText');
+
+            if (userRole === 'doctor') {
+                header.className = "h-20 lg:h-24 bg-teal-900 text-white border-b border-teal-800 flex items-center justify-between px-6 lg:px-10 shrink-0 sticky top-0 z-40 transition-colors duration-500 shadow-lg";
+                iconBox.className = "w-14 h-[54px] rounded-xl flex items-center justify-center text-white text-xl shadow-inner shrink-0 bg-teal-500";
+                iconBox.innerHTML = '<i class="fa-solid fa-stethoscope"></i>';
+                label.innerHTML = 'BMDC License Number <span class="text-rose-500">*</span>';
+                input.placeholder = "e.g., A-12345";
+                input.classList.add('focus:ring-teal-400');
+                help.innerText = "Required for the Ministry of Health to verify your prescribing authority.";
+            } else if (userRole === 'pharmacist') {
+                header.className = "h-20 lg:h-24 bg-emerald-900 text-white border-b border-emerald-800 flex items-center justify-between px-6 lg:px-10 shrink-0 sticky top-0 z-40 transition-colors duration-500 shadow-lg";
+                iconBox.className = "w-14 h-[54px] rounded-xl flex items-center justify-center text-white text-xl shadow-inner shrink-0 bg-emerald-500";
+                iconBox.innerHTML = '<i class="fa-solid fa-mortar-pestle"></i>';
+                label.innerHTML = 'Pharmacy Council Registration <span class="text-rose-500">*</span>';
+                input.placeholder = "e.g., PHA-9876";
+                input.classList.add('focus:ring-emerald-400');
+                help.innerText = "Required to legally decrypt and dispense Grid payloads.";
+            } else {
+                header.className = "h-20 lg:h-24 bg-indigo-900 text-white border-b border-indigo-800 flex items-center justify-between px-6 lg:px-10 shrink-0 sticky top-0 z-40 transition-colors duration-500 shadow-lg";
+                iconBox.className = "w-14 h-[54px] rounded-xl flex items-center justify-center text-white text-xl shadow-inner shrink-0 bg-indigo-500";
+                iconBox.innerHTML = '<i class="fa-solid fa-id-card"></i>';
+                label.innerHTML = 'National ID (NID) or Birth Certificate <span class="text-rose-500">*</span>';
+                input.placeholder = "10 to 17 Digit NID...";
+                input.classList.add('focus:ring-indigo-400');
+                help.innerText = "Crucial for accurately linking your Master Patient Index across all hospitals.";
+            }
         }
 
-        function showToast(message, type = 'success') {
+        // 🎨 TOAST ENGINE
+        function showToast(message, type = 'error') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
-            const colors = type === 'error' ? 'bg-rose-600 text-white shadow-rose-500/30' : 'bg-teal-600 text-white shadow-teal-500/30';
-            toast.className = `flex items-center gap-3 px-6 py-4 rounded-2xl shadow-xl transform transition-all duration-500 translate-y-10 opacity-0 ${colors}`;
-            toast.innerHTML = `<i class="fa-solid ${type === 'error' ? 'fa-triangle-exclamation' : 'fa-check-circle'}"></i><span class="text-[10px] font-black uppercase tracking-widest">${message}</span>`;
+            const colors = type === 'error' ? 'bg-white border-rose-500' : 'bg-white border-emerald-500';
+            const iconColor = type === 'error' ? 'text-rose-500 bg-rose-50' : 'text-emerald-500 bg-emerald-50';
+            const icon = type === 'error' ? 'fa-triangle-exclamation' : 'fa-check';
+            toast.className = `flex items-center p-4 rounded-2xl shadow-xl border-l-4 transform transition-all duration-500 translate-y-10 opacity-0 ${colors}`;
+            toast.innerHTML = `<div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${iconColor}"><i class="fa-solid ${icon}"></i></div><div class="ml-3"><p class="text-xs font-black text-slate-800 uppercase tracking-widest leading-tight">${type === 'error' ? 'System Alert' : 'Success'}</p><p class="text-xs font-bold text-slate-500 mt-0.5">${message}</p></div>`;
             container.appendChild(toast);
-            requestAnimationFrame(() => { toast.classList.remove('translate-y-10', 'opacity-0'); });
+            requestAnimationFrame(() => toast.classList.remove('translate-y-10', 'opacity-0'));
             setTimeout(() => { toast.classList.add('translate-y-10', 'opacity-0'); setTimeout(() => toast.remove(), 500); }, 3000);
         }
 
-        function goBack() {
-            if(currentUserRole === 'doctor') window.location.href = 'dashboard.html';
-            else if(currentUserRole === 'pathologist') window.location.href = 'pathology_portal.html';
-            else window.location.href = 'index.html';
-        }
-
-        // DYNAMIC ROLE INJECTION
-        function renderDynamicFields() {
-            const section = document.getElementById('dynamicRoleSection');
-            
-            if (currentUserRole === 'patient') {
-                document.getElementById('credTabText').innerText = 'Clinical Vault';
-                document.getElementById('credIcon').className = 'fa-solid fa-notes-medical w-6';
-                section.innerHTML = `
-                    <h3 class="text-xs font-black text-rose-500 uppercase tracking-widest mb-6 border-b border-slate-100 pb-4">Clinical Safety Anchors</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Blood Group</label><select id="p_blood" class="premium-input w-full p-3 rounded-xl text-sm font-bold"><option value="">Select...</option><option value="A+">A+</option><option value="O+">O+</option><option value="B+">B+</option><option value="AB+">AB+</option><option value="A-">A-</option><option value="O-">O-</option><option value="B-">B-</option><option value="AB-">AB-</option></select></div>
-                        <div><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Emergency Contact</label><input type="text" id="p_emerg" class="premium-input w-full p-3 rounded-xl text-sm font-bold" placeholder="+880..."></div>
-                        <div class="md:col-span-2"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Allergies (Comma separated)</label><input type="text" id="p_allergies" class="premium-input w-full p-3 rounded-xl text-sm font-bold text-rose-600" placeholder="e.g. Penicillin, Peanuts"></div>
-                        <div class="md:col-span-2"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Chronic Conditions</label><input type="text" id="p_chronic" class="premium-input w-full p-3 rounded-xl text-sm font-bold text-amber-600" placeholder="e.g. Asthma, Type 2 Diabetes"></div>
-                        
-                        <div class="md:col-span-2 mt-2 pt-4 border-t border-slate-100">
-                            <h4 class="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-4">Surgical History Record</h4>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                <input type="text" id="p_surg_name" class="premium-input p-3 rounded-xl text-sm font-bold" placeholder="Surgery Name">
-                                <input type="text" id="p_surg_doc" class="premium-input p-3 rounded-xl text-sm font-bold" placeholder="Surgeon">
-                                <input type="text" id="p_surg_hosp" class="premium-input p-3 rounded-xl text-sm font-bold" placeholder="Hospital/Date">
-                            </div>
-                        </div>
-                    </div>
-                `;
-            } else if (currentUserRole === 'doctor') {
-                section.innerHTML = `
-                    <h3 class="text-xs font-black text-indigo-500 uppercase tracking-widest mb-6 border-b border-slate-100 pb-4">Authority & Scopes</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">BMDC Registration No.</label>
-                            <div class="relative">
-                                <input type="text" id="d_bmdc" class="premium-input w-full p-3 rounded-xl text-sm font-mono font-black text-indigo-600" placeholder="A-XXXXX">
-                                <i class="fa-solid fa-circle-check text-emerald-500 absolute right-4 top-4 opacity-50"></i>
-                            </div>
-                        </div>
-                        <div><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Primary Specialty</label><input type="text" id="d_spec" class="premium-input w-full p-3 rounded-xl text-sm font-bold" placeholder="e.g. Cardiology"></div>
-                        <div><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Degrees / Qualifications</label><input type="text" id="d_deg" class="premium-input w-full p-3 rounded-xl text-sm font-bold" placeholder="MBBS, FCPS..."></div>
-                        <div><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Primary Hospital / Chamber</label><input type="text" id="d_hosp" class="premium-input w-full p-3 rounded-xl text-sm font-bold" placeholder="Institution Name"></div>
-                    </div>
-                `;
-            }
-        }
-
-        // LOAD DATA FROM BACKEND ADAPTER
-        async function loadProfile() {
-            renderDynamicFields();
+        // 🗄️ FETCH DATA
+        async function fetchProfile() {
             try {
                 const res = await fetch(`${API_BASE_URL}/api/profile`, { headers: { 'Authorization': `Bearer ${token}` } });
-                if(res.ok) {
-                    const user = await res.json();
-                    
-                    if(user.nationalId) document.getElementById('nid').value = user.nationalId;
-                    if(user.phone) document.getElementById('phone').value = user.phone;
-                    if(user.dateOfBirth) document.getElementById('dob').value = user.dateOfBirth.split('T')[0];
-                    if(user.gender) document.getElementById('gender').value = user.gender;
+                if (res.ok) {
+                    const data = await res.json();
+                    document.getElementById('profName').value = data.person.name;
+                    document.getElementById('profEmail').value = data.person.email;
+                    document.getElementById('profPhone').value = data.person.phone;
+                    document.getElementById('profDob').value = data.person.dob;
+                    document.getElementById('profGender').value = data.person.gender;
 
-                    // Execute Progress Physics
-                    const pct = user.profileCompletion || 20;
-                    document.getElementById('progressText').innerText = `${pct}%`;
-                    setTimeout(() => { document.getElementById('progressBar').style.width = `${pct}%`; }, 300);
-                    
-                    if(pct === 100) { document.getElementById('progressBar').classList.replace('bg-teal-500', 'bg-emerald-500'); }
-
-                    if(currentUserRole === 'patient' && user.patientProfile) {
-                        document.getElementById('p_blood').value = user.patientProfile.bloodGroup || '';
-                        document.getElementById('p_emerg').value = user.patientProfile.emergencyContact?.phone || '';
-                        document.getElementById('p_allergies').value = user.patientProfile.knownAllergies?.join(', ') || '';
-                        document.getElementById('p_chronic').value = user.patientProfile.chronicConditions?.join(', ') || '';
-                        
-                        if(user.patientProfile.surgeryHistory && user.patientProfile.surgeryHistory.length > 0) {
-                            const surg = user.patientProfile.surgeryHistory[0];
-                            document.getElementById('p_surg_name').value = surg.surgeryName || '';
-                            document.getElementById('p_surg_doc').value = surg.surgeonName || '';
-                            document.getElementById('p_surg_hosp').value = surg.hospitalName || '';
+                    if (userRole === 'patient') {
+                        document.getElementById('profRoleInput').value = data.roleData.nid;
+                    } else {
+                        document.getElementById('profRoleInput').value = data.roleData.license;
+                        if (data.roleData.status) {
+                            const badge = document.getElementById('statusBadge');
+                            badge.classList.remove('hidden');
+                            if(data.roleData.status === 'Verified') {
+                                badge.className = "px-4 py-2 rounded-full border text-[10px] font-black uppercase tracking-widest bg-emerald-500/20 text-emerald-400 border-emerald-500/30 flex items-center shadow-sm";
+                                badge.innerHTML = '<i class="fa-solid fa-shield-check mr-2"></i> Authority Verified';
+                            }
                         }
-                    } else if (currentUserRole === 'doctor' && user.doctorProfile) {
-                        document.getElementById('d_bmdc').value = user.doctorProfile.bmdcNumber || '';
-                        document.getElementById('d_spec').value = user.doctorProfile.primarySpecialty || '';
-                        document.getElementById('d_deg').value = user.doctorProfile.primaryDegree || '';
-                        document.getElementById('d_hosp').value = user.doctorProfile.primaryHospital || '';
+                    }
+
+                    const tracker = document.getElementById('completionTracker');
+                    if (data.profileCompletion === 100) {
+                        tracker.className = "text-[10px] font-black bg-emerald-100 text-emerald-600 px-3 py-1 rounded-lg border border-emerald-200";
+                        tracker.innerHTML = '<i class="fa-solid fa-check mr-1"></i> Matrix Complete';
                     }
                 }
-            } catch(e) { console.error("Decryption Error"); }
+            } catch (err) { showToast("Grid Network Failure", "error"); }
         }
 
-        // SEND DATA TO BACKEND ADAPTER
-        async function saveProfile() {
-            const btn = document.getElementById('saveBtn');
-            const originalHTML = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
-            btn.disabled = true;
-            
-            const payload = {
-                nationalId: document.getElementById('nid').value, phone: document.getElementById('phone').value,
-                dateOfBirth: document.getElementById('dob').value, gender: document.getElementById('gender').value
-            };
+        // 💾 SAVE DATA
+        async function saveMatrix() {
+            const phone = document.getElementById('profPhone').value.trim();
+            const dob = document.getElementById('profDob').value;
+            const gender = document.getElementById('profGender').value;
+            const identifier = document.getElementById('profRoleInput').value.trim();
 
-            if (currentUserRole === 'patient') {
-                payload.patientProfile = {
-                    bloodGroup: document.getElementById('p_blood').value,
-                    emergencyContact: { phone: document.getElementById('p_emerg').value },
-                    knownAllergies: document.getElementById('p_allergies').value.split(',').map(s=>s.trim()).filter(Boolean),
-                    chronicConditions: document.getElementById('p_chronic').value.split(',').map(s=>s.trim()).filter(Boolean)
-                };
-                const sName = document.getElementById('p_surg_name').value;
-                if(sName) {
-                    payload.patientProfile.surgeryHistory = [{
-                        surgeryName: sName, surgeonName: document.getElementById('p_surg_doc').value || 'Unknown', hospitalName: document.getElementById('p_surg_hosp').value || 'Unknown', approximateDate: 'Recorded'
-                    }];
-                } else { payload.patientProfile.surgeryHistory = []; }
-            } else if (currentUserRole === 'doctor') {
-                payload.doctorProfile = {
-                    bmdcNumber: document.getElementById('d_bmdc').value, primarySpecialty: document.getElementById('d_spec').value,
-                    primaryDegree: document.getElementById('d_deg').value, primaryHospital: document.getElementById('d_hosp').value
-                };
-            }
+            if (!phone || !identifier) return showToast("Phone and Identifier are strictly required.");
+
+            const btn = document.getElementById('saveBtn');
+            const ogHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Securing Hash...'; btn.disabled = true;
 
             try {
-                const res = await fetch(`${API_BASE_URL}/api/profile`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) });
-                if(res.ok) { showToast("Vault Synchronized Successfully"); setTimeout(() => loadProfile(), 500); } 
-                else { showToast("Sync Failed", "error"); }
-            } catch(e) { showToast("Network Error", "error"); } finally { btn.innerHTML = originalHTML; btn.disabled = false; }
+                const payload = { phone, dob, gender };
+                if (userRole === 'patient') payload.nationalId = identifier;
+                else payload.professionalLicense = identifier;
+
+                const res = await fetch(`${API_BASE_URL}/api/profile/update`, {
+                    method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (res.ok) {
+                    showToast("Profile Secured.", "success");
+                    fetchProfile(); // Refresh completion badge
+                } else { showToast("Matrix Update Failed.", "error"); }
+            } catch (err) { showToast("Grid Output Failure.", "error"); } finally { btn.innerHTML = ogHtml; btn.disabled = false; }
         }
 
-        window.onload = loadProfile;
+        // 🚦 MASTER ROUTER BACK BUTTON
+        function goBack() {
+            if (userRole === 'doctor') window.location.href = 'dashboard.html';
+            else if (userRole === 'pharmacist') window.location.href = 'pharmacist_portal.html';
+            else window.location.href = 'patient_portal.html';
+        }
+
+        adaptTheme();
+        fetchProfile();
     </script>
 </body>
 </html>

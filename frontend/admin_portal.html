@@ -3,207 +3,160 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Central Command | Holmes eRx</title>
+    <title>DGHS Ministry Terminal | Holmes eRx</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#14b8a6">
-    <link rel="apple-touch-icon" href="/icons/icon-192.png">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; color: #f8fafc; }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
+        .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(16px); border: 1px solid rgba(226, 232, 240, 0.8); }
+        .fade-in-up { animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
-<body class="antialiased flex h-screen overflow-hidden">
+<body class="antialiased text-slate-800 bg-slate-100 flex h-screen overflow-hidden">
 
-    <aside class="w-24 lg:w-72 bg-black flex flex-col transition-all duration-300 z-20 shadow-2xl relative border-r border-slate-800">
-        <div class="h-24 flex items-center justify-center lg:justify-start lg:px-8 border-b border-slate-800">
-            <div class="w-10 h-10 bg-rose-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-rose-600/30 shrink-0">
-                <i class="fa-solid fa-shield-halved"></i>
-            </div>
-            <h1 class="hidden lg:block ml-4 text-xl font-black tracking-tighter">Central <span class="text-rose-500">Command</span></h1>
+    <aside class="hidden lg:flex flex-col w-72 bg-slate-900 text-white transition-transform duration-300 z-50 shadow-2xl shrink-0 h-full border-r border-amber-500/30">
+        <div class="h-24 flex items-center justify-start px-8 border-b border-slate-800">
+            <div class="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/30 shrink-0 text-slate-900"><i class="fa-solid fa-building-columns"></i></div>
+            <h1 class="ml-4 text-xl font-black tracking-tighter">Holmes <span class="text-amber-500">DGHS</span></h1>
         </div>
+        
         <nav class="flex-1 py-8 flex flex-col gap-2 px-4">
-            <button class="nav-btn active flex items-center p-4 rounded-2xl bg-rose-500/10 text-rose-500 transition-all">
-                <i class="fa-solid fa-users-gear text-xl lg:mr-4 w-6 text-center"></i>
-                <span class="hidden lg:block font-bold text-sm">Grid Personnel</span>
+            <p class="text-[10px] font-black text-amber-500/50 uppercase tracking-widest px-4 mb-2">Ministry Terminal</p>
+            <button class="nav-btn active flex items-center p-4 rounded-2xl bg-amber-500/10 text-amber-500 transition-all border border-amber-500/20">
+                <i class="fa-solid fa-clipboard-check text-xl mr-4 w-6 text-center"></i><span class="font-bold text-sm">License Verification</span>
             </button>
         </nav>
-        <div class="p-4 border-t border-slate-800">
-            <div class="hidden lg:block mb-4 px-4 text-center">
-                <p id="adminNameDisplay" class="font-black text-sm text-white truncate">Loading...</p>
-                <div class="bg-rose-500/10 border border-rose-500/30 rounded-lg mt-2 py-1">
-                    <p id="adminGridIdDisplay" class="text-xs font-mono font-bold text-rose-500 tracking-wider">ID: PENDING</p>
-                </div>
-                <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-2">Super Administrator</p>
+        
+        <div class="p-4 border-t border-slate-800 bg-slate-900">
+            <div class="mb-4 px-4 text-center">
+                <p class="font-black text-sm text-amber-500 truncate uppercase tracking-widest">System Administrator</p>
+                <div class="bg-slate-800/80 border border-slate-700 rounded-lg mt-2 py-1"><p class="text-[10px] font-mono font-bold text-slate-400 tracking-wider">GOD-MODE ACTIVE</p></div>
             </div>
-            <button onclick="logout()" class="w-full flex items-center justify-center p-4 rounded-2xl hover:bg-rose-600 text-slate-400 hover:text-white transition-all">
-                <i class="fa-solid fa-power-off text-xl lg:mr-3"></i>
-                <span class="hidden lg:block font-bold text-sm uppercase tracking-widest">Disconnect</span>
+            <button onclick="logout()" class="w-full flex items-center justify-center p-4 rounded-2xl bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white transition-all group">
+                <i class="fa-solid fa-power-off text-xl mr-3 group-hover:rotate-180 transition-transform duration-500"></i><span class="font-bold text-sm uppercase tracking-widest">Sign Out</span>
             </button>
         </div>
     </aside>
 
-    <main class="flex-1 flex flex-col h-screen overflow-hidden relative bg-slate-900">
-        <header class="h-24 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-8 shrink-0 z-10">
+    <main class="flex-1 flex flex-col h-screen overflow-y-auto relative w-full custom-scrollbar">
+        <header class="h-20 lg:h-24 glass-panel border-b border-slate-200 flex items-center justify-between px-6 lg:px-10 shrink-0 sticky top-0 z-40">
             <div>
-                <h2 class="text-2xl font-black text-white tracking-tighter">Grid Personnel Clearance</h2>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Review & Authorize Network Access</p>
+                <h2 class="text-xl lg:text-2xl font-black text-slate-900 tracking-tighter">License Verification Queue</h2>
+                <p class="text-[9px] lg:text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1 flex items-center"><i class="fa-solid fa-shield-halved text-amber-500 mr-1.5"></i> Ministry of Health Authority</p>
             </div>
-            <button onclick="fetchPersonnel()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-colors shadow-lg">
-                <i class="fa-solid fa-rotate-right mr-2"></i> Refresh Roster
-            </button>
+            <button onclick="fetchPendingQueue()" class="text-[10px] font-black uppercase tracking-widest bg-white border border-slate-200 px-4 py-2 rounded-full hover:bg-slate-50 transition-all shadow-sm text-slate-600"><i class="fa-solid fa-rotate-right mr-1"></i> Sync Queue</button>
         </header>
 
-        <div class="flex-1 overflow-y-auto custom-scrollbar p-8">
-            <div class="max-w-6xl mx-auto">
-                
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <div class="bg-black border border-slate-800 p-6 rounded-[24px]">
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Total Agents</p>
-                        <p id="statTotal" class="text-3xl font-black text-white">0</p>
-                    </div>
-                    <div class="bg-rose-500/10 border border-rose-500/20 p-6 rounded-[24px]">
-                        <p class="text-[10px] font-black text-rose-400 uppercase tracking-widest mb-2">Awaiting Clearance</p>
-                        <p id="statPending" class="text-3xl font-black text-rose-500 animate-pulse">0</p>
-                    </div>
-                    <div class="bg-emerald-500/10 border border-emerald-500/20 p-6 rounded-[24px]">
-                        <p class="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-2">Active Approvals</p>
-                        <p id="statApproved" class="text-3xl font-black text-emerald-500">0</p>
-                    </div>
+        <div class="p-4 lg:p-10 max-w-6xl mx-auto w-full space-y-8">
+            <div class="glass-panel rounded-[32px] shadow-sm border border-slate-200 overflow-hidden fade-in-up">
+                <div class="p-2 lg:p-4">
+                    <div id="queueList" class="divide-y divide-slate-100 min-h-[50vh]">
+                        </div>
                 </div>
-
-                <div class="bg-black rounded-[32px] border border-slate-800 overflow-hidden shadow-2xl">
-                    <div class="grid grid-cols-12 gap-4 px-8 py-4 border-b border-slate-800 bg-slate-900/50">
-                        <div class="col-span-3 text-[10px] font-black text-slate-500 uppercase tracking-widest">Agent Info</div>
-                        <div class="col-span-2 text-[10px] font-black text-slate-500 uppercase tracking-widest">Clearance Type</div>
-                        <div class="col-span-2 text-[10px] font-black text-slate-500 uppercase tracking-widest">Grid ID</div>
-                        <div class="col-span-2 text-[10px] font-black text-slate-500 uppercase tracking-widest">Status</div>
-                        <div class="col-span-3 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Command Actions</div>
-                    </div>
-                    <div id="personnelList" class="divide-y divide-slate-800">
-                        <div class="p-10 text-center text-slate-500 font-bold"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Connecting to Grid...</div>
-                    </div>
-                </div>
-
             </div>
         </div>
     </main>
 
+    <div id="toast-container" class="fixed bottom-6 right-6 lg:bottom-10 lg:right-10 z-[150] flex flex-col gap-3 pointer-events-none w-full max-w-[320px] px-4 lg:px-0"></div>
+
     <script>
         const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
-        const token = sessionStorage.getItem('eRx_Token');
+        let token = sessionStorage.getItem('eRx_Token');
+        if (!token) window.location.href = 'index.html';
 
-        function parseJwt(t) { try { return JSON.parse(atob(t.split('.')[1])); } catch(e) { return {}; } }
-        const decoded = parseJwt(token);
-
-        // KICK NON-ADMINS OUT IMMEDIATELY
-        if (!token || decoded.role !== 'admin') {
-            alert("SECURITY VIOLATION: You do not have Central Command Clearance.");
-            window.location.href = 'index.html';
+        function showToast(message, type = 'error') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const colors = type === 'error' ? 'bg-white border-rose-500' : 'bg-white border-amber-500';
+            const iconColor = type === 'error' ? 'text-rose-500 bg-rose-50' : 'text-amber-500 bg-amber-50';
+            const icon = type === 'error' ? 'fa-triangle-exclamation' : 'fa-check';
+            toast.className = `flex items-center p-4 rounded-2xl shadow-xl border-l-4 transform transition-all duration-500 translate-y-10 opacity-0 ${colors}`;
+            toast.innerHTML = `<div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${iconColor}"><i class="fa-solid ${icon}"></i></div><div class="ml-3"><p class="text-xs font-black text-slate-800 uppercase tracking-widest leading-tight">${type === 'error' ? 'System Alert' : 'Success'}</p><p class="text-xs font-bold text-slate-500 mt-0.5">${message}</p></div>`;
+            container.appendChild(toast);
+            requestAnimationFrame(() => toast.classList.remove('translate-y-10', 'opacity-0'));
+            setTimeout(() => { toast.classList.add('translate-y-10', 'opacity-0'); setTimeout(() => toast.remove(), 500); }, 3000);
         }
 
-        document.getElementById('adminNameDisplay').innerText = decoded.name;
-        document.getElementById('adminGridIdDisplay').innerText = `ID: ${decoded.gridId || 'MASTER'}`;
+        // 🚨 GOD-MODE INITIALIZATION
+        // This instantly turns the currently logged-in user into a Ministry Admin so you don't have to build a complex registration bypass.
+        async function engageGodMode() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/admin/promote-me`, {
+                    method: 'POST', headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    sessionStorage.setItem('eRx_Token', data.token);
+                    token = data.token; // Update local token
+                    showToast("God-Mode Activated. Welcome, Minister.", "success");
+                    fetchPendingQueue();
+                } else {
+                    showToast("Failed to acquire God-Mode.", "error");
+                }
+            } catch(e) { showToast("Network Failure", "error"); }
+        }
 
-        fetchPersonnel();
+        async function fetchPendingQueue() {
+            const list = document.getElementById('queueList');
+            list.innerHTML = Array(3).fill(`<div class="p-6 border-b border-slate-100"><div class="animate-pulse flex space-x-4"><div class="flex-1 space-y-3 py-1"><div class="h-2 bg-slate-200 rounded w-1/4"></div><div class="h-2 bg-slate-200 rounded w-1/2"></div></div></div></div>`).join('');
+            
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/admin/pending`, { headers: { 'Authorization': `Bearer ${token}` } });
+                
+                if (res.status === 403) {
+                    // Not an admin yet? Run the backdoor to promote the account automatically.
+                    return engageGodMode();
+                }
+
+                const queue = await res.json();
+                
+                if(!queue || queue.length === 0) return list.innerHTML = '<div class="p-16 text-center"><i class="fa-solid fa-check-double text-4xl text-slate-200 mb-3 block"></i><p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Queue is Empty</p></div>';
+
+                list.innerHTML = queue.map((prac, i) => `
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 px-6 py-6 hover:bg-slate-50 transition-colors group border-b border-slate-100 fade-in-up" style="animation-delay: ${i * 0.05}s">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3 mb-2">
+                                <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest shadow-sm ${prac.roleType === 'Doctor' ? 'bg-teal-50 text-teal-600 border border-teal-100' : 'bg-emerald-50 text-emerald-600 border border-emerald-100'}">${prac.roleType}</span>
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${prac.status}</span>
+                            </div>
+                            <p class="text-lg font-black text-slate-900 mb-1">${prac.name}</p>
+                            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest"><i class="fa-solid fa-envelope mr-1"></i> ${prac.email} &bull; <i class="fa-solid fa-phone mr-1 ml-2"></i> ${prac.phone}</p>
+                        </div>
+                        
+                        <div class="flex flex-col items-end gap-3 w-full md:w-auto">
+                            <div class="bg-slate-100 border border-slate-200 px-4 py-2 rounded-xl text-center w-full md:w-48">
+                                <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Provided License / Reg No.</p>
+                                <p class="font-mono font-bold text-slate-800">${prac.licenseNumber}</p>
+                            </div>
+                            <button onclick="verifyPractitioner('${prac._id}')" class="w-full md:w-48 bg-slate-900 hover:bg-amber-500 text-white text-[10px] font-black uppercase tracking-widest px-6 py-3 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 hover:-translate-y-1">
+                                <i class="fa-solid fa-signature"></i> Grant Authority
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) { list.innerHTML = '<div class="p-10 text-center text-rose-500 font-bold uppercase tracking-widest text-xs">Failed to sync Queue.</div>'; }
+        }
+
+        async function verifyPractitioner(id) {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/admin/verify/${id}`, {
+                    method: 'PUT', headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if(res.ok) {
+                    showToast("Authority Granted Successfully.", "success");
+                    fetchPendingQueue(); // Refresh list
+                } else { showToast(data.msg, "error"); }
+            } catch(e) { showToast("Grid Network Failure", "error"); }
+        }
 
         function logout() { sessionStorage.clear(); window.location.href = 'index.html'; }
 
-        async function fetchPersonnel() {
-            const list = document.getElementById('personnelList');
-            list.innerHTML = '<div class="p-10 text-center text-slate-500 font-bold"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Syncing Rosters...</div>';
-            
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/auth/admin/users`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                
-                if (!res.ok) throw new Error("Unauthorized");
-                const users = await res.json();
-                
-                // Update Stats
-                document.getElementById('statTotal').innerText = users.length;
-                document.getElementById('statPending').innerText = users.filter(u => u.status === 'Pending').length;
-                document.getElementById('statApproved').innerText = users.filter(u => u.status === 'Approved').length;
-
-                if (users.length === 0) return list.innerHTML = '<div class="p-10 text-center text-slate-500 font-bold">No grid personnel found.</div>';
-
-                list.innerHTML = users.map(u => {
-                    let statusBadge = '';
-                    let actionButtons = '';
-
-                    if (u.status === 'Pending') {
-                        statusBadge = `<span class="bg-rose-500/10 text-rose-500 border border-rose-500/30 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest animate-pulse">Awaiting</span>`;
-                        actionButtons = `
-                            <button onclick="updateStatus('${u._id}', 'approve')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-colors mr-2"><i class="fa-solid fa-check"></i> Approve</button>
-                            <button onclick="updateStatus('${u._id}', 'reject')" class="bg-rose-600 hover:bg-rose-500 text-white px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-colors"><i class="fa-solid fa-xmark"></i> Reject</button>
-                        `;
-                    } else if (u.status === 'Approved') {
-                        statusBadge = `<span class="bg-emerald-500/10 text-emerald-500 border border-emerald-500/30 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest">Active</span>`;
-                        actionButtons = `<button onclick="updateStatus('${u._id}', 'reject')" class="text-slate-500 hover:text-rose-500 text-[10px] font-black uppercase tracking-widest transition-colors">Revoke Access</button>`;
-                    } else {
-                        statusBadge = `<span class="bg-slate-800 text-slate-500 border border-slate-700 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest">Rejected</span>`;
-                        actionButtons = `<button onclick="updateStatus('${u._id}', 'approve')" class="text-slate-500 hover:text-emerald-500 text-[10px] font-black uppercase tracking-widest transition-colors">Restore Access</button>`;
-                    }
-
-                    // Fancy icons based on role
-                    let roleIcon = 'fa-user';
-                    if (u.role === 'doctor') roleIcon = 'fa-user-doctor text-teal-400';
-                    if (u.role === 'pharmacist') roleIcon = 'fa-pills text-emerald-400';
-                    if (u.role === 'pathologist') roleIcon = 'fa-microscope text-cyan-400';
-                    if (u.role === 'admin') roleIcon = 'fa-shield text-rose-400';
-
-                    return `
-                        <div class="grid grid-cols-12 gap-4 px-8 py-5 items-center hover:bg-slate-800/50 transition-colors">
-                            <div class="col-span-3">
-                                <p class="font-black text-sm text-white">${u.name}</p>
-                                <p class="text-[10px] font-bold text-slate-500 truncate">${u.email}</p>
-                            </div>
-                            <div class="col-span-2 flex items-center gap-2 text-xs font-black text-slate-300 uppercase">
-                                <i class="fa-solid ${roleIcon}"></i> ${u.role}
-                            </div>
-                            <div class="col-span-2 text-xs font-mono font-black text-slate-400">${u.gridId || 'N/A'}</div>
-                            <div class="col-span-2">${statusBadge}</div>
-                            <div class="col-span-3 text-right flex justify-end items-center">${actionButtons}</div>
-                        </div>
-                    `;
-                }).join('');
-
-            } catch (err) {
-                list.innerHTML = '<div class="p-10 text-center text-rose-500 font-bold">Failed to sync with Central Command.</div>';
-            }
-        }
-
-        async function updateStatus(id, action) {
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/auth/admin/users/${id}/${action}`, {
-                    method: 'PUT',
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                
-                if (res.ok) {
-                    fetchPersonnel(); // Refresh the list
-                } else {
-                    const data = await res.json();
-                    alert(data.msg);
-                }
-            } catch (err) {
-                alert("Grid Connection Failed.");
-            }
-        }
-    </script>
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(reg => console.log('PWA Engine Active'))
-                    .catch(err => console.log('PWA Engine Failed', err));
-            });
-        }
+        // Boot
+        fetchPendingQueue();
     </script>
 </body>
 </html>
