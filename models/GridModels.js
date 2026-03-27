@@ -218,7 +218,6 @@ PrescriptionSchema.index({ practitionerRoleId: 1, createdAt: -1 });
 
 // 4. Clinical Dossier Lookups (Instantly load Allergies/Meds for the Contraindication Engine)
 AllergyProfileSchema.index({ patientId: 1 });
-ConditionProfileSchema.index({ patientId: 1 });
 MedicationProfileSchema.index({ patientId: 1 });
 
 
