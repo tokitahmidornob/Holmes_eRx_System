@@ -3,190 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grid Authentication | Holmes eRx</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Holmes National Health Grid</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(226, 232, 240, 0.8); }
-        .fade-in-up { animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .input-focus-ring:focus-within { box-shadow: 0 0 0 2px rgba(20, 184, 166, 0.2); border-color: #14b8a6; }
-    </style>
+    <link rel="stylesheet" href="style.css"> 
 </head>
-<body class="antialiased text-slate-800 bg-slate-900 min-h-screen flex items-center justify-center relative overflow-hidden selection:bg-teal-200">
+<body class="antialiased flex flex-col min-h-screen relative overflow-x-hidden">
 
-    <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-teal-500/20 rounded-full blur-[120px] pointer-events-none"></div>
-    <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-500/20 rounded-full blur-[120px] pointer-events-none"></div>
+    <div class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-teal-500/10 rounded-full blur-[150px] pointer-events-none -z-10"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-indigo-500/10 rounded-full blur-[150px] pointer-events-none -z-10"></div>
 
-    <div class="glass-panel w-full max-w-md mx-4 rounded-[40px] shadow-2xl overflow-hidden relative z-10 fade-in-up">
+    <nav class="w-full h-20 glass-panel border-b border-slate-800 flex items-center justify-between px-6 lg:px-12 z-50 sticky top-0">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-slate-900 border border-teal-500/30 rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(0,240,255,0.2)]">
+                <i class="fa-solid fa-network-wired text-teal-400 text-lg"></i>
+            </div>
+            <h1 class="text-2xl font-black tracking-tighter text-white">Holmes <span class="text-teal-400">Grid</span></h1>
+        </div>
+        <div>
+            <a href="auth.html" class="bg-teal-500/10 hover:bg-teal-500 border border-teal-500/50 hover:border-teal-400 text-teal-400 hover:text-slate-900 px-6 py-2.5 rounded-full font-black text-xs uppercase tracking-widest transition-all duration-300 shadow-[0_0_10px_rgba(0,240,255,0.1)] hover:shadow-[0_0_20px_rgba(0,240,255,0.4)] flex items-center gap-2">
+                <i class="fa-solid fa-terminal"></i> Enter Terminal
+            </a>
+        </div>
+    </nav>
+
+    <main class="flex-1 flex flex-col items-center justify-center px-6 text-center relative z-10 py-20">
         
-        <div class="pt-10 pb-6 px-10 text-center">
-            <div class="w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-slate-900/30">
-                <i class="fa-solid fa-network-wired text-teal-400 text-2xl"></i>
-            </div>
-            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Secure Access Terminal</p>
-            <h1 class="text-3xl font-black text-slate-900 tracking-tighter">Grid Authentication</h1>
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-panel border border-emerald-500/30 mb-8 fade-in-up">
+            <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(0,255,102,0.8)]"></div>
+            <span class="text-[10px] font-black text-emerald-400 uppercase tracking-widest">National Systems Online</span>
         </div>
 
-        <div class="flex border-b border-slate-200 px-6">
-            <button onclick="switchTab('login')" id="tabLogin" class="flex-1 pb-4 text-xs font-black uppercase tracking-widest text-teal-600 border-b-2 border-teal-500 transition-colors">Secure Login</button>
-            <button onclick="switchTab('register')" id="tabRegister" class="flex-1 pb-4 text-xs font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-colors">Register Profile</button>
+        <h1 class="text-5xl md:text-7xl font-black text-white tracking-tighter mb-6 fade-in-up" style="animation-delay: 0.1s;">
+            The Sovereign <br> <span class="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-indigo-400 drop-shadow-[0_0_15px_rgba(0,240,255,0.3)]">Health Identity</span>
+        </h1>
+        
+        <p class="max-w-2xl text-slate-400 text-sm md:text-base font-medium mb-10 leading-relaxed fade-in-up" style="animation-delay: 0.2s;">
+            The Holmes National Grid is a military-grade, FHIR-compliant cryptographic network designed to eliminate prescription fraud, prevent fatal medical interactions, and return data sovereignty to the citizens of Bangladesh.
+        </p>
+
+        <div class="flex flex-col sm:flex-row gap-4 fade-in-up" style="animation-delay: 0.3s;">
+            <a href="auth.html" class="bg-teal-500 hover:bg-teal-400 text-slate-950 px-10 py-4 rounded-full font-black text-sm uppercase tracking-widest transition-all duration-300 shadow-[0_0_20px_rgba(0,240,255,0.3)] hover:shadow-[0_0_30px_rgba(0,240,255,0.6)] hover:-translate-y-1 flex items-center justify-center gap-3">
+                <i class="fa-solid fa-fingerprint text-lg"></i> Authenticate Identity
+            </a>
+            <a href="#architecture" class="glass-panel hover:bg-slate-800/50 text-white px-10 py-4 rounded-full font-black text-sm uppercase tracking-widest transition-all duration-300 hover:-translate-y-1 flex items-center justify-center gap-3">
+                <i class="fa-solid fa-microchip"></i> View Architecture
+            </a>
+        </div>
+    </main>
+
+    <section id="architecture" class="w-full max-w-7xl mx-auto px-6 py-24 z-10 relative">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl font-black text-white tracking-tighter">Core Infrastructure</h2>
+            <div class="w-24 h-1 bg-teal-500 mx-auto mt-4 shadow-[0_0_10px_rgba(0,240,255,0.5)]"></div>
         </div>
 
-        <div class="p-8 lg:p-10">
-            <div id="loginForm" class="space-y-6 block fade-in-up" style="animation-delay: 0.1s;">
-                <div>
-                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-2 block">Grid Identity (Email)</label>
-                    <div class="flex items-center bg-slate-50 rounded-2xl border border-slate-200 px-4 py-3 input-focus-ring transition-all">
-                        <i class="fa-solid fa-envelope text-slate-400 mr-3"></i>
-                        <input type="email" id="loginEmail" class="w-full bg-transparent outline-none text-sm font-bold text-slate-800" placeholder="citizen@grid.com">
-                    </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="glass-panel p-8 rounded-[32px] hover:border-teal-500/50 transition-colors group">
+                <div class="w-14 h-14 bg-teal-500/10 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-teal-500/20 transition-colors border border-teal-500/20">
+                    <i class="fa-solid fa-shield-virus text-teal-400 text-2xl group-hover:scale-110 transition-transform"></i>
                 </div>
-                <div>
-                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-2 block">Security Passphrase</label>
-                    <div class="flex items-center bg-slate-50 rounded-2xl border border-slate-200 px-4 py-3 input-focus-ring transition-all">
-                        <i class="fa-solid fa-lock text-slate-400 mr-3"></i>
-                        <input type="password" id="loginPassword" class="w-full bg-transparent outline-none text-sm font-bold text-slate-800" placeholder="••••••••">
-                    </div>
-                </div>
-                <button onclick="login()" id="loginBtn" class="w-full bg-slate-900 hover:bg-teal-600 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-slate-900/20 hover:-translate-y-1 transition-all mt-4 flex items-center justify-center gap-3">
-                    <i class="fa-solid fa-right-to-bracket"></i> Authenticate
-                </button>
+                <h3 class="text-xl font-black text-white mb-3">Contraindication Engine</h3>
+                <p class="text-xs text-slate-400 leading-relaxed font-bold">Algorithms cross-reference FHIR allergy profiles in 30ms, instantly blocking practitioners from prescribing fatal drug interactions.</p>
             </div>
 
-            <div id="registerForm" class="space-y-5 hidden fade-in-up">
-                <div>
-                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-2 block">Legal Full Name</label>
-                    <input type="text" id="regName" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-teal-500 transition-colors" placeholder="John Doe">
+            <div class="glass-panel p-8 rounded-[32px] hover:border-indigo-500/50 transition-colors group">
+                <div class="w-14 h-14 bg-indigo-500/10 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-indigo-500/20 transition-colors border border-indigo-500/20">
+                    <i class="fa-solid fa-link-slash text-indigo-400 text-2xl group-hover:scale-110 transition-transform"></i>
                 </div>
-                <div>
-                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-2 block">Access Role</label>
-                    <select id="regRole" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-teal-500 transition-colors cursor-pointer appearance-none">
-                        <option value="patient">Citizen (Patient)</option>
-                        <option value="doctor">Practitioner (Doctor)</option>
-                        <option value="pharmacist">Authority (Pharmacist)</option>
-                    </select>
+                <h3 class="text-xl font-black text-white mb-3">Cryptographic Custody</h3>
+                <p class="text-xs text-slate-400 leading-relaxed font-bold">Every payload is sealed with a SHA-256 hash. Pharmacies decrypt the payload via OTP, permanently severing the chain of custody.</p>
+            </div>
+
+            <div class="glass-panel p-8 rounded-[32px] hover:border-amber-500/50 transition-colors group">
+                <div class="w-14 h-14 bg-amber-500/10 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-amber-500/20 transition-colors border border-amber-500/20">
+                    <i class="fa-solid fa-gavel text-amber-400 text-2xl group-hover:scale-110 transition-transform"></i>
                 </div>
-                <div>
-                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-2 block">Email Address</label>
-                    <input type="email" id="regEmail" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-teal-500 transition-colors" placeholder="name@domain.com">
-                </div>
-                <div>
-                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2 mb-2 block">Secure Passphrase</label>
-                    <input type="password" id="regPassword" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-teal-500 transition-colors" placeholder="••••••••">
-                </div>
-                <button onclick="register()" id="registerBtn" class="w-full bg-slate-900 hover:bg-indigo-600 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl hover:-translate-y-1 transition-all mt-4 flex items-center justify-center gap-3">
-                    <i class="fa-solid fa-fingerprint"></i> Initialize Identity
-                </button>
+                <h3 class="text-xl font-black text-white mb-3">Ministry God-Mode</h3>
+                <p class="text-xs text-slate-400 leading-relaxed font-bold">The Directorate General of Health Services strictly governs access, verifying BMDC licenses before granting prescribing authority.</p>
             </div>
         </div>
-    </div>
+    </section>
 
-    <div id="toast-container" class="fixed bottom-6 right-6 z-[150] flex flex-col gap-3 pointer-events-none w-full max-w-[320px] px-4 lg:px-0"></div>
+    <footer class="w-full py-8 border-t border-slate-800 text-center z-10 bg-slate-950/80 backdrop-blur-md">
+        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest"><i class="fa-solid fa-code-branch mr-1"></i> Engineered by H.O.L.M.E.S. Research Group</p>
+    </footer>
 
-    <script>
-        const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
-
-        // Check if already logged in
-        if (sessionStorage.getItem('eRx_Token')) {
-            const role = parseJwt(sessionStorage.getItem('eRx_Token')).role;
-            routeUser(role);
-        }
-
-        function parseJwt(t) { try { return JSON.parse(atob(t.split('.')[1])); } catch(e) { return {}; } }
-
-        // 🎨 TOAST ENGINE
-        function showToast(message, type = 'error') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            const colors = type === 'error' ? 'bg-white border-rose-500' : 'bg-white border-emerald-500';
-            const iconColor = type === 'error' ? 'text-rose-500 bg-rose-50' : 'text-emerald-500 bg-emerald-50';
-            const icon = type === 'error' ? 'fa-triangle-exclamation' : 'fa-check';
-            
-            toast.className = `flex items-center p-4 rounded-2xl shadow-xl border-l-4 transform transition-all duration-500 translate-y-10 opacity-0 ${colors}`;
-            toast.innerHTML = `<div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${iconColor}"><i class="fa-solid ${icon}"></i></div><div class="ml-3"><p class="text-xs font-black text-slate-800 uppercase tracking-widest leading-tight">${type === 'error' ? 'System Alert' : 'Success'}</p><p class="text-xs font-bold text-slate-500 mt-0.5">${message}</p></div>`;
-            container.appendChild(toast);
-            requestAnimationFrame(() => { toast.classList.remove('translate-y-10', 'opacity-0'); });
-            setTimeout(() => { toast.classList.add('translate-y-10', 'opacity-0'); setTimeout(() => toast.remove(), 500); }, 4000);
-        }
-
-        function switchTab(tab) {
-            document.getElementById('loginForm').classList.add('hidden');
-            document.getElementById('registerForm').classList.add('hidden');
-            document.getElementById('tabLogin').className = "flex-1 pb-4 text-xs font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 border-b-2 border-transparent transition-colors";
-            document.getElementById('tabRegister').className = "flex-1 pb-4 text-xs font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 border-b-2 border-transparent transition-colors";
-
-            if (tab === 'login') {
-                document.getElementById('loginForm').classList.remove('hidden');
-                document.getElementById('tabLogin').className = "flex-1 pb-4 text-xs font-black uppercase tracking-widest text-teal-600 border-b-2 border-teal-500 transition-colors";
-            } else {
-                document.getElementById('registerForm').classList.remove('hidden');
-                document.getElementById('tabRegister').className = "flex-1 pb-4 text-xs font-black uppercase tracking-widest text-indigo-600 border-b-2 border-indigo-500 transition-colors";
-            }
-        }
-
-        // 🚦 THE MASTER ROUTER LOGIC
-        function routeUser(role) {
-            if (role === 'doctor') {
-                window.location.href = 'dashboard.html';
-            } else if (role === 'pharmacist') {
-                window.location.href = 'pharmacist_portal.html';
-            } else {
-                window.location.href = 'patient_portal.html'; 
-            }
-        }
-
-        // 🔐 LOGIN ENGINE
-        async function login() {
-            const email = document.getElementById('loginEmail').value.trim();
-            const password = document.getElementById('loginPassword').value.trim();
-            if (!email || !password) return showToast("Credentials are required.");
-
-            const btn = document.getElementById('loginBtn');
-            const ogHtml = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Authenticating...'; btn.disabled = true;
-
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
-                });
-                const data = await res.json();
-                
-                if (res.ok) {
-                    sessionStorage.setItem('eRx_Token', data.token);
-                    sessionStorage.setItem('eRx_UserName', data.user.name);
-                    showToast("Access Granted.", "success");
-                    setTimeout(() => routeUser(data.user.role), 500); // Trigger Router
-                } else { showToast(data.msg, "error"); }
-            } catch (err) { showToast("Grid Terminal Offline.", "error"); } finally { btn.innerHTML = ogHtml; btn.disabled = false; }
-        }
-
-        // 📝 REGISTER ENGINE
-        async function register() {
-            const name = document.getElementById('regName').value.trim();
-            const role = document.getElementById('regRole').value;
-            const email = document.getElementById('regEmail').value.trim();
-            const password = document.getElementById('regPassword').value.trim();
-            if (!name || !email || !password) return showToast("All fields are strictly required.");
-
-            const btn = document.getElementById('registerBtn');
-            const ogHtml = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Initializing...'; btn.disabled = true;
-
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, email, password, role })
-                });
-                const data = await res.json();
-                if (res.ok) {
-                    showToast("Identity Successfully Initialized. Proceed to Login.", "success");
-                    setTimeout(() => switchTab('login'), 1500);
-                } else { showToast(data.msg, "error"); }
-            } catch (err) { showToast("Grid Initialization Failure.", "error"); } finally { btn.innerHTML = ogHtml; btn.disabled = false; }
-        }
-    </script>
 </body>
 </html>
