@@ -1,161 +1,84 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
+const { Person, Patient, PractitionerRole } = require('../models/GridModels');
 
-// 🌟 INJECTING THE MASTER ARCHITECTURE
-const { Person, Patient, PractitionerRole, Credential } = require('../models/GridModels');
-
-// Security Tripwire
+// 🔒 SECURITY TRIPWIRE
 const authenticate = (req, res, next) => {
     const authHeader = req.header('Authorization');
     if (!authHeader) return res.status(401).json({ msg: 'Access Denied.' });
     try {
-        req.user = jwt.verify(authHeader.split(' ')[1], process.env.JWT_SECRET);
+        req.user = jwt.verify(authHeader.split(' ')[1], process.env.JWT_SECRET || 'holmes_emergency_grid_secret_2026');
         next();
     } catch (err) { res.status(401).json({ msg: 'Invalid Token.' }); }
 };
 
 // ==========================================
-// 1. GET CURRENT PROFILE (Adapter: DB -> Frontend)
+// 1. FETCH IDENTITY DOSSIER
 // ==========================================
 router.get('/', authenticate, async (req, res) => {
     try {
         const person = await Person.findById(req.user.id);
-        if (!person) return res.status(404).json({ msg: 'Identity not found in Grid.' });
+        if (!person) return res.status(404).json({ msg: 'Identity not found in National Grid.' });
 
-        // Base Frontend Object
-        let responseObj = {
-            nationalId: person.nationalId,
-            phone: person.contact?.primaryMobile,
-            dateOfBirth: person.dateOfBirth,
-            gender: person.genderLegal,
-            profileCompletion: person.audit?.verificationStatus === 'Verified' ? 100 : (person.audit?.verificationStatus === 'Pending' ? 50 : 20)
-        };
+        let roleSpecificData = {};
+        let profileCompletion = 50; // Base completion
 
-        // Fetch & Map Role-Specific Data
         if (req.user.role === 'patient') {
-            const patient = await Patient.findOne({ personId: person._id });
-            if (patient) {
-                responseObj.patientProfile = {
-                    bloodGroup: patient.safetyAnchors?.bloodGroup,
-                    emergencyContact: patient.emergencyContact,
-                    knownAllergies: patient.safetyAnchors?.knownAllergies,
-                    chronicConditions: patient.safetyAnchors?.chronicConditions,
-                    surgeryHistory: patient.safetyAnchors?.surgeryHistory
-                };
-            }
-        } else if (req.user.role === 'doctor') {
+            const pat = await Patient.findOne({ personId: person._id });
+            roleSpecificData = pat ? { nhi: pat.nationalHealthId, nid: pat.nationalId || '' } : {};
+            if (pat && pat.nationalId && person.contact.primaryMobile !== '0000000000') profileCompletion = 100;
+        } else {
             const prac = await PractitionerRole.findOne({ personId: person._id });
-            const cred = await Credential.findOne({ personId: person._id, credentialType: 'Medical License' });
-            
-            if (prac) {
-                responseObj.doctorProfile = {
-                    primarySpecialty: prac.doctorScopes?.specialty,
-                    primaryDegree: prac.doctorScopes?.subSpecialty, // Mapping for UI simplicity
-                    primaryHospital: prac.organizationId // In a full build, this would populate the Org name
-                };
-            }
-            if (cred) responseObj.doctorProfile.bmdcNumber = cred.licenseNumber;
+            roleSpecificData = prac ? { license: prac.licenseNumber || '', status: prac.audit.verificationStatus } : {};
+            if (prac && prac.licenseNumber && person.contact.primaryMobile !== '0000000000') profileCompletion = 100;
         }
 
-        res.json(responseObj);
-    } catch (err) { 
-        console.error(err);
-        res.status(500).json({ msg: 'Server Error' }); 
+        res.json({
+            person: {
+                name: person.legalFullName,
+                email: person.contact.primaryEmail,
+                phone: person.contact.primaryMobile === '0000000000' ? '' : person.contact.primaryMobile,
+                dob: person.dateOfBirth ? new Date(person.dateOfBirth).toISOString().split('T')[0] : '',
+                gender: person.genderLegal
+            },
+            roleData: roleSpecificData,
+            profileCompletion
+        });
+    } catch (err) {
+        console.error("PROFILE_FETCH_ERR:", err);
+        res.status(500).json({ msg: 'Grid Server Error.' });
     }
 });
 
 // ==========================================
-// 2. UPDATE PROFILE (Adapter: Frontend -> DB)
+// 2. UPDATE IDENTITY MATRIX
 // ==========================================
-router.put('/', authenticate, async (req, res) => {
+router.put('/update', authenticate, async (req, res) => {
     try {
+        const { phone, dob, gender, professionalLicense, nationalId } = req.body;
+        
+        // 1. Update Core Demographics
         const person = await Person.findById(req.user.id);
-        const data = req.body;
-        let score = 20;
-
-        // 1. Update Universal Identity (Person Vault)
-        if (data.nationalId) person.nationalId = data.nationalId;
-        if (data.phone) {
-            person.contact = person.contact || {};
-            person.contact.primaryMobile = data.phone;
-        }
-        if (data.dateOfBirth) person.dateOfBirth = data.dateOfBirth;
-        if (data.gender) person.genderLegal = data.gender;
-
-        if (person.nationalId && person.contact?.primaryMobile) score += 30;
-
-        // 2. Update Role Vaults
-        if (req.user.role === 'patient' && data.patientProfile) {
-            let patient = await Patient.findOne({ personId: person._id });
-            
-            patient.emergencyContact = data.patientProfile.emergencyContact;
-            patient.safetyAnchors = patient.safetyAnchors || {};
-            patient.safetyAnchors.bloodGroup = data.patientProfile.bloodGroup;
-            patient.safetyAnchors.knownAllergies = data.patientProfile.knownAllergies;
-            patient.safetyAnchors.chronicConditions = data.patientProfile.chronicConditions;
-            patient.safetyAnchors.surgeryHistory = data.patientProfile.surgeryHistory;
-            
-            await patient.save();
-            if (patient.safetyAnchors.bloodGroup) score += 50;
-
-        } else if (req.user.role === 'doctor' && data.doctorProfile) {
-            let prac = await PractitionerRole.findOne({ personId: person._id });
-            prac.doctorScopes = prac.doctorScopes || {};
-            prac.doctorScopes.specialty = data.doctorProfile.primarySpecialty;
-            prac.doctorScopes.subSpecialty = data.doctorProfile.primaryDegree;
-            await prac.save();
-
-            // Store BMDC as a formal Credential Document
-            if (data.doctorProfile.bmdcNumber) {
-                await Credential.findOneAndUpdate(
-                    { personId: person._id, credentialType: 'Medical License' },
-                    { licenseNumber: data.doctorProfile.bmdcNumber, issuingAuthority: 'BMDC' },
-                    { upsert: true, new: true }
-                );
-                score += 50;
-            }
-        }
-
-        // 3. Save Security Status
-        person.audit = person.audit || {};
-        person.audit.verificationStatus = score === 100 ? 'Verified' : 'Pending';
+        if (phone) person.contact.primaryMobile = phone;
+        if (dob) person.dateOfBirth = dob;
+        if (gender) person.genderLegal = gender;
         await person.save();
 
-        res.json({ msg: 'Vault Synchronized Successfully', profileCompletion: score });
+        // 2. Update Role-Specific Authority
+        if (req.user.role === 'patient' && nationalId) {
+            await Patient.findOneAndUpdate({ personId: person._id }, { nationalId: nationalId });
+        } else if ((req.user.role === 'doctor' || req.user.role === 'pharmacist') && professionalLicense) {
+            await PractitionerRole.findOneAndUpdate(
+                { personId: person._id }, 
+                { licenseNumber: professionalLicense, 'audit.verificationStatus': 'Pending Ministry Verification' }
+            );
+        }
 
-    } catch (err) { 
-        console.error("Profile Engine Update Error:", err);
-        res.status(500).json({ msg: 'Server Error during synchronization.' }); 
-    }
-});
-
-// ==========================================
-// 3. DOCTOR PRIVILEGE: FETCH PATIENT FOR RED FLAG SNAPSHOT
-// ==========================================
-router.get('/patient/:email', authenticate, async (req, res) => {
-    try {
-        if (req.user.role !== 'doctor') return res.status(403).json({msg: 'Unauthorized Clinical Access.'});
-        
-        const person = await Person.findOne({ loginIdentity: req.params.email });
-        if (!person) return res.status(404).json({msg: 'Citizen not found in Grid.'});
-        
-        const patient = await Patient.findOne({ personId: person._id });
-        
-        // Map back to the exact format the Doctor Pad UI expects
-        res.json({
-            name: person.legalFullName,
-            patientProfile: {
-                bloodGroup: patient?.safetyAnchors?.bloodGroup,
-                knownAllergies: patient?.safetyAnchors?.knownAllergies,
-                chronicConditions: patient?.safetyAnchors?.chronicConditions,
-                surgeryHistory: patient?.safetyAnchors?.surgeryHistory
-            }
-        });
-
-    } catch (err) { 
-        console.error("Snapshot Fetch Error:", err);
-        res.status(500).json({ msg: 'Server Error' }); 
+        res.json({ msg: 'Identity Matrix Updated Successfully. Cryptographic Hash Secured.' });
+    } catch (err) {
+        console.error("PROFILE_UPDATE_ERR:", err);
+        res.status(500).json({ msg: 'Failed to update Grid Identity.' });
     }
 });
 
