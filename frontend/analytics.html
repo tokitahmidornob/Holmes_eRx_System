@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>National Analytics | Holmes Grid</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #334155; border-radius: 20px; }
+        .glass-panel { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(16px); border: 1px solid rgba(51, 65, 85, 0.8); }
+        .fade-in-up { animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="antialiased text-slate-300 bg-slate-950 flex h-screen overflow-hidden selection:bg-teal-500/30">
+
+    <main class="flex-1 flex flex-col h-screen overflow-y-auto relative w-full custom-scrollbar">
+        
+        <div class="absolute top-0 left-1/4 w-96 h-96 bg-teal-500/10 rounded-full blur-[120px] pointer-events-none -z-10"></div>
+        <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none -z-10"></div>
+
+        <header class="h-20 lg:h-24 glass-panel border-b border-slate-800 flex items-center justify-between px-6 lg:px-10 shrink-0 sticky top-0 z-40">
+            <div class="flex items-center gap-4">
+                <button onclick="goBack()" class="w-10 h-10 rounded-full bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center transition-all shadow-inner border border-slate-700"><i class="fa-solid fa-arrow-left"></i></button>
+                <div>
+                    <h2 class="text-xl lg:text-2xl font-black tracking-tighter text-white">National Telemetry</h2>
+                    <p class="text-[9px] lg:text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1 flex items-center"><i class="fa-solid fa-satellite-dish text-teal-400 mr-1.5 animate-pulse"></i> Live Grid Data</p>
+                </div>
+            </div>
+            <button onclick="fetchAnalytics()" class="text-[10px] font-black uppercase tracking-widest bg-slate-800 border border-slate-700 px-4 py-2 rounded-full hover:bg-slate-700 transition-all text-slate-300"><i class="fa-solid fa-rotate-right mr-1"></i> Refresh Node</button>
+        </header>
+
+        <div class="p-4 lg:p-10 max-w-7xl mx-auto w-full space-y-6 pb-20">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 fade-in-up">
+                <div class="glass-panel p-6 rounded-[24px] shadow-lg relative overflow-hidden group">
+                    <div class="absolute -right-4 -top-4 text-slate-800 text-7xl opacity-50 group-hover:scale-110 transition-transform"><i class="fa-solid fa-file-prescription"></i></div>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Grid Payloads</p>
+                    <h3 id="statTotalRx" class="text-4xl font-black text-white tracking-tighter">0</h3>
+                </div>
+                
+                <div class="glass-panel p-6 rounded-[24px] shadow-lg relative overflow-hidden group border-b-4 border-b-emerald-500">
+                    <div class="absolute -right-4 -top-4 text-emerald-900 text-7xl opacity-30 group-hover:scale-110 transition-transform"><i class="fa-solid fa-check-double"></i></div>
+                    <p class="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-1">Successfully Dispensed</p>
+                    <h3 id="statDispensed" class="text-4xl font-black text-white tracking-tighter">0</h3>
+                </div>
+
+                <div class="glass-panel p-6 rounded-[24px] shadow-lg relative overflow-hidden group">
+                    <div class="absolute -right-4 -top-4 text-slate-800 text-7xl opacity-50 group-hover:scale-110 transition-transform"><i class="fa-solid fa-user-injured"></i></div>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Registered Citizens</p>
+                    <h3 id="statPatients" class="text-4xl font-black text-white tracking-tighter">0</h3>
+                </div>
+
+                <div class="glass-panel p-6 rounded-[24px] shadow-lg relative overflow-hidden group">
+                    <div class="absolute -right-4 -top-4 text-slate-800 text-7xl opacity-50 group-hover:scale-110 transition-transform"><i class="fa-solid fa-user-doctor"></i></div>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Authorized Doctors</p>
+                    <h3 id="statDoctors" class="text-4xl font-black text-white tracking-tighter">0</h3>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 fade-in-up" style="animation-delay: 0.1s;">
+                
+                <div class="glass-panel p-6 rounded-[32px] shadow-lg lg:col-span-1 flex flex-col items-center">
+                    <h3 class="text-xs font-black text-white uppercase tracking-widest mb-6 self-start"><i class="fa-solid fa-chart-pie mr-2 text-indigo-400"></i> Payload Status</h3>
+                    <div class="w-full max-w-[250px] aspect-square relative">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-6 rounded-[32px] shadow-lg lg:col-span-2">
+                    <h3 class="text-xs font-black text-white uppercase tracking-widest mb-6"><i class="fa-solid fa-chart-simple mr-2 text-teal-400"></i> Top 5 Prescribed Therapies</h3>
+                    <div class="w-full h-[250px] relative">
+                        <canvas id="medsChart"></canvas>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
+        const token = sessionStorage.getItem('eRx_Token');
+        if (!token) window.location.href = 'index.html';
+
+        let statusChartInstance = null;
+        let medsChartInstance = null;
+
+        // Ensure Chart.js uses our dark theme text colors globally
+        Chart.defaults.color = '#94a3b8';
+        Chart.defaults.font.family = 'Inter, sans-serif';
+
+        async function fetchAnalytics() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/analytics/national-stats`, { 
+                    headers: { 'Authorization': `Bearer ${token}` } 
+                });
+                
+                if (res.ok) {
+                    const data = await res.json();
+                    
+                    // 1. Update KPI Numbers
+                    animateValue("statTotalRx", data.prescriptions.total);
+                    animateValue("statDispensed", data.prescriptions.dispensed);
+                    animateValue("statPatients", data.demographics.patients);
+                    animateValue("statDoctors", data.demographics.doctors);
+
+                    // 2. Render Status Doughnut Chart
+                    renderStatusChart(data.prescriptions.active, data.prescriptions.dispensed);
+
+                    // 3. Render Top Meds Bar Chart
+                    renderMedsChart(data.topMedications);
+                }
+            } catch (err) { console.error("Failed to load analytics"); }
+        }
+
+        function renderStatusChart(active, dispensed) {
+            const ctx = document.getElementById('statusChart').getContext('2d');
+            if (statusChartInstance) statusChartInstance.destroy();
+
+            statusChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Active (Pending)', 'Dispensed'],
+                    datasets: [{
+                        data: [active, dispensed],
+                        backgroundColor: ['#f59e0b', '#10b981'], // Amber and Emerald
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '75%',
+                    plugins: { legend: { position: 'bottom', labels: { padding: 20, usePointStyle: true } } }
+                }
+            });
+        }
+
+        function renderMedsChart(topMedsData) {
+            const ctx = document.getElementById('medsChart').getContext('2d');
+            if (medsChartInstance) medsChartInstance.destroy();
+
+            const labels = topMedsData.map(m => m._id);
+            const counts = topMedsData.map(m => m.count);
+
+            medsChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Total Prescriptions',
+                        data: counts,
+                        backgroundColor: '#14b8a6', // Teal 500
+                        borderRadius: 8,
+                        barThickness: 30
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(51, 65, 85, 0.5)' }, ticks: { stepSize: 1 } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // Cool number counting animation
+        function animateValue(id, end) {
+            const obj = document.getElementById(id);
+            let start = 0;
+            const duration = 1000;
+            const stepTime = Math.abs(Math.floor(duration / (end || 1)));
+            
+            const timer = setInterval(() => {
+                start += 1;
+                obj.innerText = start;
+                if (start >= end) {
+                    clearInterval(timer);
+                    obj.innerText = end;
+                }
+            }, stepTime);
+            if(end === 0) obj.innerText = 0;
+        }
+
+        function goBack() {
+            const role = JSON.parse(atob(token.split('.')[1])).role;
+            if (role === 'doctor') window.location.href = 'dashboard.html';
+            else if (role === 'pharmacist') window.location.href = 'pharmacist_portal.html';
+            else if (role === 'admin') window.location.href = 'admin_portal.html';
+            else window.location.href = 'patient_portal.html';
+        }
+
+        // Boot
+        fetchAnalytics();
+    </script>
+</body>
+</html>

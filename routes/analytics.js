@@ -1,40 +1,50 @@
 const express = require('express');
 const router = express.Router();
-const Prescription = require('../models/Prescription');
-const User = require('../models/User');
-const Medicine = require('../models/Medicine');
+const jwt = require('jsonwebtoken');
+const { Prescription, Person, Patient, PractitionerRole } = require('../models/GridModels');
 
-router.get('/stats', async (req, res) => {
+// 🔒 SECURITY TRIPWIRE
+const authenticate = (req, res, next) => {
+    const authHeader = req.header('Authorization');
+    if (!authHeader) return res.status(401).json({ msg: 'Access Denied.' });
     try {
-        const totalPrescriptions = await Prescription.countDocuments();
-        const totalMedicines = await Medicine.countDocuments();
-        
-        // Count users by role
-        const doctors = await User.countDocuments({ role: 'doctor' });
-        const patients = await User.countDocuments({ role: 'patient' });
-        const pharmacists = await User.countDocuments({ role: 'pharmacist' });
+        req.user = jwt.verify(authHeader.split(' ')[1], process.env.JWT_SECRET || 'holmes_emergency_grid_secret_2026');
+        next();
+    } catch (err) { res.status(401).json({ msg: 'Invalid Token.' }); }
+};
 
-        // Get the last 5 activities
-        const recentActivity = await Prescription.find()
-            .sort({ createdAt: -1 })
-            .limit(5);
+// ==========================================
+// 📊 FETCH NATIONAL GRID STATISTICS
+// ==========================================
+router.get('/national-stats', authenticate, async (req, res) => {
+    try {
+        // 1. Prescription Volume
+        const totalRx = await Prescription.countDocuments();
+        const dispensedRx = await Prescription.countDocuments({ status: 'Dispensed' });
+        const activeRx = totalRx - dispensedRx;
+
+        // 2. Grid Demographics
+        const totalPatients = await Patient.countDocuments();
+        const totalDoctors = await PractitionerRole.countDocuments({ roleType: 'Doctor' });
+        const totalPharmacies = await PractitionerRole.countDocuments({ roleType: 'Pharmacist' });
+
+        // 3. The Aggregation Pipeline (Find Top 5 Most Prescribed Drugs)
+        const topMeds = await Prescription.aggregate([
+            { $unwind: "$medications" }, // Split arrays into individual drug records
+            { $group: { _id: "$medications.brandName", count: { $sum: 1 } } }, // Count them
+            { $sort: { count: -1 } }, // Sort highest to lowest
+            { $limit: 5 } // Keep only the top 5
+        ]);
 
         res.json({
-            success: true,
-            stats: {
-                prescriptions: totalPrescriptions,
-                medicines: totalMedicines,
-                users: {
-                    total: doctors + patients + pharmacists,
-                    doctors,
-                    patients,
-                    pharmacists
-                }
-            },
-            recentActivity
+            prescriptions: { total: totalRx, active: activeRx, dispensed: dispensedRx },
+            demographics: { patients: totalPatients, doctors: totalDoctors, pharmacies: totalPharmacies },
+            topMedications: topMeds
         });
+
     } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
+        console.error("ANALYTICS_ERR:", err);
+        res.status(500).json({ msg: 'Analytics Engine Failure.' });
     }
 });
 
