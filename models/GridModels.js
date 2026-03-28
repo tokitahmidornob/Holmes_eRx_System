@@ -152,9 +152,22 @@ PrescriptionSchema.index({ practitionerRoleId: 1, createdAt: -1 });
 AllergyProfileSchema.index({ patientId: 1 });
 MedicationProfileSchema.index({ patientId: 1 });
 
+// Add this right above module.exports
+const MedicineSchema = new mongoose.Schema({
+    brandName: { type: String, required: true },
+    genericName: { type: String },
+    strength: { type: String },
+    form: { type: String }
+}, { collection: 'medicines' }); // This looks for your old "medicines" collection
+
+const Medicine = mongoose.model('Medicine', MedicineSchema);
+
 
 // ==========================================
 // 🏁 MASTER EXPORTS
+// ==========================================
+// ==========================================
+// 🚀 MASTER EXPORTS
 // ==========================================
 module.exports = {
     Person: mongoose.model('Person', PersonSchema),
@@ -168,5 +181,6 @@ module.exports = {
     MedicationProfile: mongoose.model('MedicationProfile', MedicationProfileSchema),
     LabProfile: mongoose.model('LabProfile', LabProfileSchema),
     Consent: mongoose.model('Consent', ConsentSchema),
-    AuditEvent: mongoose.model('AuditEvent', AuditEventSchema)
+    AuditEvent: mongoose.model('AuditEvent', AuditEventSchema),
+    Medicine
 };
