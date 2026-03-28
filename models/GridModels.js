@@ -1,59 +1,69 @@
 const mongoose = require('mongoose');
 
 // ==========================================
-// 0. UNIVERSAL AUDIT METADATA
-// ==========================================
-const AuditMetadata = {
-    createdBy: { type: String },
-    createdAt: { type: Date, default: Date.now },
-    lastModifiedBy: { type: String },
-    lastModifiedAt: { type: Date, default: Date.now },
-    verificationStatus: { type: String, default: 'Pending' }
-};
-
-// ==========================================
-// 1. CORE IDENTITY (Person)
+// 1. CORE IDENTITY (Upgraded with Grid ID)
 // ==========================================
 const PersonSchema = new mongoose.Schema({
-    loginIdentity: { type: String, required: true, unique: true }, // Auto-indexed
+    gridId: { type: String, unique: true, sparse: true }, // 🚨 The new Auto-ID System
+    loginIdentity: { type: String, required: true, unique: true },
     passwordHash: { type: String, required: true },
     legalFullName: { type: String, required: true },
-    genderLegal: { type: String },
-    dateOfBirth: { type: Date },
     contact: {
-        primaryMobile: { type: String, default: '0000000000' },
-        primaryEmail: { type: String }
+        primaryEmail: { type: String },
+        primaryMobile: { type: String, default: '0000000000' }
     },
-    audit: AuditMetadata
-});
+    dateOfBirth: { type: Date },
+    genderLegal: { type: String, enum: ['Male', 'Female', 'Other'] }
+}, { timestamps: true });
 
 // ==========================================
-// 2. CLINICAL ACTORS (Patient & Practitioner)
+// 2. PATIENT (CITIZEN) PROFILE
 // ==========================================
 const PatientSchema = new mongoose.Schema({
     personId: { type: mongoose.Schema.Types.ObjectId, ref: 'Person', required: true },
-    nationalHealthId: { type: String, unique: true }, // Auto-indexed
-    nationalId: { type: String, unique: true, sparse: true }, // Auto-indexed
-    bloodGroup: { type: String },
-    audit: AuditMetadata
-});
-
-const PractitionerRoleSchema = new mongoose.Schema({
-    personId: { type: mongoose.Schema.Types.ObjectId, ref: 'Person', required: true },
-    roleType: { type: String, enum: ['Doctor', 'Pharmacist', 'Nurse', 'Admin', 'Pathologist'], required: true },
-    licenseNumber: { type: String, unique: true, sparse: true }, 
-    specialty: [{ type: String }],
-    audit: AuditMetadata
-});
+    nationalHealthId: { type: String, unique: true, sparse: true },
+    nationalId: { type: String, unique: true, sparse: true },
+    bloodGroup: { type: String }
+}, { timestamps: true });
 
 // ==========================================
-// 3. THE CRYPTOGRAPHIC PAYLOAD (Prescription)
+// 3. PRACTITIONER (AUTHORITY) PROFILE
+// ==========================================
+const PractitionerRoleSchema = new mongoose.Schema({
+    personId: { type: mongoose.Schema.Types.ObjectId, ref: 'Person', required: true },
+    roleType: { type: String, enum: ['Doctor', 'Pharmacist', 'Pathologist', 'Admin'], required: true },
+    licenseNumber: { type: String },
+    specialty: [{ type: String }]
+}, { timestamps: true });
+
+// ==========================================
+// 4. CLINICAL DOSSIER: ALLERGIES
+// ==========================================
+const AllergyProfileSchema = new mongoose.Schema({
+    patientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient', required: true },
+    substance: { type: String, required: true },
+    criticality: { type: String, enum: ['Low', 'Moderate', 'High', 'Unknown'], default: 'Unknown' },
+    verificationStatus: { type: String, default: 'Unconfirmed' }
+}, { timestamps: true });
+
+// ==========================================
+// 5. THE FORMULARY (LIVE MEDICINE DATABASE)
+// ==========================================
+const MedicineSchema = new mongoose.Schema({
+    brandName: { type: String, required: true },
+    genericName: { type: String },
+    strength: { type: String },
+    form: { type: String }
+}, { collection: 'medicines' }); // 🚨 Connects to your existing MongoDB collection
+
+const Medicine = mongoose.model('Medicine', MedicineSchema);
+
+// ==========================================
+// 6. CRYPTOGRAPHIC PRESCRIPTION PAYLOAD
 // ==========================================
 const PrescriptionSchema = new mongoose.Schema({
     patientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient', required: true },
-    practitionerRoleId: { type: mongoose.Schema.Types.ObjectId, ref: 'PractitionerRole', required: true },
-    broadcastId: { type: String, required: true, unique: true }, // Auto-indexed
-    otp: { type: String, required: true },
+    practitionerId: { type: mongoose.Schema.Types.ObjectId, ref: 'PractitionerRole' },
     medications: [{
         brandName: String,
         dosage: String,
@@ -61,111 +71,22 @@ const PrescriptionSchema = new mongoose.Schema({
         duration: String
     }],
     investigations: [{ type: String }],
-    status: { type: String, enum: ['Active', 'Dispensed', 'Revoked'], default: 'Active' },
-    createdAt: { type: Date, default: Date.now }
-});
+    broadcastId: { type: String, unique: true },
+    otp: { type: String },
+    status: { type: String, enum: ['Active', 'Dispensed', 'Revoked'], default: 'Active' }
+}, { timestamps: true });
 
 // ==========================================
-// 4. CLINICAL DOSSIER (Allergies & Meds)
+// 7. STRUCTURAL PLACEHOLDER SCHEMAS
 // ==========================================
-const AllergyProfileSchema = new mongoose.Schema({
-    patientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient', required: true },
-    substance: { type: String, required: true },
-    criticality: { type: String, enum: ['Low', 'High', 'Unknown'], default: 'Unknown' },
-    verificationStatus: { type: String, enum: ['Unconfirmed', 'Confirmed', 'Refuted'], default: 'Unconfirmed' },
-    audit: AuditMetadata
-});
+const OrganizationSchema = new mongoose.Schema({ name: String });
+const LocationSchema = new mongoose.Schema({ name: String });
+const CredentialSchema = new mongoose.Schema({ title: String });
+const MedicationProfileSchema = new mongoose.Schema({ patientId: String });
+const LabProfileSchema = new mongoose.Schema({ patientId: String });
+const ConsentSchema = new mongoose.Schema({ patientId: String });
+const AuditEventSchema = new mongoose.Schema({ action: String });
 
-const MedicationProfileSchema = new mongoose.Schema({
-    patientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient', required: true },
-    brandName: { type: String, required: true },
-    status: { type: String, enum: ['Active', 'Completed', 'Stopped'], default: 'Active' },
-    audit: AuditMetadata
-});
-
-// ==========================================
-// 5. INFRASTRUCTURE & LABS
-// ==========================================
-const OrganizationSchema = new mongoose.Schema({
-    name: { type: String, required: true },
-    type: { type: String },
-    audit: AuditMetadata
-});
-
-const LocationSchema = new mongoose.Schema({
-    name: { type: String, required: true },
-    address: { type: String },
-    audit: AuditMetadata
-});
-
-const CredentialSchema = new mongoose.Schema({
-    practitionerId: { type: mongoose.Schema.Types.ObjectId, ref: 'PractitionerRole' },
-    qualification: { type: String },
-    audit: AuditMetadata
-});
-
-const LabProfileSchema = new mongoose.Schema({
-    patientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient' },
-    testName: { type: String },
-    result: { type: String },
-    audit: AuditMetadata
-});
-
-// ==========================================
-// 6. CONSENT & AUDIT EVENT (Immutable)
-// ==========================================
-const ConsentSchema = new mongoose.Schema({
-    patientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient' },
-    scope: { type: String, enum: ['Data_Sharing', 'Treatment', 'Research'] },
-    status: { type: String, enum: ['Active', 'Revoked', 'Pending'] },
-    dateTime: { type: Date, default: Date.now },
-    audit: AuditMetadata
-});
-
-const AuditEventSchema = new mongoose.Schema({
-    timestamp: { type: Date, default: Date.now, immutable: true },
-    actorId: { type: mongoose.Schema.Types.ObjectId, ref: 'Person', required: true },
-    actionType: { type: String, required: true }, 
-    resourceType: { type: String }, 
-    resourceId: { type: mongoose.Schema.Types.ObjectId },
-    ipAddress: { type: String, required: true },
-    deviceMetadata: { type: String },
-    outcome: { type: String, enum: ['Success', 'Failure', 'Warning'] },
-    provenanceHash: { type: String, required: true } 
-}, { capped: { size: 1073741824 } }); 
-
-// ==========================================
-// 🚀 HYPER-SCALING B-TREE INDEXES (CLEANED)
-// ==========================================
-// Note: loginIdentity, nationalHealthId, nationalId, licenseNumber, and broadcastId 
-// are already indexed automatically via 'unique: true' in their schemas above.
-
-// 1. Relational Lookups (Instantly find a Patient profile from a Person ID)
-PatientSchema.index({ personId: 1 });
-PractitionerRoleSchema.index({ personId: 1 });
-
-// 2. Cryptographic Payload Lookups (Instantly find prescriptions for Pharmacy & Patient Vaults)
-PrescriptionSchema.index({ patientId: 1, createdAt: -1 }); 
-PrescriptionSchema.index({ practitionerRoleId: 1, createdAt: -1 }); 
-
-// 3. Clinical Dossier Lookups (Instantly load Allergies/Meds for the Contraindication Engine)
-AllergyProfileSchema.index({ patientId: 1 });
-MedicationProfileSchema.index({ patientId: 1 });
-
-// Add this right above module.exports
-const MedicineSchema = new mongoose.Schema({
-    brandName: { type: String, required: true },
-    genericName: { type: String },
-    strength: { type: String },
-    form: { type: String }
-}, { collection: 'medicines' }); // This looks for your old "medicines" collection
-
-const Medicine = mongoose.model('Medicine', MedicineSchema);
-
-
-// ==========================================
-// 🏁 MASTER EXPORTS
-// ==========================================
 // ==========================================
 // 🚀 MASTER EXPORTS
 // ==========================================
@@ -182,5 +103,5 @@ module.exports = {
     LabProfile: mongoose.model('LabProfile', LabProfileSchema),
     Consent: mongoose.model('Consent', ConsentSchema),
     AuditEvent: mongoose.model('AuditEvent', AuditEventSchema),
-    Medicine
+    Medicine // 🚨 Successfully exported
 };
