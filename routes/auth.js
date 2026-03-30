@@ -56,7 +56,7 @@ router.post('/register', async (req, res) => {
 });
 
 // ==========================================
-// 2. AUTHENTICATE & LOGIN
+// 2. AUTHENTICATE & LOGIN (Self-Healing ID)
 // ==========================================
 router.post('/login', async (req, res) => {
     try {
@@ -77,11 +77,23 @@ router.post('/login', async (req, res) => {
             if (!prac) return res.status(403).json({ msg: `Identity is not registered as a ${roleMapping[role]}.` });
         }
 
+        // 🚨 THE SELF-HEALING FAIL-SAFE: Generate ID if missing!
+        if (!person.gridId || person.gridId === 'null') {
+            let idPrefix = 'ADM';
+            if (role === 'patient') idPrefix = 'CIT';
+            else if (role === 'doctor') idPrefix = 'DOC';
+            else if (role === 'pharmacist') idPrefix = 'PHM';
+            else if (role === 'pathologist') idPrefix = 'PTH';
+            
+            person.gridId = `${idPrefix}-${Math.floor(1000000 + Math.random() * 9000000).toString()}`;
+            await person.save(); // Save the new ID permanently to MongoDB
+        }
+
         const payload = {
             id: person._id,
             name: person.legalFullName,
             role: role,
-            uuid: person.gridId || 'ID-SYNC-REQUIRED'
+            uuid: person.gridId // Send the guaranteed ID to the frontend
         };
 
         jwt.sign(payload, process.env.JWT_SECRET || 'holmes_emergency_grid_secret_2026', { expiresIn: '12h' }, (err, token) => {
@@ -89,9 +101,11 @@ router.post('/login', async (req, res) => {
             res.json({ token, user: payload });
         });
     } catch (err) {
+        console.error("LOGIN_ERR:", err);
         res.status(500).json({ msg: 'Grid Server Error during login.' });
     }
 });
+
 
 // ==========================================
 // ☢️ TEMPORARY RETROACTIVE SYNC TOOL

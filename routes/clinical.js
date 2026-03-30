@@ -14,14 +14,34 @@ const verifyToken = (req, res, next) => {
 };
 
 // ==========================================
-// 1. FETCH MASTER FORMULARY (Drugs)
+// 1. FETCH MASTER FORMULARY (Metadata Fail-Safe)
 // ==========================================
 router.get('/formulary', verifyToken, async (req, res) => {
     try {
-        const drugs = await Medicine.find({}).select('brandName strength form -_id');
-        const formularyArray = drugs.map(d => `${d.brandName} ${d.strength ? d.strength : ''} ${d.form ? d.form : ''}`.trim());
-        res.json(formularyArray);
+        // .lean() pulls raw data, ignoring strict schema rules just in case your CSV had different headers
+        const drugs = await Medicine.find({}).lean().limit(5000); 
+        
+        const formularyArray = drugs.map(d => {
+            // Check for both lowercase and uppercase field names
+            const brand = d.brandName || d.BrandName || d.brand || d.Brand || '';
+            const strength = d.strength || d.Strength || '';
+            const form = d.form || d.Form || '';
+            const generic = d.genericName || d.GenericName || d.generic || d.Generic || '';
+            
+            // Build the string: "Afrodic 50mg Tablet (Diclofenac)"
+            let fullName = `${brand} ${strength} ${form}`.trim();
+            if (generic) fullName += ` (${generic})`;
+            
+            // Clean up extra spaces
+            return fullName.replace(/\s+/g, ' ') || "Unknown Drug";
+        }).filter(name => name !== "Unknown Drug");
+
+        // Remove any exact duplicates just in case
+        const uniqueDrugs = [...new Set(formularyArray)];
+
+        res.json(uniqueDrugs);
     } catch (err) {
+        console.error("FORMULARY_ERR:", err);
         res.status(500).json({ msg: "Database connection failed." });
     }
 });
