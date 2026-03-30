@@ -6,88 +6,132 @@
     <title>Holmes National Health Grid</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css"> 
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        
+        /* High-Tech Grid Background */
+        .bg-grid-pattern {
+            background-image: radial-gradient(rgba(15, 23, 42, 0.08) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+        
+        /* Premium Gradient Text */
+        .text-gradient {
+            background: linear-gradient(135deg, #0284c7 0%, #0d9488 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        /* Frosted Glass Navigation */
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
+        }
+
+        /* Smooth Entry Animations */
+        .fade-in-up { animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+        @keyframes fadeInUp { 
+            from { opacity: 0; transform: translateY(20px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+    </style>
 </head>
-<body class="antialiased flex flex-col min-h-screen relative overflow-x-hidden">
+<body class="bg-gradient-to-br from-slate-50 via-sky-50 to-teal-50 antialiased text-slate-800 relative overflow-x-hidden selection:bg-blue-200 selection:text-blue-900 min-h-screen">
+    
+    <div class="fixed inset-0 w-full h-full bg-grid-pattern z-0 pointer-events-none opacity-60"></div>
+    <div class="absolute top-[-10%] right-[-5%] w-[40rem] h-[40rem] bg-teal-300/40 rounded-full blur-3xl z-0 pointer-events-none"></div>
+    <div class="absolute top-[20%] left-[-10%] w-[35rem] h-[35rem] bg-blue-400/30 rounded-full blur-3xl z-0 pointer-events-none"></div>
+    <div class="absolute bottom-[-10%] right-[10%] w-[45rem] h-[45rem] bg-indigo-300/30 rounded-full blur-3xl z-0 pointer-events-none"></div>
 
-    <div class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-teal-500/10 rounded-full blur-[150px] pointer-events-none -z-10"></div>
-    <div class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-indigo-500/10 rounded-full blur-[150px] pointer-events-none -z-10"></div>
-
-    <nav class="w-full h-20 glass-panel border-b border-slate-800 flex items-center justify-between px-6 lg:px-12 z-50 sticky top-0">
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-slate-900 border border-teal-500/30 rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(0,240,255,0.2)]">
-                <i class="fa-solid fa-network-wired text-teal-400 text-lg"></i>
+    <nav class="fixed w-full top-0 z-50 glass-nav transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center shadow-lg">
+                    <i class="fa-solid fa-network-wired text-teal-400 text-lg"></i>
+                </div>
+                <span class="text-xl font-extrabold tracking-tight text-slate-900">Holmes <span class="text-blue-600">Grid</span></span>
             </div>
-            <h1 class="text-2xl font-black tracking-tighter text-white">Holmes <span class="text-teal-400">Grid</span></h1>
-        </div>
-        <div>
-            <a href="auth.html" class="bg-teal-500/10 hover:bg-teal-500 border border-teal-500/50 hover:border-teal-400 text-teal-400 hover:text-slate-900 px-6 py-2.5 rounded-full font-black text-xs uppercase tracking-widest transition-all duration-300 shadow-[0_0_10px_rgba(0,240,255,0.1)] hover:shadow-[0_0_20px_rgba(0,240,255,0.4)] flex items-center gap-2">
+            
+            <a href="auth.html" class="hidden md:flex items-center gap-2 px-6 py-2.5 rounded-full border border-white/60 bg-white/80 text-sm font-bold text-slate-700 hover:text-blue-600 hover:bg-white hover:shadow-lg transition-all backdrop-blur-md">
                 <i class="fa-solid fa-terminal"></i> Enter Terminal
             </a>
         </div>
     </nav>
 
-    <main class="flex-1 flex flex-col items-center justify-center px-6 text-center relative z-10 py-20">
+    <main class="relative z-10 flex flex-col items-center justify-center min-h-screen px-6 pt-24 text-center">
         
-        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-panel border border-emerald-500/30 mb-8 fade-in-up">
-            <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(0,255,102,0.8)]"></div>
-            <span class="text-[10px] font-black text-emerald-400 uppercase tracking-widest">National Systems Online</span>
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-md border border-white/60 shadow-sm mb-8 fade-in-up" style="animation-delay: 0.1s;">
+            <span class="relative flex h-2.5 w-2.5">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+            </span>
+            <span class="text-[11px] font-extrabold text-slate-700 uppercase tracking-widest">National Systems Online</span>
         </div>
 
-        <h1 class="text-5xl md:text-7xl font-black text-white tracking-tighter mb-6 fade-in-up" style="animation-delay: 0.1s;">
-            The Sovereign <br> <span class="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-indigo-400 drop-shadow-[0_0_15px_rgba(0,240,255,0.3)]">Health Identity</span>
+        <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight text-slate-900 mb-6 max-w-4xl mx-auto leading-tight fade-in-up" style="animation-delay: 0.2s;">
+            The Sovereign <br/> <span class="text-gradient">Health Identity</span>
         </h1>
-        
-        <p class="max-w-2xl text-slate-400 text-sm md:text-base font-medium mb-10 leading-relaxed fade-in-up" style="animation-delay: 0.2s;">
+
+        <p class="text-base md:text-lg font-medium text-slate-600 mb-10 max-w-2xl mx-auto leading-relaxed fade-in-up" style="animation-delay: 0.3s;">
             The Holmes National Grid is a military-grade, FHIR-compliant cryptographic network designed to eliminate prescription fraud, prevent fatal medical interactions, and return data sovereignty to the citizens of Bangladesh.
         </p>
 
-        <div class="flex flex-col sm:flex-row gap-4 fade-in-up" style="animation-delay: 0.3s;">
-            <a href="auth.html" class="bg-teal-500 hover:bg-teal-400 text-slate-950 px-10 py-4 rounded-full font-black text-sm uppercase tracking-widest transition-all duration-300 shadow-[0_0_20px_rgba(0,240,255,0.3)] hover:shadow-[0_0_30px_rgba(0,240,255,0.6)] hover:-translate-y-1 flex items-center justify-center gap-3">
+        <div class="flex flex-col sm:flex-row gap-4 fade-in-up" style="animation-delay: 0.4s;">
+            <a href="auth.html" class="flex items-center justify-center gap-3 px-8 py-4 rounded-xl bg-slate-900 hover:bg-blue-600 text-white font-bold text-sm uppercase tracking-wide transition-all shadow-xl shadow-slate-900/20 hover:-translate-y-1">
                 <i class="fa-solid fa-fingerprint text-lg"></i> Authenticate Identity
             </a>
-            <a href="#architecture" class="glass-panel hover:bg-slate-800/50 text-white px-10 py-4 rounded-full font-black text-sm uppercase tracking-widest transition-all duration-300 hover:-translate-y-1 flex items-center justify-center gap-3">
-                <i class="fa-solid fa-microchip"></i> View Architecture
+            <a href="#features" class="flex items-center justify-center gap-3 px-8 py-4 rounded-xl bg-white/80 backdrop-blur-md border border-white/60 hover:border-blue-200 text-slate-700 font-bold text-sm uppercase tracking-wide transition-all hover:bg-white hover:shadow-lg">
+                <i class="fa-solid fa-book-medical text-lg"></i> Read Manifesto
             </a>
+        </div>
+
+        <div class="mt-16 w-full max-w-5xl relative fade-in-up" style="animation-delay: 0.6s;">
+            <div class="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-teal-50 to-transparent z-20"></div>
+            
+            <div class="bg-white/90 backdrop-blur-xl p-2 rounded-t-3xl border border-white/60 shadow-2xl mx-4 relative z-10 translate-y-4">
+                <div class="bg-slate-50/90 rounded-t-2xl h-48 md:h-72 border border-slate-100 overflow-hidden relative flex flex-col">
+                    
+                    <div class="h-12 border-b border-slate-200/60 bg-white/80 flex items-center px-4 gap-2 shrink-0">
+                        <div class="w-3 h-3 rounded-full bg-rose-400"></div>
+                        <div class="w-3 h-3 rounded-full bg-amber-400"></div>
+                        <div class="w-3 h-3 rounded-full bg-emerald-400"></div>
+                        <div class="mx-auto bg-slate-100 text-slate-500 text-[10px] font-bold px-4 py-1 rounded-md font-mono tracking-widest hidden sm:block shadow-inner">holmes-erx-system.onrender.com</div>
+                    </div>
+                    
+                    <div class="flex-1 p-6 flex gap-6">
+                        <div class="w-48 hidden md:block border-r border-slate-200/60 pr-6 space-y-4">
+                            <div class="h-4 w-full bg-slate-200 rounded animate-pulse mb-8"></div>
+                            <div class="h-3 w-3/4 bg-slate-200 rounded animate-pulse"></div>
+                            <div class="h-3 w-2/3 bg-slate-200 rounded animate-pulse"></div>
+                        </div>
+                        <div class="flex-1 space-y-4">
+                            <div class="h-6 w-1/3 bg-blue-100 rounded animate-pulse mb-6"></div>
+                            <div class="h-24 w-full bg-white border border-slate-200/60 shadow-sm rounded-xl animate-pulse"></div>
+                            <div class="grid grid-cols-3 gap-4">
+                                <div class="h-20 w-full bg-rose-50 border border-rose-100 rounded-xl animate-pulse"></div>
+                                <div class="h-20 w-full bg-amber-50 border border-amber-100 rounded-xl animate-pulse"></div>
+                                <div class="h-20 w-full bg-emerald-50 border border-emerald-100 rounded-xl animate-pulse"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
         </div>
     </main>
 
-    <section id="architecture" class="w-full max-w-7xl mx-auto px-6 py-24 z-10 relative">
-        <div class="text-center mb-16">
-            <h2 class="text-3xl font-black text-white tracking-tighter">Core Infrastructure</h2>
-            <div class="w-24 h-1 bg-teal-500 mx-auto mt-4 shadow-[0_0_10px_rgba(0,240,255,0.5)]"></div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div class="glass-panel p-8 rounded-[32px] hover:border-teal-500/50 transition-colors group">
-                <div class="w-14 h-14 bg-teal-500/10 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-teal-500/20 transition-colors border border-teal-500/20">
-                    <i class="fa-solid fa-shield-virus text-teal-400 text-2xl group-hover:scale-110 transition-transform"></i>
-                </div>
-                <h3 class="text-xl font-black text-white mb-3">Contraindication Engine</h3>
-                <p class="text-xs text-slate-400 leading-relaxed font-bold">Algorithms cross-reference FHIR allergy profiles in 30ms, instantly blocking practitioners from prescribing fatal drug interactions.</p>
-            </div>
-
-            <div class="glass-panel p-8 rounded-[32px] hover:border-indigo-500/50 transition-colors group">
-                <div class="w-14 h-14 bg-indigo-500/10 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-indigo-500/20 transition-colors border border-indigo-500/20">
-                    <i class="fa-solid fa-link-slash text-indigo-400 text-2xl group-hover:scale-110 transition-transform"></i>
-                </div>
-                <h3 class="text-xl font-black text-white mb-3">Cryptographic Custody</h3>
-                <p class="text-xs text-slate-400 leading-relaxed font-bold">Every payload is sealed with a SHA-256 hash. Pharmacies decrypt the payload via OTP, permanently severing the chain of custody.</p>
-            </div>
-
-            <div class="glass-panel p-8 rounded-[32px] hover:border-amber-500/50 transition-colors group">
-                <div class="w-14 h-14 bg-amber-500/10 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-amber-500/20 transition-colors border border-amber-500/20">
-                    <i class="fa-solid fa-gavel text-amber-400 text-2xl group-hover:scale-110 transition-transform"></i>
-                </div>
-                <h3 class="text-xl font-black text-white mb-3">Ministry God-Mode</h3>
-                <p class="text-xs text-slate-400 leading-relaxed font-bold">The Directorate General of Health Services strictly governs access, verifying BMDC licenses before granting prescribing authority.</p>
-            </div>
-        </div>
-    </section>
-
-    <footer class="w-full py-8 border-t border-slate-800 text-center z-10 bg-slate-950/80 backdrop-blur-md">
-        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest"><i class="fa-solid fa-code-branch mr-1"></i> Engineered by H.O.L.M.E.S. Research Group</p>
-    </footer>
-
+    <script>
+        const token = sessionStorage.getItem('eRx_Token');
+        if (token) {
+            document.querySelectorAll('a[href="auth.html"]').forEach(link => {
+                link.href = "dashboard.html";
+                link.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket text-lg"></i> Return to Terminal';
+            });
+        }
+    </script>
 </body>
 </html>
