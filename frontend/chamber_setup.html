@@ -153,9 +153,9 @@
 
             try {
                 const res = await fetch(`${API_BASE_URL}/api/appointments/add-chamber`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ doctorId: userId, chamberData })
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, 
+                    body: JSON.stringify({ query })
                 });
 
                 if(res.ok) {

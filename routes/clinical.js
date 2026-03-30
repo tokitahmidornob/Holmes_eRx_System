@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const { Patient, Person, AllergyProfile } = require('../models/GridModels');
+const { Patient, Person, AllergyProfile, Medicine } = require('../models/GridModels');
 
+// Cryptographic Check
 const verifyToken = (req, res, next) => {
     const token = req.header('Authorization');
     if (!token) return res.status(401).json({ msg: "Grid Access Denied." });
@@ -13,42 +14,68 @@ const verifyToken = (req, res, next) => {
 };
 
 // ==========================================
-// 🔍 QUERY MASTER PATIENT INDEX (MPI)
+// 1. FETCH MASTER FORMULARY (Drugs)
 // ==========================================
-router.get('/query-patient/:identifier', verifyToken, async (req, res) => {
+router.get('/formulary', verifyToken, async (req, res) => {
     try {
-        // Only Doctors and Admin can query the MPI
-        if (req.user.role !== 'doctor' && req.user.role !== 'admin') {
-            return res.status(403).json({ msg: "Unauthorized Terminal Action." });
-        }
-
-        const identifier = req.params.identifier.trim();
-        
-        // 1. Search for Patient by NHI or NID
-        const patientData = await Patient.findOne({
-            $or: [ { nationalHealthId: identifier }, { nationalId: identifier } ]
-        }).populate('personId', 'legalFullName contact dateOfBirth genderLegal');
-
-        if (!patientData) {
-            return res.status(404).json({ msg: "No Citizen found with that Grid Identifier." });
-        }
-
-        // 2. Fetch the Clinical Dossier (Allergies) for the Contraindication Engine
-        const allergies = await AllergyProfile.find({ patientId: patientData._id });
-
-        res.json({
-            patientId: patientData._id,
-            nhi: patientData.nationalHealthId,
-            name: patientData.personId.legalFullName,
-            age: patientData.personId.dateOfBirth ? (new Date().getFullYear() - new Date(patientData.personId.dateOfBirth).getFullYear()) : 'Unknown',
-            gender: patientData.personId.genderLegal || 'Unknown',
-            bloodGroup: patientData.bloodGroup || 'Unknown',
-            allergies: allergies
-        });
-
+        const drugs = await Medicine.find({}).select('brandName strength form -_id');
+        const formularyArray = drugs.map(d => `${d.brandName} ${d.strength ? d.strength : ''} ${d.form ? d.form : ''}`.trim());
+        res.json(formularyArray);
     } catch (err) {
-        console.error("MPI_QUERY_ERROR:", err);
-        res.status(500).json({ msg: "MPI Query Engine Offline." });
+        res.status(500).json({ msg: "Database connection failed." });
+    }
+});
+
+// ==========================================
+// 2. MPI SEARCH ENGINE (Find Patient)
+// ==========================================
+router.post('/search', verifyToken, async (req, res) => {
+    try {
+        if (req.user.role !== 'doctor') return res.status(403).json({ msg: "Clearance Required." });
+        const { query } = req.body;
+        if (!query) return res.json([]);
+
+        const persons = await Person.find({ legalFullName: { $regex: query, $options: 'i' } });
+        const personIds = persons.map(p => p._id);
+
+        const patients = await Patient.find({
+            $or: [
+                { personId: { $in: personIds } },
+                { nationalHealthId: { $regex: query, $options: 'i' } },
+                { nationalId: { $regex: query, $options: 'i' } }
+            ]
+        }).populate('personId');
+
+        const results = patients.map(pat => ({
+            patientId: pat._id,
+            name: pat.personId ? pat.personId.legalFullName : 'Unknown Citizen',
+            age: pat.personId && pat.personId.dateOfBirth ? (new Date().getFullYear() - new Date(pat.personId.dateOfBirth).getFullYear()) : 'N/A',
+            gender: pat.personId ? pat.personId.genderLegal : 'Unknown',
+            nhi: pat.nationalHealthId || pat.nationalId || 'NHI-PENDING'
+        }));
+        res.json(results);
+    } catch (err) {
+        console.error("SEARCH_ERR:", err);
+        res.status(500).json({ msg: "Grid Network Failure" });
+    }
+});
+
+// ==========================================
+// 3. CLINICAL DOSSIER (Fetch Allergies)
+// ==========================================
+router.get('/dossier/:id', verifyToken, async (req, res) => {
+    try {
+        const patientId = req.params.id;
+        const allergies = await AllergyProfile.find({ patientId: patientId });
+        
+        res.json({
+            allergies: allergies,
+            conditions: [], // Placeholder for future features
+            activeMedications: [] // Placeholder for future features
+        });
+    } catch (err) {
+        console.error("DOSSIER_ERR:", err);
+        res.status(500).json({ msg: "Failed to fetch patient dossier" });
     }
 });
 
