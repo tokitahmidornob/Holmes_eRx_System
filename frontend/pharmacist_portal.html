@@ -7,86 +7,107 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 </head>
-<body class="antialiased min-h-screen flex bg-slate-950 text-white overflow-hidden">
+<body class="antialiased text-slate-800 bg-slate-50 flex h-screen overflow-hidden">
 
-    <aside class="w-64 glass-panel border-r border-slate-800 flex flex-col justify-between z-20 flex-shrink-0">
-        <div>
-            <div class="h-20 flex items-center gap-3 px-6 border-b border-emerald-500/20">
-                <div class="w-10 h-10 bg-emerald-500/20 rounded-xl flex items-center justify-center border border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
-                    <i class="fa-solid fa-staff-snake text-emerald-400 text-lg"></i>
-                </div>
-                <h1 class="text-xl font-black tracking-tighter">Holmes <span class="text-emerald-400">Grid</span></h1>
-            </div>
-            <div class="p-6 space-y-6">
-                <div>
-                    <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Dispensary</p>
-                    <button class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-emerald-500/10 text-emerald-400 font-bold text-sm border border-emerald-500/30 transition-all shadow-[inset_0_0_10px_rgba(16,185,129,0.1)]">
-                        <i class="fa-solid fa-unlock-keyhole"></i> Decryption Hub
-                    </button>
-                </div>
-            </div>
+    <aside class="fixed lg:static inset-y-0 left-0 w-64 lg:w-72 bg-slate-900 text-white flex flex-col z-50 shadow-xl shrink-0 h-full border-r border-slate-800">
+        <div class="h-24 flex items-center justify-start px-8 border-b border-slate-800 bg-slate-950/50">
+            <div class="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center shadow-md shrink-0"><i class="fa-solid fa-staff-snake"></i></div>
+            <h1 class="ml-4 text-xl font-bold tracking-tight text-white">Holmes <span class="text-emerald-400">Grid</span></h1>
         </div>
-        <div class="p-6 border-t border-slate-800">
-            <div class="bg-slate-900 rounded-xl p-4 border border-slate-700 text-center">
-                <p id="pharmNameDisplay" class="text-xs font-black text-white mb-1">Pharmacist</p>
-                <p id="pharmGridIdDisplay" class="text-[10px] font-black text-emerald-400 uppercase tracking-widest bg-emerald-500/10 py-1 rounded-md border border-emerald-500/20">ID-PENDING</p>
+        
+        <nav class="flex-1 py-8 flex flex-col gap-2 px-4 overflow-y-auto custom-scrollbar">
+            <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider px-4 mb-2">Dispensary Workspace</p>
+            <button class="nav-btn active flex items-center p-3.5 rounded-xl bg-emerald-600 text-white transition-all-spring font-medium shadow-md shadow-emerald-900/20">
+                <i class="fa-solid fa-unlock-keyhole text-lg mr-4 w-6 text-center"></i><span class="text-sm">Decryption Hub</span>
+            </button>
+        </nav>
+        
+        <div class="p-5 border-t border-slate-800 bg-slate-950/50">
+            <div class="mb-4 text-left px-2">
+                <p id="pharmNameDisplay" class="font-bold text-sm text-white truncate">Loading Identity...</p>
+                <div class="inline-block bg-slate-800 border border-slate-700 rounded-md mt-1.5 px-2 py-1"><p id="pharmGridIdDisplay" class="text-[10px] font-mono font-bold text-emerald-400 tracking-wide">ID: PENDING</p></div>
             </div>
-            <button onclick="logout()" class="w-full mt-4 flex items-center justify-center gap-2 px-4 py-3 rounded-xl hover:bg-rose-500/10 text-slate-400 hover:text-rose-400 font-bold text-sm transition-all border border-transparent hover:border-rose-500/30">
-                <i class="fa-solid fa-power-off"></i> Disconnect
+            <button onclick="logout()" class="w-full flex items-center justify-center p-3 rounded-xl bg-slate-800 hover:bg-rose-600 text-slate-300 hover:text-white transition-all-spring group border border-slate-700 hover:border-rose-500">
+                <i class="fa-solid fa-power-off text-sm mr-2 group-hover:rotate-180 transition-transform duration-500"></i><span class="font-semibold text-xs uppercase tracking-wider">Secure Disconnect</span>
             </button>
         </div>
     </aside>
 
-    <main class="flex-1 flex flex-col relative z-10 h-screen overflow-y-auto custom-scrollbar p-10">
-        <header class="mb-10">
-            <h2 class="text-3xl font-black text-white tracking-tighter">Decryption Hub</h2>
-            <p class="text-[10px] font-black text-emerald-400 uppercase tracking-widest mt-1"><i class="fa-solid fa-shield-check"></i> Anti-Fraud Verification Engine</p>
+    <main class="flex-1 flex flex-col relative z-10 h-screen overflow-y-auto custom-scrollbar bg-slate-50">
+        
+        <header class="h-20 lg:h-24 bg-white border-b border-slate-200 flex items-center justify-between px-6 lg:px-10 shrink-0 z-10 shadow-sm">
+            <div>
+                <h2 class="text-xl lg:text-2xl font-bold text-slate-800 tracking-tight">Decryption Hub</h2>
+                <p class="text-[11px] font-semibold text-slate-500 mt-1 flex items-center uppercase tracking-wider"><div class="w-2 h-2 rounded-full bg-emerald-500 mr-2 animate-pulse"></div> Anti-Fraud Verification Engine</p>
+            </div>
         </header>
 
-        <div class="max-w-4xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="max-w-5xl mx-auto w-full p-6 lg:p-10 grid grid-cols-1 lg:grid-cols-2 gap-8">
             
-            <div class="glass-panel p-8 rounded-3xl border border-emerald-500/30 shadow-[0_0_30px_rgba(16,185,129,0.05)] h-fit">
-                <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 border-b border-slate-800 pb-4"><i class="fa-solid fa-key mr-2 text-emerald-400"></i> Enter Patient Keys</h3>
+            <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm h-fit">
+                <h3 class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-6 border-b border-slate-100 pb-4"><i class="fa-solid fa-key mr-2 text-emerald-500"></i> Enter Patient Keys</h3>
                 
                 <div class="space-y-5">
+                    <button onclick="startScanner()" class="w-full bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 py-5 rounded-xl font-bold text-sm uppercase tracking-wide transition-all shadow-sm flex items-center justify-center gap-3 mb-4 group">
+                        <i class="fa-solid fa-qrcode text-xl group-hover:scale-110 transition-transform"></i> Launch Optical Scanner
+                    </button>
+
+                    <div class="relative flex items-center justify-center">
+                        <hr class="w-full border-slate-200">
+                        <span class="absolute bg-white px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">OR MANUAL ENTRY</span>
+                    </div>
+
                     <div>
-                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Broadcast ID</label>
-                        <input type="text" id="broadcastId" placeholder="e.g. RX-A7B9-C123" class="w-full bg-slate-900/80 border border-slate-700 focus:border-emerald-500 rounded-xl px-4 py-4 font-mono font-bold text-white outline-none transition-colors uppercase">
+                        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 mb-2 block">Broadcast ID</label>
+                        <input type="text" id="broadcastId" placeholder="e.g. RX-A7B9-C123" class="w-full bg-slate-50 border border-slate-300 focus:border-emerald-500 rounded-xl px-4 py-4 font-mono font-bold text-slate-800 outline-none focus:ring-4 focus:ring-emerald-500/10 transition-all uppercase">
                     </div>
                     <div>
-                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">6-Digit OTP</label>
-                        <input type="text" id="otp" placeholder="XXXXXX" maxlength="6" class="w-full bg-slate-900/80 border border-slate-700 focus:border-emerald-500 rounded-xl px-4 py-4 font-mono text-2xl tracking-[0.5em] text-center font-black text-emerald-400 outline-none transition-colors">
+                        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 mb-2 block">6-Digit OTP</label>
+                        <input type="text" id="otp" placeholder="XXXXXX" maxlength="6" class="w-full bg-slate-50 border border-slate-300 focus:border-emerald-500 rounded-xl px-4 py-4 font-mono text-2xl tracking-[0.5em] text-center font-black text-emerald-600 outline-none focus:ring-4 focus:ring-emerald-500/10 transition-all">
                     </div>
-                    <button onclick="decryptPayload()" id="decryptBtn" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 py-4 rounded-xl font-black text-sm uppercase tracking-widest shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all mt-4">
+                    <button onclick="decryptPayload()" id="decryptBtn" class="w-full bg-slate-900 hover:bg-slate-800 text-white py-4 rounded-xl font-bold text-sm uppercase tracking-wide shadow-lg shadow-slate-900/20 transition-all mt-4 flex items-center justify-center gap-2">
                         <i class="fa-solid fa-unlock"></i> Decrypt Payload
                     </button>
                 </div>
             </div>
 
-            <div id="resultPanel" class="glass-panel p-8 rounded-3xl border border-slate-800 hidden opacity-0 transition-all duration-500 transform translate-y-4">
-                <div class="flex justify-between items-start border-b border-slate-800 pb-4 mb-6">
+            <div id="resultPanel" class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm hidden opacity-0 transition-all duration-500 transform translate-y-4">
+                <div class="flex justify-between items-start border-b border-slate-100 pb-4 mb-6">
                     <div>
-                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Citizen</p>
-                        <p id="resPatient" class="text-lg font-black text-white"></p>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Citizen</p>
+                        <p id="resPatient" class="text-lg font-bold text-slate-800"></p>
                     </div>
                     <div class="text-right">
-                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Prescribing Authority</p>
-                        <p id="resDoctor" class="text-sm font-bold text-emerald-400"></p>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Prescribing Authority</p>
+                        <p id="resDoctor" class="text-sm font-bold text-emerald-600"></p>
                     </div>
                 </div>
 
-                <div id="statusBadge" class="mb-6 inline-block px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border"></div>
+                <div id="statusBadge" class="mb-6 inline-block px-4 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-widest border shadow-sm"></div>
 
                 <div class="space-y-3 mb-8" id="medList"></div>
 
-                <button onclick="dispenseMedication()" id="dispenseBtn" class="w-full bg-slate-900 hover:bg-emerald-500 border border-slate-700 hover:border-emerald-500 text-white hover:text-slate-950 py-4 rounded-xl font-black text-sm uppercase tracking-widest transition-all">
-                    <i class="fa-solid fa-box-check"></i> Mark as Dispensed
+                <button onclick="dispenseMedication()" id="dispenseBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-xl font-bold text-sm uppercase tracking-wide transition-all shadow-md flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-box-check text-lg"></i> Mark as Dispensed
                 </button>
             </div>
-
         </div>
     </main>
+
+    <div id="scannerModal" class="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4 hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl w-full max-w-md p-6 shadow-2xl relative overflow-hidden transform transition-all flex flex-col">
+            <div class="flex justify-between items-center mb-4 pb-4 border-b border-slate-100">
+                <h3 class="text-sm font-bold text-slate-800 uppercase tracking-widest"><i class="fa-solid fa-camera mr-2 text-emerald-500"></i> Optical Scanner</h3>
+                <button onclick="stopScanner()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-rose-100 hover:text-rose-500 flex items-center justify-center transition-colors"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div id="reader" class="w-full bg-slate-900 rounded-xl overflow-hidden aspect-square border-2 border-dashed border-emerald-400/50"></div>
+            
+            <p class="text-[11px] font-medium text-slate-500 text-center mt-4 uppercase tracking-widest">Position Grid QR Code in frame</p>
+        </div>
+    </div>
 
     <div id="toast-container" class="fixed bottom-6 right-6 z-[150] flex flex-col gap-3 pointer-events-none w-full max-w-[320px]"></div>
 
@@ -101,20 +122,77 @@
         try { const decoded = JSON.parse(atob(token.split('.')[1])); document.getElementById('pharmGridIdDisplay').innerText = decoded.uuid || 'PHM-ACTIVE'; } catch(e){}
 
         let currentRxId = null;
+        let html5QrcodeScanner = null;
 
         function showToast(message, type = 'error') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
-            const colors = type === 'error' ? 'glass-panel border-rose-500' : 'glass-panel border-emerald-500';
-            const iconColor = type === 'error' ? 'text-rose-500 bg-rose-500/10' : 'text-emerald-500 bg-emerald-500/10';
+            const colors = type === 'error' ? 'bg-white border-rose-200 shadow-lg' : 'bg-white border-emerald-200 shadow-lg';
+            const iconColor = type === 'error' ? 'text-rose-500 bg-rose-50' : 'text-emerald-500 bg-emerald-50';
             const icon = type === 'error' ? 'fa-triangle-exclamation' : 'fa-check';
-            toast.className = `flex items-center p-4 rounded-2xl shadow-xl border-l-4 transform transition-all duration-500 translate-y-10 opacity-0 ${colors}`;
-            toast.innerHTML = `<div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${iconColor}"><i class="fa-solid ${icon}"></i></div><div class="ml-3"><p class="text-xs font-black text-white uppercase tracking-widest leading-tight">${type === 'error' ? 'System Alert' : 'Success'}</p><p class="text-xs font-bold text-slate-400 mt-0.5">${message}</p></div>`;
+            
+            toast.className = `flex items-center p-4 rounded-xl border-l-4 transform transition-all duration-300 translate-y-10 opacity-0 ${colors}`;
+            toast.innerHTML = `<div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${iconColor}"><i class="fa-solid ${icon}"></i></div><div class="ml-3"><p class="text-[11px] font-bold text-slate-800 uppercase tracking-wider leading-tight">${type === 'error' ? 'System Alert' : 'Success'}</p><p class="text-xs font-medium text-slate-500 mt-0.5">${message}</p></div>`;
             container.appendChild(toast);
             requestAnimationFrame(() => toast.classList.remove('translate-y-10', 'opacity-0'));
             setTimeout(() => { toast.classList.add('translate-y-10', 'opacity-0'); setTimeout(() => toast.remove(), 500); }, 4000);
         }
 
+        // ==========================================
+        // OPTICAL SCANNER LOGIC
+        // ==========================================
+        function startScanner() {
+            const modal = document.getElementById('scannerModal');
+            modal.classList.remove('hidden');
+            requestAnimationFrame(() => modal.classList.remove('opacity-0'));
+
+            html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: {width: 250, height: 250} }, false);
+            html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+        }
+
+        function onScanSuccess(decodedText, decodedResult) {
+            try {
+                // Stop scanner to prevent multiple reads
+                stopScanner();
+                
+                // Parse the JSON Payload embedded in the Doctor's QR Code
+                const data = JSON.parse(decodedText);
+                
+                if(data.bId && data.otp) {
+                    showToast("Optical Scan Complete.", "success");
+                    
+                    // Auto-fill the inputs
+                    document.getElementById('broadcastId').value = data.bId;
+                    document.getElementById('otp').value = data.otp;
+                    
+                    // Automatically trigger the decryption
+                    decryptPayload();
+                } else {
+                    showToast("Invalid Grid Payload format.", "error");
+                }
+            } catch(e) {
+                stopScanner();
+                showToast("Unrecognized Grid Format.", "error");
+            }
+        }
+
+        function onScanFailure(error) {
+            // Ignore background scan failures until a QR is found
+        }
+
+        function stopScanner() {
+            if(html5QrcodeScanner) {
+                html5QrcodeScanner.clear();
+                html5QrcodeScanner = null;
+            }
+            const modal = document.getElementById('scannerModal');
+            modal.classList.add('opacity-0');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        // ==========================================
+        // DECRYPTION LOGIC
+        // ==========================================
         async function decryptPayload() {
             const bId = document.getElementById('broadcastId').value;
             const otp = document.getElementById('otp').value;
@@ -140,21 +218,21 @@
                     const dispenseBtn = document.getElementById('dispenseBtn');
                     
                     if(data.status === 'Dispensed') {
-                        badge.className = "mb-6 inline-block px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-rose-500/30 bg-rose-500/10 text-rose-400";
+                        badge.className = "mb-6 inline-block px-4 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-widest border shadow-sm border-rose-200 bg-rose-50 text-rose-600";
                         badge.innerHTML = "<i class='fa-solid fa-ban mr-1'></i> Already Dispensed";
                         dispenseBtn.classList.add('hidden');
                         showToast("Warning: This payload has already been collected.", "error");
                     } else {
-                        badge.className = "mb-6 inline-block px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-500/30 bg-emerald-500/10 text-emerald-400";
+                        badge.className = "mb-6 inline-block px-4 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-widest border shadow-sm border-emerald-200 bg-emerald-50 text-emerald-600";
                         badge.innerHTML = "<i class='fa-solid fa-lock-open mr-1'></i> Payload Active";
                         dispenseBtn.classList.remove('hidden');
                         showToast("Payload successfully decrypted.", "success");
                     }
 
                     document.getElementById('medList').innerHTML = data.medications.map(m => `
-                        <div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
-                            <p class="font-black text-sm text-slate-200">${m.brandName}</p>
-                            <p class="text-[10px] font-bold text-slate-500 uppercase mt-1 tracking-wider">${m.dosage} &bull; ${m.timing} &bull; ${m.duration} Days</p>
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 shadow-sm">
+                            <p class="font-bold text-sm text-slate-800">${m.brandName}</p>
+                            <p class="text-[11px] font-bold text-slate-500 uppercase mt-1 tracking-wider">${m.dosage} &bull; ${m.timing} &bull; ${m.duration} Days</p>
                         </div>
                     `).join('');
 
@@ -181,11 +259,11 @@
                 const data = await res.json();
                 if(res.ok) {
                     showToast(data.msg, "success");
-                    document.getElementById('statusBadge').className = "mb-6 inline-block px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-rose-500/30 bg-rose-500/10 text-rose-400";
+                    document.getElementById('statusBadge').className = "mb-6 inline-block px-4 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-widest border shadow-sm border-rose-200 bg-rose-50 text-rose-600";
                     document.getElementById('statusBadge').innerHTML = "<i class='fa-solid fa-check-double mr-1'></i> Dispensed & Locked";
                     btn.classList.add('hidden');
-                } else { showToast(data.msg, "error"); btn.innerHTML = '<i class="fa-solid fa-box-check"></i> Mark as Dispensed'; btn.disabled = false;}
-            } catch (err) { showToast("Network Failure.", "error"); btn.innerHTML = '<i class="fa-solid fa-box-check"></i> Mark as Dispensed'; btn.disabled = false;}
+                } else { showToast(data.msg, "error"); btn.innerHTML = '<i class="fa-solid fa-box-check text-lg"></i> Mark as Dispensed'; btn.disabled = false;}
+            } catch (err) { showToast("Network Failure.", "error"); btn.innerHTML = '<i class="fa-solid fa-box-check text-lg"></i> Mark as Dispensed'; btn.disabled = false;}
         }
 
         function logout() { sessionStorage.clear(); window.location.href = 'auth.html'; }
