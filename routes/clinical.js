@@ -111,4 +111,46 @@ router.get('/dossier/:id', verifyToken, async (req, res) => {
     }
 });
 
+// ==========================================
+// 🔍 MPI AUTOCOMPLETE SEARCH ENGINE
+// ==========================================
+router.post('/search', verifyToken, async (req, res) => {
+    try {
+        // Only Doctors can query the Master Patient Index
+        if (req.user.role !== 'doctor') return res.status(403).json({ msg: "Clearance Required." });
+        
+        const { query } = req.body;
+        if (!query) return res.json([]);
+
+        const { Person, Patient } = require('../models/GridModels');
+
+        // 1. Find Persons whose name matches the typed query (case-insensitive)
+        const persons = await Person.find({ legalFullName: { $regex: query, $options: 'i' } });
+        const personIds = persons.map(p => p._id);
+
+        // 2. Find Patients matching those names OR matching their exact NHI/NID
+        const patients = await Patient.find({
+            $or: [
+                { personId: { $in: personIds } },
+                { nationalHealthId: { $regex: query, $options: 'i' } },
+                { nationalId: { $regex: query, $options: 'i' } }
+            ]
+        }).populate('personId');
+
+        // 3. Format the data exactly as your glowing frontend dropdown expects
+        const results = patients.map(pat => ({
+            patientId: pat._id,
+            name: pat.personId ? pat.personId.legalFullName : 'Unknown Citizen',
+            age: pat.personId && pat.personId.dateOfBirth ? (new Date().getFullYear() - new Date(pat.personId.dateOfBirth).getFullYear()) : 'N/A',
+            gender: pat.personId ? pat.personId.genderLegal : 'Unknown',
+            nhi: pat.nationalHealthId || 'NHI-PENDING'
+        }));
+
+        res.json(results);
+    } catch (err) {
+        console.error("SEARCH_ERR:", err);
+        res.status(500).json({ msg: "Grid Network Failure" });
+    }
+});
+
 module.exports = router;
