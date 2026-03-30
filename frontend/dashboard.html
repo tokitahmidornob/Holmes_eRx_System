@@ -498,10 +498,22 @@
     </script>
 
     <script>
-        // ==========================================
-        // 1. DYNAMIC MONGODB FORMULARY (Synchronized)
+    // ==========================================
+        // 1. HYBRID FORMULARY (Pitch-Ready Fail-Safe)
         // ==========================================
         let nationalFormulary = [];
+        
+        // The guaranteed fallback list if MongoDB connection fails during the pitch
+        const emergencyFallbackDrugs = [
+            "Paracetamol (Napa) 500mg", "Amoxicillin (Moxacil) 500mg", "Omeprazole (Seclo) 20mg", 
+            "Esomeprazole (Maxpro) 20mg", "Pantoprazole (Pantodac) 40mg", "Domperidone (Motigut) 10mg",
+            "Loratadine (Alatrol) 10mg", "Fexofenadine (Fexo) 120mg", "Ketorolac (Rolac) 10mg", 
+            "Ibuprofen (Profen) 400mg", "Metformin (Comet) 500mg", "Losartan (Osartil) 50mg",
+            "Amlodipine (Amlocal) 5mg", "Atorvastatin (Lipicon) 10mg", "Salbutamol (Windel) Inhaler", 
+            "Montelukast (Monas) 10mg", "Diazepam (Sedil) 5mg", "Clonazepam (Rivotril) 0.5mg",
+            "Azithromycin (Zithrin) 500mg", "Cefuroxime (Furotil) 250mg", "Ciprofloxacin (Ciprocin) 500mg",
+            "Peanut Extract (Diagnostic)" // Needed to show the Allergy Contraindication!
+        ];
 
         async function loadMasterFormulary() {
             try {
@@ -510,19 +522,28 @@
                 });
                 
                 if(res.ok) {
-                    nationalFormulary = await res.json();
-                    console.log(`Grid Synced: ${nationalFormulary.length} drugs loaded from database.`);
-                    
-                    const drugInput = document.getElementById("drugInput") || document.getElementById("medName"); 
-                    if(drugInput) {
-                        autocomplete(drugInput, nationalFormulary);
+                    const dbDrugs = await res.json();
+                    if (dbDrugs && dbDrugs.length > 0) {
+                        nationalFormulary = dbDrugs;
+                        console.log(`Grid Synced: ${nationalFormulary.length} drugs loaded from DB.`);
+                    } else {
+                        console.warn("DB empty/mismatched. Activating Fail-Safe Formulary.");
+                        nationalFormulary = emergencyFallbackDrugs;
                     }
+                } else {
+                    nationalFormulary = emergencyFallbackDrugs;
                 }
             } catch (err) {
-                console.error("Failed to load Master Formulary from Grid.");
+                console.error("Network error. Activating Fail-Safe Formulary.");
+                nationalFormulary = emergencyFallbackDrugs;
+            } finally {
+                // Initialize autocomplete regardless of where the data came from
+                const drugInput = document.getElementById("drugInput") || document.getElementById("medName"); 
+                if(drugInput) { autocomplete(drugInput, nationalFormulary); }
             }
         }
 
+        s
         // ==========================================
         // 2. THE AUTOCOMPLETE ENGINE (Styled for your theme)
         // ==========================================

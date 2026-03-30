@@ -104,4 +104,57 @@ router.get('/doctor/me', verifyToken, async (req, res) => {
     }
 });
 
+// ==========================================
+// 3. PHARMACIST: DECRYPT PAYLOAD
+// ==========================================
+router.post('/decrypt', verifyToken, async (req, res) => {
+    try {
+        if (req.user.role !== 'pharmacist') return res.status(403).json({ msg: "Clearance Denied. Pharmacist access required." });
+        
+        const { broadcastId, otp } = req.body;
+        
+        // Search for the precise cryptographic match
+        const rx = await Prescription.findOne({ broadcastId: broadcastId.trim(), otp: otp.trim() })
+            .populate({ path: 'patientId', populate: { path: 'personId', select: 'legalFullName' } })
+            .populate({ path: 'practitionerId', populate: { path: 'personId', select: 'legalFullName' } });
+
+        if (!rx) return res.status(404).json({ msg: "Grid Error: Payload Not Found or Invalid Decryption Keys." });
+        
+        res.json({ 
+            msg: "Decryption Successful.", 
+            rxId: rx._id,
+            status: rx.status,
+            patientName: rx.patientId.personId.legalFullName,
+            doctorName: rx.practitionerId.personId.legalFullName,
+            medications: rx.medications,
+            date: rx.createdAt
+        });
+
+    } catch (err) {
+        res.status(500).json({ msg: "Grid Failure during decryption." });
+    }
+});
+
+// ==========================================
+// 4. PHARMACIST: DISPENSE PAYLOAD
+// ==========================================
+router.put('/dispense/:id', verifyToken, async (req, res) => {
+    try {
+        if (req.user.role !== 'pharmacist') return res.status(403).json({ msg: "Clearance Denied." });
+        
+        const rx = await Prescription.findById(req.params.id);
+        if (!rx) return res.status(404).json({ msg: "Payload not found." });
+        
+        // Anti-Fraud Check
+        if (rx.status === 'Dispensed') return res.status(400).json({ msg: "CRITICAL: This payload has already been dispensed! Fraud detected." });
+
+        rx.status = 'Dispensed'; // Lock the payload permanently
+        await rx.save();
+        
+        res.json({ msg: "Payload Dispensed and cryptographically locked in the Grid." });
+    } catch (err) {
+        res.status(500).json({ msg: "Grid Failure during dispensing." });
+    }
+});
+
 module.exports = router;
