@@ -2,9 +2,11 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
-const { Prescription, Patient, PractitionerRole, Person } = require('../models/GridModels');
+const { Prescription, PractitionerRole } = require('../models/GridModels');
 
-// Cryptographic Middleware
+// ============================================================================
+// 🛡️ SECURITY: JWT IDENTITY VERIFICATION
+// ============================================================================
 const verifyToken = (req, res, next) => {
     const token = req.header('Authorization');
     if (!token) return res.status(401).json({ msg: "Grid Access Denied." });
@@ -14,33 +16,38 @@ const verifyToken = (req, res, next) => {
     } catch (err) { res.status(400).json({ msg: "Invalid Identity Token." }); }
 };
 
-// ==========================================
-// 1. SEAL & BROADCAST PAYLOAD (POST)
-// ==========================================
-router.post('/', verifyToken, async (req, res) => {
-    try {
-        // Only Doctors can broadcast
-        if (req.user.role !== 'doctor') return res.status(403).json({ msg: "Unauthorized. Only Practitioners can formulate payloads." });
+// ============================================================================
+// 🛡️ SECURITY: ENTERPRISE RBAC CLEARANCE
+// ============================================================================
+const requireRole = (...allowedRoles) => {
+    return (req, res, next) => {
+        if (!req.user || !allowedRoles.includes(req.user.role)) {
+            return res.status(403).json({ 
+                msg: `Clearance Denied. Access restricted to: ${allowedRoles.join(' or ').toUpperCase()}.` 
+            });
+        }
+        next();
+    };
+};
 
+// ==========================================
+// 1. DOCTOR: SEAL & BROADCAST PAYLOAD
+// ==========================================
+router.post('/', verifyToken, requireRole('doctor'), async (req, res) => {
+    try {
         const { patientId, medications, investigations } = req.body;
         if (!patientId || !medications || medications.length === 0) {
             return res.status(400).json({ msg: "Invalid Payload. Patient and Therapy required." });
         }
 
-        // 1. Find the Doctor's Practitioner Profile
         const practitioner = await PractitionerRole.findOne({ personId: req.user.id });
         if (!practitioner) return res.status(404).json({ msg: "Practitioner authority not found." });
 
-        // 2. Generate Cryptographic Keys
-        // Broadcast ID (e.g., RX-A7B9-C123)
         const broadcastId = 'RX-' + crypto.randomBytes(2).toString('hex').toUpperCase() + '-' + crypto.randomBytes(2).toString('hex').toUpperCase();
-        
-        // Decryption OTP (6 digit number)
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-        // 3. Seal the Prescription in the Master Schema
         const newRx = new Prescription({
-            patientId: patientId, // This is the Patient's ObjectId
+            patientId: patientId,
             practitionerId: practitioner._id,
             medications: medications,
             investigations: investigations || [],
@@ -50,10 +57,7 @@ router.post('/', verifyToken, async (req, res) => {
         });
 
         await newRx.save();
-
-        // 🚨 NOTE FOR LATER: We will plug the NodeMailer email trigger in right here!
         
-        // 4. Return the keys to the Doctor's Terminal
         res.status(201).json({ 
             msg: "Payload Sealed Successfully.", 
             broadcastId: broadcastId, 
@@ -67,17 +71,13 @@ router.post('/', verifyToken, async (req, res) => {
 });
 
 // ==========================================
-// 2. FETCH MASTER ARCHIVE (GET)
+// 2. DOCTOR: FETCH MASTER ARCHIVE
 // ==========================================
-// This powers the "Master Archive" tab on your dashboard!
-router.get('/doctor/me', verifyToken, async (req, res) => {
+router.get('/doctor/me', verifyToken, requireRole('doctor'), async (req, res) => {
     try {
-        if (req.user.role !== 'doctor') return res.status(403).json({ msg: "Unauthorized." });
-
         const practitioner = await PractitionerRole.findOne({ personId: req.user.id });
         if (!practitioner) return res.status(404).json({ msg: "Practitioner authority not found." });
 
-        // Fetch all prescriptions written by this doctor, newest first
         const history = await Prescription.find({ practitionerId: practitioner._id })
             .sort({ createdAt: -1 })
             .populate({
@@ -85,7 +85,6 @@ router.get('/doctor/me', verifyToken, async (req, res) => {
                 populate: { path: 'personId', select: 'legalFullName gridId' }
             });
 
-        // Format the data perfectly for the frontend
         const formattedHistory = history.map(rx => ({
             broadcastId: rx.broadcastId,
             otp: rx.otp,
@@ -93,7 +92,6 @@ router.get('/doctor/me', verifyToken, async (req, res) => {
             createdAt: rx.createdAt,
             medications: rx.medications,
             investigations: rx.investigations,
-            // Safely grab the patient's name
             patientId: rx.patientId && rx.patientId.personId ? rx.patientId.personId.legalFullName : 'Unknown Citizen'
         }));
 
@@ -105,32 +103,39 @@ router.get('/doctor/me', verifyToken, async (req, res) => {
 });
 
 // ==========================================
-// 3. PHARMACIST: DECRYPT PAYLOAD
+// 3. MULTI-AUTHORITY: DECRYPT PAYLOAD
 // ==========================================
-router.post('/decrypt', verifyToken, async (req, res) => {
+// 🚨 Notice the RBAC allows BOTH pharmacist and pathologist here
+router.post('/decrypt', verifyToken, requireRole('pharmacist', 'pathologist'), async (req, res) => {
     try {
-        if (req.user.role !== 'pharmacist') return res.status(403).json({ msg: "Clearance Denied. Pharmacist access required." });
-        
         const { broadcastId, otp } = req.body;
         
-        // Search for the precise cryptographic match
         const rx = await Prescription.findOne({ broadcastId: broadcastId.trim(), otp: otp.trim() })
             .populate({ path: 'patientId', populate: { path: 'personId', select: 'legalFullName' } })
             .populate({ path: 'practitionerId', populate: { path: 'personId', select: 'legalFullName' } });
 
-        if (!rx) return res.status(404).json({ msg: "Grid Error: Payload Not Found or Invalid Decryption Keys." });
+        if (!rx) return res.status(404).json({ msg: "Grid Error: Payload Not Found or Invalid Keys." });
         
-        res.json({ 
+        // Dynamic Payload Filtering based on Authority
+        let filteredData = {
             msg: "Decryption Successful.", 
             rxId: rx._id,
             status: rx.status,
             patientName: rx.patientId.personId.legalFullName,
             doctorName: rx.practitionerId.personId.legalFullName,
-            medications: rx.medications,
             date: rx.createdAt
-        });
+        };
+
+        if (req.user.role === 'pharmacist') {
+            filteredData.medications = rx.medications;
+        } else if (req.user.role === 'pathologist') {
+            filteredData.investigations = rx.investigations;
+        }
+
+        res.json(filteredData);
 
     } catch (err) {
+        console.error("DECRYPT_ERR:", err);
         res.status(500).json({ msg: "Grid Failure during decryption." });
     }
 });
@@ -138,17 +143,14 @@ router.post('/decrypt', verifyToken, async (req, res) => {
 // ==========================================
 // 4. PHARMACIST: DISPENSE PAYLOAD
 // ==========================================
-router.put('/dispense/:id', verifyToken, async (req, res) => {
+router.put('/dispense/:id', verifyToken, requireRole('pharmacist'), async (req, res) => {
     try {
-        if (req.user.role !== 'pharmacist') return res.status(403).json({ msg: "Clearance Denied." });
-        
         const rx = await Prescription.findById(req.params.id);
         if (!rx) return res.status(404).json({ msg: "Payload not found." });
         
-        // Anti-Fraud Check
         if (rx.status === 'Dispensed') return res.status(400).json({ msg: "CRITICAL: This payload has already been dispensed! Fraud detected." });
 
-        rx.status = 'Dispensed'; // Lock the payload permanently
+        rx.status = 'Dispensed'; 
         await rx.save();
         
         res.json({ msg: "Payload Dispensed and cryptographically locked in the Grid." });
