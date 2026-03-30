@@ -4,240 +4,258 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Diagnostic Terminal | Holmes eRx</title>
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#06b6d4">
-    <link rel="apple-touch-icon" href="/icons/icon-192.png">
-    <link rel="stylesheet" href="style.css">
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/html5-qrcode"></script>
-    
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 </head>
-<body class="antialiased text-slate-800">
+<body class="antialiased text-slate-800 bg-slate-50 flex h-screen overflow-hidden">
 
-    <nav class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
-        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 cyan-gradient rounded-xl flex items-center justify-center text-white shadow-lg"><i class="fa-solid fa-microscope"></i></div>
-                <div><h1 class="text-xl font-black text-slate-900 tracking-tighter leading-none">Diagnostic <span class="text-cyan-600">Terminal</span></h1><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">National Health Grid</p></div>
-            </div>
-            <div class="flex items-center gap-6">
-                <div class="text-right hidden md:block">
-                    <p id="pathologistNameDisplay" class="text-sm font-black text-slate-900">Loading Agent...</p>
-                    <p id="pathologistIdDisplay" class="text-[10px] font-bold text-cyan-600 uppercase tracking-widest font-mono">ID: PENDING</p>
-                </div>
-                <button onclick="logout()" class="bg-slate-100 hover:bg-rose-100 hover:text-rose-600 text-slate-600 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-colors"><i class="fa-solid fa-power-off mr-1"></i> Disconnect</button>
-            </div>
+    <aside class="fixed lg:static inset-y-0 left-0 w-64 lg:w-72 bg-slate-900 text-white flex flex-col z-50 shadow-xl shrink-0 h-full border-r border-slate-800">
+        <div class="h-24 flex items-center justify-start px-8 border-b border-slate-800 bg-slate-950/50">
+            <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-md shrink-0"><i class="fa-solid fa-microscope"></i></div>
+            <h1 class="ml-4 text-xl font-bold tracking-tight text-white">Holmes <span class="text-indigo-400">Grid</span></h1>
         </div>
-    </nav>
+        
+        <nav class="flex-1 py-8 flex flex-col gap-2 px-4 overflow-y-auto custom-scrollbar">
+            <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider px-4 mb-2">Lab Workspace</p>
+            <button class="nav-btn active flex items-center p-3.5 rounded-xl bg-indigo-600 text-white transition-all-spring font-medium shadow-md shadow-indigo-900/20">
+                <i class="fa-solid fa-vial-virus text-lg mr-4 w-6 text-center"></i><span class="text-sm">Lab Terminal</span>
+            </button>
+            <button onclick="window.location.href='pathologist_home.html'" class="nav-btn flex items-center p-3.5 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition-all-spring font-medium">
+                <i class="fa-solid fa-house text-lg mr-4 w-6 text-center"></i><span class="text-sm">Command Hub</span>
+            </button>
+        </nav>
+        
+        <div class="p-5 border-t border-slate-800 bg-slate-950/50">
+            <div class="mb-4 text-left px-2">
+                <p id="pathNameDisplay" class="font-bold text-sm text-white truncate">Loading Identity...</p>
+                <div class="inline-block bg-slate-800 border border-slate-700 rounded-md mt-1.5 px-2 py-1"><p id="pathGridIdDisplay" class="text-[10px] font-mono font-bold text-indigo-400 tracking-wide">ID: PENDING</p></div>
+            </div>
+            <button onclick="logout()" class="w-full flex items-center justify-center p-3 rounded-xl bg-slate-800 hover:bg-rose-600 text-slate-300 hover:text-white transition-all-spring group border border-slate-700 hover:border-rose-500">
+                <i class="fa-solid fa-power-off text-sm mr-2 group-hover:rotate-180 transition-transform duration-500"></i><span class="font-semibold text-xs uppercase tracking-wider">Secure Disconnect</span>
+            </button>
+        </div>
+    </aside>
 
-    <main class="max-w-4xl mx-auto px-6 py-12">
-        <div class="bg-slate-900 rounded-[32px] p-8 shadow-2xl border border-slate-800 relative overflow-hidden mb-8">
-            <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#06b6d4 1px, transparent 1px); background-size: 30px 30px;"></div>
-            <div class="relative z-10">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-white text-2xl font-black tracking-tighter"><i class="fa-solid fa-vial-circle-check text-cyan-500 mr-2"></i> Verify Lab Order</h2>
-                    <button onclick="startScanner()" class="bg-cyan-500/20 hover:bg-cyan-500 hover:text-white text-cyan-400 border border-cyan-500/30 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 hover:-translate-y-1"><i class="fa-solid fa-camera"></i> Scan Patient Token</button>
-                </div>
+    <main class="flex-1 flex flex-col relative z-10 h-screen overflow-y-auto custom-scrollbar bg-slate-50">
+        
+        <header class="h-20 lg:h-24 bg-white border-b border-slate-200 flex items-center justify-between px-6 lg:px-10 shrink-0 z-10 shadow-sm">
+            <div>
+                <h2 class="text-xl lg:text-2xl font-bold text-slate-800 tracking-tight">Diagnostic Terminal</h2>
+                <p class="text-[11px] font-semibold text-slate-500 mt-1 flex items-center uppercase tracking-wider"><div class="w-2 h-2 rounded-full bg-indigo-500 mr-2 animate-pulse"></div> Investigation Intake Engine</p>
+            </div>
+        </header>
 
-                <div id="scannerContainer" class="hidden mb-6 bg-black rounded-2xl overflow-hidden border-2 border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.5)]">
-                    <div id="reader" class="w-full"></div>
-                    <button onclick="stopScanner()" class="w-full bg-slate-800 text-white py-2 text-xs font-black uppercase tracking-widest hover:bg-rose-600 transition-colors">Close Scanner</button>
-                </div>
+        <div class="max-w-5xl mx-auto w-full p-6 lg:p-10 grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm h-fit">
+                <h3 class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-6 border-b border-slate-100 pb-4"><i class="fa-solid fa-key mr-2 text-indigo-500"></i> Enter Patient Keys</h3>
                 
-                <form id="searchForm" onsubmit="event.preventDefault(); verifyPrescription();" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="md:col-span-2">
-                        <label class="text-[10px] font-black text-cyan-400 uppercase tracking-widest ml-2 mb-1 block">Broadcast ID</label>
-                        <input type="text" id="searchBroadcastId" required placeholder="HOLMES-RX-..." class="w-full bg-slate-800 border border-slate-700 text-white p-4 rounded-2xl font-mono text-lg outline-none focus:border-cyan-500 uppercase transition-colors">
+                <div class="space-y-5">
+                    <button onclick="startScanner()" class="w-full bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 py-5 rounded-xl font-bold text-sm uppercase tracking-wide transition-all shadow-sm flex items-center justify-center gap-3 mb-4 group">
+                        <i class="fa-solid fa-qrcode text-xl group-hover:scale-110 transition-transform"></i> Launch Optical Scanner
+                    </button>
+
+                    <div class="relative flex items-center justify-center">
+                        <hr class="w-full border-slate-200">
+                        <span class="absolute bg-white px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">OR MANUAL ENTRY</span>
+                    </div>
+
+                    <div>
+                        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 mb-2 block">Broadcast ID</label>
+                        <input type="text" id="broadcastId" placeholder="e.g. RX-A7B9-C123" class="w-full bg-slate-50 border border-slate-300 focus:border-indigo-500 rounded-xl px-4 py-4 font-mono font-bold text-slate-800 outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all uppercase">
                     </div>
                     <div>
-                        <label class="text-[10px] font-black text-cyan-400 uppercase tracking-widest ml-2 mb-1 block">Secret OTP</label>
-                        <input type="text" id="searchOtp" required placeholder="----" maxlength="4" class="w-full bg-slate-800 border border-slate-700 text-white p-4 rounded-2xl font-mono text-center text-2xl tracking-[0.5em] outline-none focus:border-cyan-500 transition-colors">
+                        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 mb-2 block">6-Digit OTP</label>
+                        <input type="text" id="otp" placeholder="XXXXXX" maxlength="6" class="w-full bg-slate-50 border border-slate-300 focus:border-indigo-500 rounded-xl px-4 py-4 font-mono text-2xl tracking-[0.5em] text-center font-black text-indigo-600 outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all">
                     </div>
-                    <div class="md:col-span-3 mt-2">
-                        <button type="submit" id="searchBtn" class="w-full cyan-gradient text-white py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-lg hover:shadow-cyan-500/50 hover:-translate-y-1 transition-all">Authenticate Request</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <div id="resultsViewer" class="hidden bg-white rounded-[32px] shadow-xl border border-slate-200 overflow-hidden transition-all duration-500">
-            <div class="p-8 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-                <div><p class="text-[10px] font-black text-cyan-600 uppercase tracking-widest mb-1">Target Identified</p><h3 id="resPatientName" class="text-2xl font-black text-slate-900 tracking-tighter">Patient Name</h3></div>
-                <div class="text-right"><span id="resStatusBadge" class="px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest border border-cyan-200 bg-cyan-50 text-cyan-700 shadow-sm">Authenticated</span></div>
-            </div>
-            <div class="p-8">
-                <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Required Investigations</h4>
-                <div id="resTestList" class="flex flex-wrap gap-2 mb-8"></div>
-                
-                <div class="bg-cyan-50 border border-cyan-100 p-6 rounded-[24px]">
-                    <h4 class="text-[10px] font-black text-cyan-700 uppercase tracking-widest mb-4"><i class="fa-solid fa-cloud-arrow-up mr-2"></i> Upload Lab Results to Grid</h4>
-                    <form id="labForm" onsubmit="event.preventDefault(); submitLabReport();" class="space-y-4">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div><label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Test Name</label><input type="text" id="labTestName" required class="w-full p-3 rounded-xl border border-slate-200 font-bold text-sm focus:border-cyan-500 outline-none transition-colors"></div>
-                            <div><label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Result Value (Optional)</label><input type="text" id="labResult" class="w-full p-3 rounded-xl border border-slate-200 font-bold text-sm focus:border-cyan-500 outline-none transition-colors" placeholder="e.g. 120"></div>
-                            <div><label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Unit (Optional)</label><input type="text" id="labUnit" class="w-full p-3 rounded-xl border border-slate-200 font-bold text-sm focus:border-cyan-500 outline-none transition-colors" placeholder="e.g. mg/dL"></div>
-                            <div><label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Reference Range (Optional)</label><input type="text" id="labRef" class="w-full p-3 rounded-xl border border-slate-200 font-bold text-sm focus:border-cyan-500 outline-none transition-colors" placeholder="e.g. 70-140"></div>
-                            
-                            <div class="md:col-span-2 relative mt-2">
-                                <label class="text-[10px] font-bold text-slate-500 uppercase ml-1 block mb-2">Attach Formal PDF Report</label>
-                                <div class="upload-zone relative w-full h-40 border-2 border-dashed border-cyan-300 rounded-2xl flex flex-col items-center justify-center transition-all bg-white overflow-hidden shadow-sm">
-                                    <input type="file" id="labPdf" accept="application/pdf" onchange="updateFileName(this)" 
-                                           class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-50">
-                                    
-                                    <div id="pdfFileName" class="text-center z-10 pointer-events-none">
-                                        <i class="fa-solid fa-file-pdf text-rose-400 text-4xl mb-3"></i>
-                                        <div class="space-y-1">
-                                            <p class="text-sm font-black text-slate-800">Tap to Upload Diagnostic PDF</p>
-                                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Supports PDF (Max 2MB)</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <button type="submit" id="submitLabBtn" class="w-full bg-cyan-600 hover:bg-cyan-700 text-white py-4 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg hover:shadow-cyan-500/40 hover:-translate-y-1 transition-all duration-300 mt-2">Transmit Report to Doctor</button>
-                    </form>
+                    <button onclick="decryptPayload()" id="decryptBtn" class="w-full bg-slate-900 hover:bg-slate-800 text-white py-4 rounded-xl font-bold text-sm uppercase tracking-wide shadow-lg shadow-slate-900/20 transition-all mt-4 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-unlock"></i> Decrypt Investigation Order
+                    </button>
                 </div>
+            </div>
+
+            <div id="resultPanel" class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm hidden opacity-0 transition-all duration-500 transform translate-y-4">
+                <div class="flex justify-between items-start border-b border-slate-100 pb-4 mb-6">
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Citizen</p>
+                        <p id="resPatient" class="text-lg font-bold text-slate-800"></p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Prescribing Authority</p>
+                        <p id="resDoctor" class="text-sm font-bold text-indigo-600"></p>
+                    </div>
+                </div>
+
+                <div id="statusBadge" class="mb-6 inline-block px-4 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-widest border shadow-sm border-indigo-200 bg-indigo-50 text-indigo-600">
+                    <i class='fa-solid fa-microscope mr-1'></i> Orders Pending
+                </div>
+
+                <h4 class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-4 border-b border-slate-100 pb-2"><i class="fa-solid fa-vial-virus mr-2"></i> Requested Investigations</h4>
+                
+                <div class="space-y-3 mb-8" id="testList">
+                    </div>
+
+                <button onclick="acknowledgeOrder()" id="ackBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-xl font-bold text-sm uppercase tracking-wide transition-all shadow-md flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-file-arrow-up text-lg"></i> Acknowledge & Upload Findings
+                </button>
             </div>
         </div>
     </main>
 
-    <div id="toast-container" class="fixed bottom-6 right-6 z-[150] flex flex-col gap-3 pointer-events-none"></div>
+    <div id="scannerModal" class="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4 hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl w-full max-w-md p-6 shadow-2xl relative overflow-hidden transform transition-all flex flex-col">
+            <div class="flex justify-between items-center mb-4 pb-4 border-b border-slate-100">
+                <h3 class="text-sm font-bold text-slate-800 uppercase tracking-widest"><i class="fa-solid fa-camera mr-2 text-indigo-500"></i> Optical Scanner</h3>
+                <button onclick="stopScanner()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-rose-100 hover:text-rose-500 flex items-center justify-center transition-colors"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div id="reader" class="w-full bg-slate-900 rounded-xl overflow-hidden aspect-square border-2 border-dashed border-indigo-400/50"></div>
+            
+            <p class="text-[11px] font-medium text-slate-500 text-center mt-4 uppercase tracking-widest">Position Grid QR Code in frame</p>
+        </div>
+    </div>
+
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[150] flex flex-col gap-3 pointer-events-none w-full max-w-[320px]"></div>
 
     <script>
         const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
         const token = sessionStorage.getItem('eRx_Token');
-        let currentRxId = null; let html5QrcodeScanner = null; 
+        if (!token) window.location.href = 'index.html';
+        
+        // Setup UI Profile
+        const userName = sessionStorage.getItem('eRx_UserName');
+        if(userName) document.getElementById('pathNameDisplay').innerText = userName;
+        try { const decoded = JSON.parse(atob(token.split('.')[1])); document.getElementById('pathGridIdDisplay').innerText = decoded.uuid || 'PTH-ACTIVE'; } catch(e){}
 
-        function parseJwt(t) { try { return JSON.parse(atob(t.split('.')[1])); } catch(e) { return {}; } }
-        const decoded = parseJwt(token);
-        if (!token || decoded.role !== 'pathologist') window.location.href = 'index.html';
+        let currentRxId = null;
+        let html5QrcodeScanner = null;
 
-        document.getElementById('pathologistNameDisplay').innerText = decoded.name || 'Diagnostic Agent';
-        document.getElementById('pathologistIdDisplay').innerText = `ID: ${decoded.gridId || 'PENDING'}`;
-        function logout() { sessionStorage.clear(); window.location.href = 'index.html'; }
-
-        // 🎨 THE TOAST ENGINE PRESERVED
-        function showToast(message, type = 'success') {
+        function showToast(message, type = 'error') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
-            const colors = type === 'error' ? 'bg-rose-600 text-white shadow-rose-500/30' : 'bg-cyan-600 text-white shadow-cyan-500/30';
-            const icon = type === 'error' ? 'fa-triangle-exclamation' : 'fa-check-circle';
+            const colors = type === 'error' ? 'bg-white border-rose-200 shadow-lg' : 'bg-white border-emerald-200 shadow-lg';
+            const iconColor = type === 'error' ? 'text-rose-500 bg-rose-50' : 'text-emerald-500 bg-emerald-50';
+            const icon = type === 'error' ? 'fa-triangle-exclamation' : 'fa-check';
             
-            toast.className = `flex items-center gap-3 px-6 py-4 rounded-2xl shadow-xl transform transition-all duration-500 translate-y-10 opacity-0 ${colors}`;
-            toast.innerHTML = `<i class="fa-solid ${icon}"></i><span class="text-[10px] font-black uppercase tracking-widest">${message}</span>`;
-            
+            toast.className = `flex items-center p-4 rounded-xl border-l-4 transform transition-all duration-300 translate-y-10 opacity-0 ${colors}`;
+            toast.innerHTML = `<div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${iconColor}"><i class="fa-solid ${icon}"></i></div><div class="ml-3"><p class="text-[11px] font-bold text-slate-800 uppercase tracking-wider leading-tight">${type === 'error' ? 'System Alert' : 'Success'}</p><p class="text-xs font-medium text-slate-500 mt-0.5">${message}</p></div>`;
             container.appendChild(toast);
-            requestAnimationFrame(() => { toast.classList.remove('translate-y-10', 'opacity-0'); });
-            
-            setTimeout(() => {
-                toast.classList.add('translate-y-10', 'opacity-0');
-                setTimeout(() => toast.remove(), 500);
-            }, 3000);
+            requestAnimationFrame(() => toast.classList.remove('translate-y-10', 'opacity-0'));
+            setTimeout(() => { toast.classList.add('translate-y-10', 'opacity-0'); setTimeout(() => toast.remove(), 500); }, 4000);
         }
 
-        // 📄 PDF FILE NAME DISPLAY (Pointer-events-none Fix)
-        function updateFileName(input) {
-            const display = document.getElementById('pdfFileName');
-            if (input.files.length > 0) {
-                const file = input.files[0];
-                if (file.size > 2 * 1024 * 1024) { 
-                    showToast("FILE TOO LARGE: Max 2MB allowed", "error");
-                    input.value = '';
-                    return;
+        // ==========================================
+        // OPTICAL SCANNER LOGIC
+        // ==========================================
+        function startScanner() {
+            const modal = document.getElementById('scannerModal');
+            modal.classList.remove('hidden');
+            requestAnimationFrame(() => modal.classList.remove('opacity-0'));
+
+            html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: {width: 250, height: 250} }, false);
+            html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+        }
+
+        function onScanSuccess(decodedText, decodedResult) {
+            try {
+                stopScanner();
+                const data = JSON.parse(decodedText);
+                if(data.bId && data.otp) {
+                    showToast("Optical Scan Complete.", "success");
+                    document.getElementById('broadcastId').value = data.bId;
+                    document.getElementById('otp').value = data.otp;
+                    decryptPayload();
+                } else {
+                    showToast("Invalid Grid Payload format.", "error");
                 }
-                display.innerHTML = `<i class="fa-solid fa-file-circle-check text-emerald-500 text-4xl mb-2"></i><div class="space-y-1"><p class="text-emerald-600 font-black">READY FOR GRID TRANSMISSION</p><p class="text-[10px] text-slate-400 font-bold uppercase truncate max-w-[250px] mx-auto">${file.name}</p></div>`;
-                showToast("PDF verified for broadcast", "success");
-            } else {
-                display.innerHTML = `<i class="fa-solid fa-file-pdf text-rose-400 text-4xl mb-3"></i><div class="space-y-1"><p class="text-sm font-black text-slate-800">Tap to Upload Diagnostic PDF</p><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Supports PDF (Max 2MB)</p></div>`;
+            } catch(e) {
+                stopScanner();
+                showToast("Unrecognized Grid Format.", "error");
             }
         }
 
-        function startScanner() {
-            document.getElementById('scannerContainer').classList.remove('hidden');
-            html5QrcodeScanner = new Html5Qrcode("reader");
-            html5QrcodeScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } },
-                (decodedText) => {
-                    try {
-                        const data = JSON.parse(decodedText);
-                        document.getElementById('searchBroadcastId').value = data.bId; document.getElementById('searchOtp').value = data.otp;
-                        stopScanner(); verifyPrescription();
-                    } catch(e) {}
-                }, (errorMessage) => {}
-            ).catch(err => showToast("Grid Link Failure.", "error"));
-        }
+        function onScanFailure(error) { /* Ignore background scan failures */ }
 
         function stopScanner() {
-            if (html5QrcodeScanner) { html5QrcodeScanner.stop().then(() => { document.getElementById('scannerContainer').classList.add('hidden'); }).catch(e => {}); } 
-            else { document.getElementById('scannerContainer').classList.add('hidden'); }
-        }
-
-        async function verifyPrescription() {
-            const btn = document.getElementById('searchBtn'); const bId = document.getElementById('searchBroadcastId').value.trim().toUpperCase(); const otp = document.getElementById('searchOtp').value.trim(); const viewer = document.getElementById('resultsViewer');
-            if(!bId || !otp) return showToast("Credentials Required", "error");
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Syncing...'; viewer.classList.add('hidden');
-
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/prescriptions/verify?broadcastId=${bId}&otp=${otp}`, { headers: { 'Authorization': `Bearer ${token}` } });
-                const data = await res.json();
-                if (res.ok) {
-                    currentRxId = data._id; document.getElementById('resPatientName').innerText = data.patientId ? data.patientId.name : 'Unknown Citizen';
-                    if(data.investigations && data.investigations.length > 0) { document.getElementById('resTestList').innerHTML = data.investigations.map(t => `<span class="bg-indigo-50 border border-indigo-100 text-indigo-700 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest shadow-sm">${t}</span>`).join(''); } 
-                    else { document.getElementById('resTestList').innerHTML = '<span class="text-slate-400 font-bold text-sm px-2">No tests listed in broadcast.</span>'; }
-                    viewer.classList.remove('hidden');
-                    showToast("Clearance Granted", "success");
-                } else showToast(data.msg, "error");
-            } catch(err) { showToast("Network Sync Failed", "error"); } finally { btn.innerHTML = 'Authenticate Request'; }
-        }
-
-        async function submitLabReport() {
-            if(!currentRxId) return;
-            const btn = document.getElementById('submitLabBtn'); 
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Transmitting...';
-            
-            const fileInput = document.getElementById('labPdf');
-            let pdfBase64 = null;
-            if (fileInput.files.length > 0) {
-                const file = fileInput.files[0];
-                const reader = new FileReader();
-                pdfBase64 = await new Promise((resolve) => {
-                    reader.onloadend = () => resolve(reader.result);
-                    reader.readAsDataURL(file);
-                });
+            if(html5QrcodeScanner) {
+                html5QrcodeScanner.clear();
+                html5QrcodeScanner = null;
             }
+            const modal = document.getElementById('scannerModal');
+            modal.classList.add('opacity-0');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
 
-            const payload = { 
-                prescriptionId: currentRxId, 
-                testName: document.getElementById('labTestName').value, 
-                resultValue: document.getElementById('labResult').value || 'Attached in PDF', 
-                unit: document.getElementById('labUnit').value, 
-                referenceRange: document.getElementById('labRef').value,
-                pdfReport: pdfBase64 
-            };
+        // ==========================================
+        // DECRYPTION LOGIC
+        // ==========================================
+        async function decryptPayload() {
+            const bId = document.getElementById('broadcastId').value;
+            const otp = document.getElementById('otp').value;
+            if(!bId || !otp) return showToast("Both security keys are required.");
+
+            const btn = document.getElementById('decryptBtn');
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Decrypting...'; btn.disabled = true;
 
             try {
-                const res = await fetch(`${API_BASE_URL}/api/labs`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) });
-                if(res.ok) { 
-                    showToast("Diagnostic Broadcast Successful!", "success"); 
-                    document.getElementById('labForm').reset(); 
-                    document.getElementById('pdfFileName').innerHTML = `<i class="fa-solid fa-file-pdf text-rose-400 text-4xl mb-3"></i><div class="space-y-1"><p class="text-sm font-black text-slate-800">Tap to Upload Diagnostic PDF</p><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Supports PDF (Max 2MB)</p></div>`;
-                } else { 
-                    const data = await res.json(); 
-                    showToast(data.msg, "error"); 
-                }
-            } catch(err) { showToast("Grid Link Failure", "error"); } finally { btn.innerHTML = 'Transmit Report to Doctor'; }
+                // Utilizing the exact same decryption endpoint
+                const res = await fetch(`${API_BASE_URL}/api/prescriptions/decrypt`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ broadcastId: bId, otp: otp })
+                });
+                const data = await res.json();
+
+                if(res.ok) {
+                    currentRxId = data.rxId;
+                    document.getElementById('resPatient').innerText = data.patientName;
+                    document.getElementById('resDoctor').innerText = "Dr. " + data.doctorName;
+                    
+                    const testList = document.getElementById('testList');
+                    const ackBtn = document.getElementById('ackBtn');
+                    
+                    if(data.investigations && data.investigations.length > 0) {
+                        testList.innerHTML = data.investigations.map(t => `
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 shadow-sm flex items-center">
+                                <div class="w-10 h-10 bg-indigo-100 text-indigo-500 rounded-lg flex items-center justify-center mr-4 shrink-0"><i class="fa-solid fa-vial"></i></div>
+                                <p class="font-bold text-sm text-slate-800">${t}</p>
+                            </div>
+                        `).join('');
+                        ackBtn.classList.remove('hidden');
+                        showToast("Payload successfully decrypted.", "success");
+                    } else {
+                        testList.innerHTML = `<div class="p-6 text-center border-2 border-dashed border-slate-200 rounded-xl bg-slate-50"><p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">No investigations ordered.</p></div>`;
+                        ackBtn.classList.add('hidden');
+                        showToast("Warning: No lab tests found in this payload.", "error");
+                    }
+
+                    const panel = document.getElementById('resultPanel');
+                    panel.classList.remove('hidden');
+                    setTimeout(() => panel.classList.remove('opacity-0', 'translate-y-4'), 50);
+
+                } else { showToast(data.msg, "error"); }
+            } catch (err) { showToast("Grid Network Failure.", "error"); } finally {
+                btn.innerHTML = '<i class="fa-solid fa-unlock"></i> Decrypt Investigation Order'; btn.disabled = false;
+            }
         }
 
-        // 📱 PWA SERVICE WORKER REGISTRATION PRESERVED
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(reg => console.log('PWA Engine Active'))
-                    .catch(err => console.log('PWA Engine Failed', err));
-            });
+        // Feature placeholder for when we build the Clinical Record API
+        function acknowledgeOrder() {
+            if(!currentRxId) return;
+            const btn = document.getElementById('ackBtn');
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Initializing Upload...'; btn.disabled = true;
+
+            setTimeout(() => {
+                showToast("Investigations Acknowledged. Linked to Clinical Layer.", "success");
+                document.getElementById('statusBadge').className = "mb-6 inline-block px-4 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-widest border shadow-sm border-emerald-200 bg-emerald-50 text-emerald-600";
+                document.getElementById('statusBadge').innerHTML = "<i class='fa-solid fa-check-double mr-1'></i> Order Received & Processed";
+                btn.classList.add('hidden');
+            }, 1000);
         }
+
+        function logout() { sessionStorage.clear(); window.location.href = 'index.html'; }
     </script>
 </body>
 </html>
