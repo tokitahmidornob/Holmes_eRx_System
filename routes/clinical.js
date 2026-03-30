@@ -14,30 +14,42 @@ const verifyToken = (req, res, next) => {
 };
 
 // ==========================================
-// 1. FETCH MASTER FORMULARY (Metadata Fail-Safe)
+// 1. FETCH MASTER FORMULARY (Substance Intelligence Engine)
 // ==========================================
 router.get('/formulary', verifyToken, async (req, res) => {
     try {
-        // .lean() pulls raw data, ignoring strict schema rules just in case your CSV had different headers
         const drugs = await Medicine.find({}).lean().limit(5000); 
         
         const formularyArray = drugs.map(d => {
-            // Check for both lowercase and uppercase field names
             const brand = d.brandName || d.BrandName || d.brand || d.Brand || '';
             const strength = d.strength || d.Strength || '';
             const form = d.form || d.Form || '';
             const generic = d.genericName || d.GenericName || d.generic || d.Generic || '';
             
-            // Build the string: "Afrodic 50mg Tablet (Diclofenac)"
             let fullName = `${brand} ${strength} ${form}`.trim();
             if (generic) fullName += ` (${generic})`;
-            
-            // Clean up extra spaces
-            return fullName.replace(/\s+/g, ' ') || "Unknown Drug";
-        }).filter(name => name !== "Unknown Drug");
+            fullName = fullName.replace(/\s+/g, ' ') || "Unknown Drug";
 
-        // Remove any exact duplicates just in case
-        const uniqueDrugs = [...new Set(formularyArray)];
+            // Return a complete Intelligence Object instead of just a string
+            return {
+                display: fullName,
+                // Automatically grabs default dosage, with a safety fallback
+                dosage: d.defaultDosage || d.DefaultDosage || d.dosage || d.Dosage || d.dose || "1 Tablet",
+                indications: d.indications || d.Indications || d.indication || "Data not in CSV",
+                sideEffects: d.sideEffects || d.SideEffects || d.side_effects || "Data not in CSV",
+                administration: d.administration || d.Administration || d.route || "Data not in CSV"
+            };
+        }).filter(d => d.display !== "Unknown Drug");
+
+        // Deduplicate the objects
+        const uniqueDrugs = [];
+        const map = new Map();
+        for (const item of formularyArray) {
+            if(!map.has(item.display)) {
+                map.set(item.display, true);
+                uniqueDrugs.push(item);
+            }
+        }
 
         res.json(uniqueDrugs);
     } catch (err) {

@@ -91,32 +91,22 @@
                             <i class="fa-solid fa-fingerprint absolute left-4 top-1/2 -translate-y-1/2 text-lg text-slate-400 group-focus-within:text-teal-500 transition-colors"></i>
                         </div>
                         <input type="hidden" id="selectedPatientId">
-                        
                         <div id="patientDropdown" class="hidden absolute w-full mt-2 bg-white/95 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-2xl max-h-80 overflow-y-auto custom-scrollbar z-50 divide-y divide-slate-100 transform origin-top transition-all-spring"></div>
                     </div>
                 </div>
 
                 <div id="clinicalDossierPanel" class="hidden grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 transition-all duration-500 opacity-0 transform translate-y-8">
-                    
                     <div class="bg-white rounded-[24px] p-5 lg:p-6 border border-rose-100 shadow-sm border-t-[6px] border-t-rose-500 hover:shadow-md transition-shadow">
                         <h3 class="text-[10px] font-black text-rose-600 uppercase tracking-widest mb-4 flex justify-between items-center"><span><i class="fa-solid fa-triangle-exclamation mr-1.5"></i> Verified Allergies</span> <span id="allergyCount" class="bg-rose-100 px-2 py-0.5 rounded-md text-rose-800 shadow-inner">0</span></h3>
-                        <div id="dossierAllergies" class="space-y-2 max-h-40 overflow-y-auto custom-scrollbar pr-2">
-                            <div class="flex flex-col items-center justify-center py-4 opacity-50"><i class="fa-solid fa-shield-virus text-2xl text-slate-300 mb-2"></i><p class="text-[10px] uppercase font-bold text-slate-400 text-center tracking-widest">Awaiting Patient Data</p></div>
-                        </div>
+                        <div id="dossierAllergies" class="space-y-2 max-h-40 overflow-y-auto custom-scrollbar pr-2"></div>
                     </div>
-
                     <div class="bg-white rounded-[24px] p-5 lg:p-6 border border-amber-100 shadow-sm border-t-[6px] border-t-amber-500 hover:shadow-md transition-shadow">
                         <h3 class="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-4 flex justify-between items-center"><span><i class="fa-solid fa-heart-pulse mr-1.5"></i> Active Conditions</span> <span id="conditionCount" class="bg-amber-100 px-2 py-0.5 rounded-md text-amber-800 shadow-inner">0</span></h3>
-                        <div id="dossierConditions" class="space-y-2 max-h-40 overflow-y-auto custom-scrollbar pr-2">
-                             <div class="flex flex-col items-center justify-center py-4 opacity-50"><i class="fa-solid fa-clipboard-list text-2xl text-slate-300 mb-2"></i><p class="text-[10px] uppercase font-bold text-slate-400 text-center tracking-widest">Awaiting Patient Data</p></div>
-                        </div>
+                        <div id="dossierConditions" class="space-y-2 max-h-40 overflow-y-auto custom-scrollbar pr-2"></div>
                     </div>
-
                     <div class="bg-white rounded-[24px] p-5 lg:p-6 border border-teal-100 shadow-sm border-t-[6px] border-t-teal-500 hover:shadow-md transition-shadow">
                         <h3 class="text-[10px] font-black text-teal-600 uppercase tracking-widest mb-4 flex justify-between items-center"><span><i class="fa-solid fa-pills mr-1.5"></i> Active Meds</span> <span id="medCount" class="bg-teal-100 px-2 py-0.5 rounded-md text-teal-800 shadow-inner">0</span></h3>
-                        <div id="dossierActiveMeds" class="space-y-2 max-h-40 overflow-y-auto custom-scrollbar pr-2">
-                             <div class="flex flex-col items-center justify-center py-4 opacity-50"><i class="fa-solid fa-prescription-bottle-medical text-2xl text-slate-300 mb-2"></i><p class="text-[10px] uppercase font-bold text-slate-400 text-center tracking-widest">Awaiting Patient Data</p></div>
-                        </div>
+                        <div id="dossierActiveMeds" class="space-y-2 max-h-40 overflow-y-auto custom-scrollbar pr-2"></div>
                     </div>
                 </div>
 
@@ -126,16 +116,36 @@
                         
                         <div class="flex flex-col md:flex-row gap-3 mb-6 relative bg-slate-50 p-2 rounded-2xl border border-slate-100">
                             <div class="flex-1 w-full relative" id="drugDropdownContainer">
-                                <input type="text" id="medName" placeholder="Drug / Substance..." autocomplete="off" class="w-full p-4 rounded-xl border border-transparent text-sm font-bold focus:ring-2 focus:ring-teal-500 outline-none bg-white shadow-sm">
+                                <input type="text" id="medName" placeholder="Drug / Substance..." autocomplete="off" class="w-full p-4 rounded-xl border border-transparent text-sm font-bold focus:ring-2 focus:ring-teal-500 outline-none bg-white shadow-sm transition-all">
                             </div>
                             <div class="flex gap-2 w-full md:w-auto">
-                                <input type="text" id="medDose" placeholder="Dosage" class="w-1/3 md:w-24 p-4 rounded-xl border border-transparent text-sm font-bold bg-white shadow-sm outline-none focus:ring-2 focus:ring-teal-500">
+                                <input type="text" id="medDose" placeholder="Dosage" class="w-1/3 md:w-28 p-4 rounded-xl border border-transparent text-sm font-bold bg-white shadow-sm outline-none focus:ring-2 focus:ring-teal-500 transition-all duration-300">
                                 <select id="medTiming" class="w-1/3 md:w-36 p-4 rounded-xl border border-transparent text-sm font-bold bg-white shadow-sm outline-none focus:ring-2 focus:ring-teal-500 appearance-none cursor-pointer"><option value="After Meal">After Meal</option><option value="Before Meal">Before Meal</option></select>
-                                <input type="text" id="medDuration" placeholder="Days" class="w-1/3 md:w-24 p-4 rounded-xl border border-transparent text-sm font-bold bg-white shadow-sm outline-none focus:ring-2 focus:ring-teal-500">
+                                <input type="text" id="medDuration" placeholder="Days" class="w-1/3 md:w-24 p-4 rounded-xl border border-transparent text-sm font-bold bg-white shadow-sm outline-none focus:ring-2 focus:ring-teal-500 transition-all">
                             </div>
                             <button onclick="attemptAddMedication()" class="w-full md:w-auto bg-slate-900 hover:bg-teal-600 text-white p-4 rounded-xl font-black transition-colors shadow-md hover:-translate-y-1 flex justify-center items-center"><i class="fa-solid fa-plus md:mr-0 mr-2"></i><span class="md:hidden">Add</span></button>
                         </div>
 
+                        <div id="drugMetadataPanel" class="hidden w-full mb-6 bg-slate-800 rounded-2xl p-5 shadow-lg border border-teal-500/30 transition-all duration-500 fade-in-up">
+                            <div class="flex items-center justify-between mb-4 border-b border-slate-700 pb-3">
+                                <h4 class="text-[10px] font-black text-teal-400 uppercase tracking-widest"><i class="fa-solid fa-microchip mr-2"></i> Substance Intelligence Loaded</h4>
+                                <button onclick="document.getElementById('drugMetadataPanel').classList.add('hidden')" class="text-slate-500 hover:text-rose-400 transition-colors"><i class="fa-solid fa-times"></i></button>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-700/50 hover:border-teal-500/50 transition-colors">
+                                    <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1"><i class="fa-solid fa-bullseye text-teal-500 mr-1"></i> Indications</p>
+                                    <p id="metaIndications" class="text-xs font-bold text-slate-200 leading-relaxed"></p>
+                                </div>
+                                <div class="bg-rose-500/10 p-4 rounded-xl border border-rose-500/20 hover:border-rose-500/50 transition-colors">
+                                    <p class="text-[9px] font-black text-rose-500 uppercase tracking-widest mb-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Side Effects</p>
+                                    <p id="metaSideEffects" class="text-xs font-bold text-rose-200 leading-relaxed"></p>
+                                </div>
+                                <div class="bg-indigo-500/10 p-4 rounded-xl border border-indigo-500/20 hover:border-indigo-500/50 transition-colors">
+                                    <p class="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-1"><i class="fa-solid fa-route mr-1"></i> Administration</p>
+                                    <p id="metaAdmin" class="text-xs font-bold text-indigo-200 leading-relaxed"></p>
+                                </div>
+                            </div>
+                        </div>
                         <div id="medListDisplay" class="space-y-3 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
                             <div class="p-8 text-center border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50/50"><i class="fa-solid fa-mortar-pestle text-3xl text-slate-200 mb-3 block"></i><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">No therapies added to payload.</p></div>
                         </div>
@@ -195,9 +205,7 @@
                 <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full">Grid Immutable Record</div>
                 <p class="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 mt-4">Broadcast Reference</p>
                 <p id="successBroadcastId" class="font-mono font-black text-lg lg:text-xl text-slate-800 bg-slate-50 py-2 rounded-lg border border-slate-100"></p>
-                
                 <div class="h-px bg-slate-100 my-6"></div>
-                
                 <div class="flex justify-center mb-6"><div id="successQr" class="p-4 bg-white rounded-2xl border-2 border-slate-100 shadow-sm hover:scale-105 transition-transform duration-300"></div></div>
                 <p class="text-[9px] font-black text-emerald-500 uppercase tracking-[0.2em] mb-2">Patient Decryption Key</p>
                 <p id="successOtp" class="font-mono font-black text-5xl lg:text-6xl text-emerald-500 tracking-[0.1em] drop-shadow-sm"></p>
@@ -205,25 +213,6 @@
             <button onclick="closeSuccessAndRefresh()" class="w-full bg-slate-900 hover:bg-slate-800 text-white py-4 lg:py-5 rounded-2xl font-black text-xs uppercase tracking-widest hover:-translate-y-1 transition-all-spring shadow-xl">Clear Terminal for Next Patient</button>
         </div>
     </div>
-
-    <div id="rxModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4 lg:p-6 opacity-0 pointer-events-none transition-all duration-300">
-        <div class="bg-white rounded-[32px] w-full max-w-[800px] shadow-2xl relative overflow-hidden transform scale-95 transition-all duration-300 flex flex-col max-h-[90vh]" id="rxModalContent">
-            <div class="p-6 lg:p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
-                <div><h3 class="text-lg lg:text-xl font-black text-slate-900 uppercase tracking-tighter">Cryptographic Record</h3></div>
-                <button onclick="closeRxModal()" class="w-10 h-10 bg-white border border-slate-200 rounded-full flex items-center justify-center hover:bg-rose-500 hover:text-white transition-colors shadow-sm"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div class="p-6 lg:p-8 space-y-6 overflow-y-auto custom-scrollbar flex-1">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-slate-900 p-6 rounded-[24px] shadow-inner text-white">
-                    <div><p class="text-[9px] font-black text-teal-400 uppercase tracking-widest mb-1">Grid Broadcast ID</p><p id="modalBroadcastId" class="font-mono font-bold text-base lg:text-lg tracking-wider"></p></div>
-                    <div class="md:text-right w-full md:w-auto border-t md:border-t-0 md:border-l border-slate-700 pt-4 md:pt-0 md:pl-6"><p class="text-[9px] font-black text-emerald-400 uppercase tracking-widest mb-1">Decryption OTP</p><p id="modalOtp" class="font-mono font-black text-emerald-400 text-3xl tracking-[0.2em] leading-none"></p></div>
-                </div>
-                <div><h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center"><i class="fa-solid fa-pills mr-2"></i> Payload Medications</h4><div id="modalMedList" class="space-y-3"></div></div>
-                <div id="modalTestSection"><h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 border-t border-slate-100 pt-6 flex items-center"><i class="fa-solid fa-microscope mr-2"></i> Investigations</h4><div id="modalTestList" class="flex flex-wrap gap-2"></div></div>
-            </div>
-        </div>
-    </div>
-
-    <div id="toast-container" class="fixed bottom-6 right-6 lg:bottom-10 lg:right-10 z-[150] flex flex-col gap-3 pointer-events-none w-full max-w-[320px] px-4 lg:px-0"></div>
 
     <script>
         const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
@@ -293,7 +282,6 @@
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(async () => {
                 try {
-                    // 🚨 CRITICAL FIX: The Fetch URL is now correctly pointing to the clinical engine!
                     const res = await fetch(`${API_BASE_URL}/api/clinical/search`, { 
                         method: 'POST', 
                         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, 
@@ -331,7 +319,6 @@
             document.getElementById('dossierActiveMeds').innerHTML = getDossierSkeleton();
 
             try {
-                // 🚨 CRITICAL FIX: This dossier fetch URL now matches the route we built
                 const res = await fetch(`${API_BASE_URL}/api/clinical/dossier/${patientId}`, { headers: { 'Authorization': `Bearer ${token}` } });
                 if(res.ok) {
                     const dossier = await res.json();
@@ -384,7 +371,12 @@
 
             medications.push({ brandName: n, dosage: ds, timing: t, duration: dr }); 
             renderMedications(); 
-            document.getElementById('medName').value = ''; document.getElementById('medDose').value = ''; document.getElementById('medDuration').value = '';
+            
+            // Clear inputs and hide intelligence panel after adding
+            document.getElementById('medName').value = ''; 
+            document.getElementById('medDose').value = ''; 
+            document.getElementById('medDuration').value = '';
+            document.getElementById('drugMetadataPanel').classList.add('hidden');
             document.getElementById('medName').focus();
         }
 
@@ -488,20 +480,16 @@
     </script>
     <script>
         // ==========================================
-        // 🚨 1. HYBRID FORMULARY (Pitch-Ready Fail-Safe)
+        // 🚨 1. HYBRID FORMULARY (Intelligence Fail-Safe)
         // ==========================================
         let nationalFormulary = [];
         
-        // The guaranteed fallback list if MongoDB connection fails during the pitch
+        // Upgraded Fallback to objects with full intelligence metadata
         const emergencyFallbackDrugs = [
-            "Paracetamol (Napa) 500mg", "Amoxicillin (Moxacil) 500mg", "Omeprazole (Seclo) 20mg", 
-            "Esomeprazole (Maxpro) 20mg", "Pantoprazole (Pantodac) 40mg", "Domperidone (Motigut) 10mg",
-            "Loratadine (Alatrol) 10mg", "Fexofenadine (Fexo) 120mg", "Ketorolac (Rolac) 10mg", 
-            "Ibuprofen (Profen) 400mg", "Metformin (Comet) 500mg", "Losartan (Osartil) 50mg",
-            "Amlodipine (Amlocal) 5mg", "Atorvastatin (Lipicon) 10mg", "Salbutamol (Windel) Inhaler", 
-            "Montelukast (Monas) 10mg", "Diazepam (Sedil) 5mg", "Clonazepam (Rivotril) 0.5mg",
-            "Azithromycin (Zithrin) 500mg", "Cefuroxime (Furotil) 250mg", "Ciprofloxacin (Ciprocin) 500mg",
-            "Peanut Extract (Diagnostic)" // Needed to show the Allergy Contraindication!
+            { display: "Paracetamol (Napa) 500mg", dosage: "1+1+1", indications: "Fever, Mild Pain", sideEffects: "Hepatotoxicity in high doses", administration: "Take after meals" },
+            { display: "Omeprazole (Seclo) 20mg", dosage: "1+0+1", indications: "GERD, Acidity", sideEffects: "Headache, Nausea", administration: "Take 30 mins before meals" },
+            { display: "Afrodic 50mg Tablet (Diclofenac)", dosage: "0+0+1", indications: "Inflammation, Pain", sideEffects: "Gastric ulceration", administration: "Take after meals" },
+            { display: "Peanut Extract (Diagnostic)", dosage: "1 Drop", indications: "Allergy Testing", sideEffects: "Anaphylaxis", administration: "Topical / Subcutaneous" }
         ];
 
         async function loadMasterFormulary() {
@@ -514,9 +502,8 @@
                     const dbDrugs = await res.json();
                     if (dbDrugs && dbDrugs.length > 0) {
                         nationalFormulary = dbDrugs;
-                        console.log(`Grid Synced: ${nationalFormulary.length} drugs loaded from DB.`);
+                        console.log(`Grid Synced: ${nationalFormulary.length} drug profiles loaded from DB.`);
                     } else {
-                        console.warn("DB empty/mismatched. Activating Fail-Safe Formulary.");
                         nationalFormulary = emergencyFallbackDrugs;
                     }
                 } else {
@@ -526,14 +513,13 @@
                 console.error("Network error. Activating Fail-Safe Formulary.");
                 nationalFormulary = emergencyFallbackDrugs;
             } finally {
-                // Initialize autocomplete regardless of where the data came from
                 const drugInput = document.getElementById("drugInput") || document.getElementById("medName"); 
                 if(drugInput) { autocomplete(drugInput, nationalFormulary); }
             }
         }
 
         // ==========================================
-        // 2. THE AUTOCOMPLETE ENGINE (Styled for your theme)
+        // 2. THE INTELLIGENCE AUTOCOMPLETE ENGINE 
         // ==========================================
         function autocomplete(inp, arr) {
             let currentFocus;
@@ -550,19 +536,42 @@
                 
                 let matches = 0;
                 for (i = 0; i < arr.length; i++) {
-                    if (arr[i].toUpperCase().includes(val.toUpperCase())) {
+                    if (arr[i].display.toUpperCase().includes(val.toUpperCase())) {
                         matches++;
                         b = document.createElement("DIV");
                         b.setAttribute("class", "p-4 cursor-pointer text-slate-700 font-bold border-b border-slate-100 hover:bg-teal-50 hover:text-teal-700 transition-colors");
                         
-                        const matchIndex = arr[i].toUpperCase().indexOf(val.toUpperCase());
-                        b.innerHTML = arr[i].substring(0, matchIndex);
-                        b.innerHTML += "<strong>" + arr[i].substring(matchIndex, matchIndex + val.length) + "</strong>";
-                        b.innerHTML += arr[i].substring(matchIndex + val.length);
+                        const matchIndex = arr[i].display.toUpperCase().indexOf(val.toUpperCase());
+                        b.innerHTML = arr[i].display.substring(0, matchIndex);
+                        b.innerHTML += "<strong>" + arr[i].display.substring(matchIndex, matchIndex + val.length) + "</strong>";
+                        b.innerHTML += arr[i].display.substring(matchIndex + val.length);
                         
-                        b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
+                        // 🚨 Store the array index to pull metadata on click
+                        b.innerHTML += "<input type='hidden' value='" + i + "'>";
+                        
                         b.addEventListener("click", function(e) {
-                            inp.value = this.getElementsByTagName("input")[0].value;
+                            const selectedIdx = this.getElementsByTagName("input")[0].value;
+                            const selectedObj = arr[selectedIdx];
+                            
+                            inp.value = selectedObj.display;
+                            
+                            // 1. AUTO-FILL DOSAGE
+                            const doseInput = document.getElementById("medDose");
+                            if(doseInput) {
+                                doseInput.value = selectedObj.dosage || "";
+                                // Flash effect to show it was automated
+                                doseInput.classList.add("bg-teal-100", "scale-105");
+                                setTimeout(() => doseInput.classList.remove("bg-teal-100", "scale-105"), 300);
+                            }
+
+                            // 2. POPULATE METADATA PANEL
+                            document.getElementById("metaIndications").innerText = selectedObj.indications || "Data not in CSV";
+                            document.getElementById("metaSideEffects").innerText = selectedObj.sideEffects || "Data not in CSV";
+                            document.getElementById("metaAdmin").innerText = selectedObj.administration || "Data not in CSV";
+                            
+                            // 3. SHOW PANEL
+                            document.getElementById("drugMetadataPanel").classList.remove("hidden");
+                            
                             closeAllLists();
                         });
                         a.appendChild(b);
