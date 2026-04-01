@@ -8,9 +8,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="antialiased text-slate-100 bg-slate-950 min-h-screen">
-    <div class="min-h-screen bg-slate-950">
-        <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-20">
+<body class="antialiased text-slate-100 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.10),_transparent_25%),radial-gradient(circle_at_bottom_right,_rgba(52,211,153,0.08),_transparent_18%),rgba(15,23,42,1)] min-h-screen">
+    <div class="min-h-screen bg-transparent">
+        <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur-xl sticky top-0 z-20">
             <div class="max-w-7xl mx-auto px-6 lg:px-10 py-6 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
                 <div>
                     <p class="text-xs uppercase tracking-[0.35em] text-cyan-400 font-bold mb-2">Panopticon</p>
@@ -27,39 +27,42 @@
 
         <main class="max-w-7xl mx-auto px-6 lg:px-10 py-10 space-y-10">
             <section class="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-                <div class="rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-xl shadow-slate-950/40">
-                    <p class="text-xs uppercase tracking-[0.3em] text-slate-500 font-bold">Patients</p>
-                    <p id="totalPatients" class="mt-4 text-4xl font-extrabold text-cyan-300">0</p>
-                    <p class="mt-2 text-sm text-slate-400">Total registered citizen profiles.</p>
+                <div class="rounded-3xl border border-slate-700/50 bg-slate-900/55 backdrop-blur-md p-6 shadow-[0_24px_80px_-40px_rgba(14,165,233,0.45)]">
+                    <p class="text-xs uppercase tracking-[0.3em] text-slate-400 font-bold">Patients</p>
+                    <p id="totalPatients" class="mt-4 text-4xl font-extrabold text-cyan-400 drop-shadow-[0_0_18px_rgba(34,211,238,0.45)]">0</p>
+                    <p class="mt-2 text-sm text-slate-300">Total registered citizen profiles.</p>
                 </div>
-                <div class="rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-xl shadow-slate-950/40">
-                    <p class="text-xs uppercase tracking-[0.3em] text-slate-500 font-bold">Doctors</p>
-                    <p id="totalDoctors" class="mt-4 text-4xl font-extrabold text-emerald-300">0</p>
-                    <p class="mt-2 text-sm text-slate-400">Active prescribing authorities.</p>
+                <div class="rounded-3xl border border-slate-700/50 bg-slate-900/55 backdrop-blur-md p-6 shadow-[0_24px_80px_-40px_rgba(34,197,94,0.35)]">
+                    <p class="text-xs uppercase tracking-[0.3em] text-slate-400 font-bold">Doctors</p>
+                    <p id="totalDoctors" class="mt-4 text-4xl font-extrabold text-emerald-400 drop-shadow-[0_0_18px_rgba(16,185,129,0.45)]">0</p>
+                    <p class="mt-2 text-sm text-slate-300">Active prescribing authorities.</p>
                 </div>
-                <div class="rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-xl shadow-slate-950/40">
-                    <p class="text-xs uppercase tracking-[0.3em] text-slate-500 font-bold">Pharmacists</p>
-                    <p id="totalPharmacists" class="mt-4 text-4xl font-extrabold text-sky-300">0</p>
-                    <p class="mt-2 text-sm text-slate-400">Certified dispensary authorities.</p>
+                <div class="rounded-3xl border border-slate-700/50 bg-slate-900/55 backdrop-blur-md p-6 shadow-[0_24px_80px_-40px_rgba(56,189,248,0.35)]">
+                    <p class="text-xs uppercase tracking-[0.3em] text-slate-400 font-bold">Pharmacists</p>
+                    <p id="totalPharmacists" class="mt-4 text-4xl font-extrabold text-cyan-300 drop-shadow-[0_0_18px_rgba(56,189,248,0.45)]">0</p>
+                    <p class="mt-2 text-sm text-slate-300">Certified dispensary authorities.</p>
                 </div>
-                <div class="rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-xl shadow-slate-950/40">
-                    <p class="text-xs uppercase tracking-[0.3em] text-slate-500 font-bold">Pathologists</p>
-                    <p id="totalPathologists" class="mt-4 text-4xl font-extrabold text-rose-300">0</p>
-                    <p class="mt-2 text-sm text-slate-400">Lab authorities with diagnostics clearance.</p>
+                <div class="rounded-3xl border border-slate-700/50 bg-slate-900/55 backdrop-blur-md p-6 shadow-[0_24px_80px_-40px_rgba(236,72,153,0.28)]">
+                    <p class="text-xs uppercase tracking-[0.3em] text-slate-400 font-bold">Pathologists</p>
+                    <p id="totalPathologists" class="mt-4 text-4xl font-extrabold text-rose-300 drop-shadow-[0_0_18px_rgba(244,63,94,0.35)]">0</p>
+                    <p class="mt-2 text-sm text-slate-300">Lab authorities with diagnostics clearance.</p>
                 </div>
             </section>
 
-            <section class="rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-xl shadow-slate-950/40">
+            <section class="rounded-3xl border border-slate-700/50 bg-slate-900/55 backdrop-blur-md p-6 shadow-[0_30px_90px_-45px_rgba(14,165,233,0.35)]">
                 <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
-                    <div>
+                    <div class="flex items-center gap-3">
                         <h2 class="text-2xl font-bold text-white">Grid Activity Log</h2>
-                        <p class="text-slate-400 mt-2">Latest prescription broadcasts with practitioner and patient correlation.</p>
+                        <div class="flex items-center gap-2 px-3 py-1 rounded-full bg-slate-950/70 border border-slate-700 text-slate-300 text-[11px] uppercase tracking-[0.25em]">
+                            <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+                            Live Feed
+                        </div>
                     </div>
-                    <span id="activityCount" class="inline-flex items-center rounded-full bg-slate-800 px-4 py-2 text-xs uppercase tracking-widest text-slate-400">0 events</span>
+                    <span id="activityCount" class="inline-flex items-center rounded-full bg-slate-950/80 px-4 py-2 text-xs uppercase tracking-widest text-slate-300">0 events</span>
                 </div>
-                <div class="overflow-x-auto rounded-3xl border border-slate-800 bg-slate-950">
+                <div class="overflow-x-auto rounded-3xl border border-slate-700/50 bg-slate-950/70 backdrop-blur-sm">
                     <table class="min-w-full divide-y divide-slate-800 text-left text-sm text-slate-300">
-                        <thead class="bg-slate-900 text-slate-400 uppercase text-[10px] tracking-[0.25em]">
+                        <thead class="bg-slate-950/80 text-slate-400 uppercase text-[10px] tracking-widest">
                             <tr>
                                 <th class="px-5 py-4">Date / Time</th>
                                 <th class="px-5 py-4">Doctor</th>
@@ -138,7 +141,7 @@
             body.innerHTML = activity.map(item => {
                 const dateTime = new Date(item.createdAt).toLocaleString();
                 const statusClass = item.status === 'Active'
-                    ? 'bg-cyan-500/10 text-cyan-300 border border-cyan-500/20'
+                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                     : 'bg-slate-800 text-slate-200 border border-slate-700';
                 return `
                     <tr class="bg-slate-950 hover:bg-slate-900">

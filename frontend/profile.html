@@ -15,7 +15,7 @@
             <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg"><i class="fa-solid fa-id-card"></i></div>
             <h1 class="ml-4 text-xl font-bold">Identity <span class="text-blue-400">Matrix</span></h1>
         </div>
-        <nav class="flex-1 py-8 px-4 space-y-2">
+        <nav class="flex-1 py-8 px-4 space-y-2 overflow-y-auto">
             <button onclick="goHome()" class="w-full flex items-center p-3.5 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition-all font-medium">
                 <i class="fa-solid fa-house text-lg mr-4 w-6"></i><span class="text-sm">Command Hub</span>
             </button>
@@ -37,6 +37,11 @@
                 <i class="fa-solid fa-lock text-lg mr-4 w-6"></i><span class="text-sm">5. Security & Audit</span>
             </button>
         </nav>
+        <div class="p-5 border-t border-slate-800 bg-slate-950/50 mt-auto">
+            <button onclick="logout()" class="w-full flex items-center justify-center p-3 rounded-xl bg-slate-800 hover:bg-rose-600 text-slate-300 hover:text-white transition-all-spring group border border-slate-700 hover:border-rose-500">
+                <i class="fa-solid fa-power-off text-sm mr-2 group-hover:rotate-180 transition-transform duration-500"></i><span class="font-semibold text-xs uppercase tracking-wider">Secure Disconnect</span>
+            </button>
+        </div>
     </aside>
 
     <main class="flex-1 flex flex-col h-screen overflow-hidden">
@@ -47,12 +52,40 @@
             </div>
             <div class="flex items-center gap-4">
                 <span class="px-3 py-1 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-full text-[10px] font-bold uppercase tracking-widest"><i class="fa-solid fa-circle-check mr-1.5"></i> Verified Identity</span>
+                <button onclick="openEditModal()" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 px-6 py-2 rounded-lg text-xs font-bold uppercase tracking-wide transition-all shadow-sm mr-3"><i class="fa-solid fa-pen-to-square mr-2"></i> Edit Profile</button>
                 <button class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg text-xs font-bold uppercase tracking-wide transition-all shadow-md">Sync to Grid</button>
             </div>
         </header>
 
-        <div class="flex-1 overflow-y-auto custom-scrollbar p-10 space-y-12 bg-slate-50/50">
-            
+        <div class="flex-1 overflow-y-auto custom-scrollbar p-10 space-y-12 bg-slate-50/50 relative">
+            <div id="editModal" class="hidden fixed inset-0 z-[100] bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+                <div class="w-full max-w-2xl bg-white rounded-[32px] border border-slate-200 shadow-2xl p-8 relative">
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <p class="text-xs uppercase tracking-[0.3em] text-slate-500 font-bold">Edit Profile</p>
+                            <h2 class="text-2xl font-bold text-slate-900">Update Contact Details</h2>
+                        </div>
+                        <button onclick="closeEditModal()" class="text-slate-500 hover:text-slate-900 text-xl"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <form id="editProfileForm" class="space-y-6" onsubmit="submitProfileUpdate(event)">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <label class="block text-slate-700 font-bold text-xs uppercase tracking-[0.2em]">
+                                Mobile Contact
+                                <input id="editMobile" type="text" class="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-blue-500 outline-none" placeholder="+880 1XXXXXXXXX">
+                            </label>
+                            <label class="block text-slate-700 font-bold text-xs uppercase tracking-[0.2em]">
+                                Registered Address
+                                <input id="editAddress" type="text" class="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-blue-500 outline-none" placeholder="123 Holmes Avenue, Sector 1">
+                            </label>
+                        </div>
+                        <div class="flex flex-col sm:flex-row items-center justify-end gap-3 pt-3 border-t border-slate-200">
+                            <button type="button" onclick="closeEditModal()" class="w-full sm:w-auto bg-slate-100 hover:bg-slate-200 text-slate-700 px-6 py-3 rounded-2xl text-xs font-bold uppercase tracking-wide transition-all">Cancel</button>
+                            <button type="submit" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl text-xs font-bold uppercase tracking-wide transition-all">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
             <section id="layer-identity" class="fade-in-up">
                 <div class="flex items-center justify-between mb-6">
                     <h3 class="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Layer 01: Core Identity</h3>
@@ -141,6 +174,8 @@
 
         </div>
     </main>
+
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[110] flex flex-col gap-3 pointer-events-none w-full max-w-[320px] px-4 lg:px-0"></div>
 
     <style>
         .field-box label { display: block; font-size: 9px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; }
@@ -256,6 +291,58 @@
             document.querySelectorAll('nav button').forEach(btn => btn.className = "w-full flex items-center p-3.5 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition-all font-medium");
             event.currentTarget.className = "w-full flex items-center p-3.5 rounded-xl bg-blue-600 text-white font-medium shadow-md";
         }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const accent = type === 'error' ? 'border-rose-500 bg-white text-rose-600' : 'border-blue-500 bg-white text-blue-700';
+            toast.className = `flex items-center p-4 rounded-3xl border-l-4 shadow-xl pointer-events-auto ${accent}`;
+            toast.innerHTML = `<div class="mr-3 text-lg"><i class="fa-solid ${type === 'error' ? 'fa-triangle-exclamation' : 'fa-circle-check'}"></i></div><div class="text-xs font-bold uppercase tracking-[0.25em]">${message}</div>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3200);
+        }
+
+        function openEditModal() {
+            document.getElementById('editMobile').value = document.getElementById('field-mobile').innerText === '-' ? '' : document.getElementById('field-mobile').innerText;
+            document.getElementById('editAddress').value = document.getElementById('field-address').innerText === 'Not Available' ? '' : document.getElementById('field-address').innerText;
+            document.getElementById('editModal').classList.remove('hidden');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.add('hidden');
+        }
+
+        async function submitProfileUpdate(event) {
+            event.preventDefault();
+            const mobile = document.getElementById('editMobile').value.trim();
+            const address = document.getElementById('editAddress').value.trim();
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/profile/update`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ mobile, address })
+                });
+
+                const data = await res.json();
+                if (!res.ok) {
+                    showToast(data.msg || 'Failed to update profile.', 'error');
+                    return;
+                }
+
+                closeEditModal();
+                showToast(data.msg || 'Profile updated successfully.', 'success');
+                loadProfileData();
+            } catch (error) {
+                console.error('Profile Update Error:', error);
+                showToast('Network error while updating profile.', 'error');
+            }
+        }
+
+        function logout() { sessionStorage.clear(); window.location.href = 'index.html'; }
 
         function goHome() {
             if (role === 'doctor') window.location.href = 'doctor_home.html';

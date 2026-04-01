@@ -37,6 +37,33 @@ router.get('/', verifyToken, async (req, res) => {
 });
 
 // ==========================================
+// 🔐 PUT: UPDATE MUTABLE CONTACT INFO
+// ==========================================
+router.put('/update', verifyToken, async (req, res) => {
+    try {
+        const { mobile, address } = req.body;
+        const updateFields = {};
+
+        if (typeof mobile === 'string' && mobile.trim() !== '') {
+            updateFields['contact.primaryMobile'] = mobile.trim();
+        }
+        if (typeof address === 'string' && address.trim() !== '') {
+            updateFields['contact.address'] = address.trim();
+        }
+
+        if (Object.keys(updateFields).length === 0) {
+            return res.status(400).json({ msg: "No mutable fields provided for update." });
+        }
+
+        await Person.findByIdAndUpdate(req.user.id, updateFields, { new: true });
+        res.json({ msg: "Identity Matrix updated successfully." });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ msg: "Grid Error: Failed to update Identity Matrix." });
+    }
+});
+
+// ==========================================
 // � GET: PROFILE MATRIX AGGREGATOR
 // ==========================================
 router.get('/matrix', verifyToken, async (req, res) => {
