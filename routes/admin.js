@@ -1,7 +1,27 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const { PractitionerRole, Person } = require('../models/GridModels');
+const { PractitionerRole, Person, Patient, Prescription, User } = require('../models/GridModels');
+
+const verifyToken = (req, res, next) => {
+    const authHeader = req.header('Authorization');
+    if (!authHeader) return res.status(401).json({ msg: 'Access Denied.' });
+    try {
+        req.user = jwt.verify(authHeader.split(' ')[1], process.env.JWT_SECRET || 'holmes_emergency_grid_secret_2026');
+        next();
+    } catch (err) {
+        res.status(401).json({ msg: 'Invalid Token.' });
+    }
+};
+
+const requireRole = (...allowedRoles) => {
+    return (req, res, next) => {
+        if (!req.user || !allowedRoles.includes(req.user.role)) {
+            return res.status(403).json({ msg: 'DGHS Ministry Clearance Required.' });
+        }
+        next();
+    };
+};
 
 // 🔒 SECURITY TRIPWIRE (Strictly Admin Only)
 const authenticateAdmin = (req, res, next) => {
@@ -20,6 +40,43 @@ const authenticateAdmin = (req, res, next) => {
 // ==========================================
 // 1. FETCH PENDING PRACTITIONERS
 // ==========================================
+router.get('/stats', verifyToken, requireRole('admin'), async (req, res) => {
+    try {
+        const totalPatients = await Patient.countDocuments();
+        const totalDoctors = await PractitionerRole.countDocuments({ roleType: 'Doctor' });
+        const totalPharmacists = await PractitionerRole.countDocuments({ roleType: 'Pharmacist' });
+        const totalPathologists = await PractitionerRole.countDocuments({ roleType: 'Pathologist' });
+
+        const recentActivityDocs = await Prescription.find({})
+            .sort({ createdAt: -1 })
+            .limit(15)
+            .populate({ path: 'patientId', populate: { path: 'personId', select: 'legalFullName' } })
+            .populate({ path: 'practitionerId', populate: { path: 'personId', select: 'legalFullName' } })
+            .lean();
+
+        const recentActivity = recentActivityDocs.map(rx => ({
+            broadcastId: rx.broadcastId,
+            status: rx.status,
+            createdAt: rx.createdAt,
+            patientName: rx.patientId?.personId?.legalFullName || 'Unknown Patient',
+            doctorName: rx.practitionerId?.personId?.legalFullName || 'Unknown Doctor'
+        }));
+
+        res.json({
+            stats: {
+                totalPatients,
+                totalDoctors,
+                totalPharmacists,
+                totalPathologists
+            },
+            recentActivity
+        });
+    } catch (err) {
+        console.error('ADMIN_STATS_ERR:', err);
+        res.status(500).json({ msg: 'Failed to fetch admin stats.' });
+    }
+});
+
 router.get('/pending', authenticateAdmin, async (req, res) => {
     try {
         // Find practitioners who are either completely 'Pending' or 'Pending Ministry Verification'

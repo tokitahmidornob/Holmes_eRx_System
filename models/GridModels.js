@@ -103,5 +103,6 @@ module.exports = {
     LabProfile: mongoose.model('LabProfile', LabProfileSchema),
     Consent: mongoose.model('Consent', ConsentSchema),
     AuditEvent: mongoose.model('AuditEvent', AuditEventSchema),
-    Medicine // 🚨 Successfully exported
+    Medicine, // 🚨 Successfully exported
+    User: mongoose.model('Person')
 };

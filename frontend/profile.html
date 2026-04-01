@@ -122,10 +122,10 @@
                 <h3 class="text-sm font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Layer 05: Cryptographic Security & Audit</h3>
                 <div class="bg-white rounded-[32px] border border-slate-200 shadow-sm overflow-hidden">
                     <div class="p-8 grid grid-cols-1 md:grid-cols-4 gap-6 bg-slate-50/50">
-                        <div class="field-box"><label>MFA Status</label><p class="text-emerald-500 font-bold">Enabled (Biometric)</p></div>
-                        <div class="field-box"><label>Identity Proofing</label><p>NIST IAL2 Verified</p></div>
-                        <div class="field-box"><label>Account Status</label><p>Active / Unlocked</p></div>
-                        <div class="field-box"><label>Last Login</label><p class="font-mono text-[11px]">2026-03-30 14:11:16</p></div>
+                        <div class="field-box"><label>MFA Status</label><p class="text-emerald-500 font-bold" id="field-mfa">Enabled (Biometric)</p></div>
+                        <div class="field-box"><label>Identity Proofing</label><p id="field-proofing">NIST IAL2 Verified</p></div>
+                        <div class="field-box"><label>Account Status</label><p id="field-account-status">Active / Unlocked</p></div>
+                        <div class="field-box"><label>Last Login</label><p class="font-mono text-[11px]" id="field-last-login">2026-03-30 14:11:16</p></div>
                     </div>
                     <div class="p-8 border-t border-slate-100">
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Active Sessions & Device History</p>
@@ -161,7 +161,7 @@
             loadProfileData();
         });
 
-        function renderRoleSpecificFields() {
+        function renderRoleSpecificFields(matrix = null) {
             const container = document.getElementById('professional-fields-container');
             const profLayer = document.getElementById('layer-professional');
             const clinicalLayer = document.getElementById('layer-clinical');
@@ -175,56 +175,79 @@
                 // Patients don't have a professional layer
                 profLayer.classList.add('hidden');
                 navProf.classList.add('hidden');
-            } else {
-                profLayer.classList.remove('hidden');
-                navProf.classList.remove('hidden');
-                
-                let fields = "";
-                if (role === 'doctor') {
-                    fields = `
-                        <div class="field-box"><label>National Provider ID</label><p class="font-mono text-blue-600">NPI-88273-DR</p></div>
-                        <div class="field-box"><label>Medical License</label><p>BMDC-7721-BC</p></div>
-                        <div class="field-box"><label>Specialty</label><p>Aerospace Medicine / Cardiology</p></div>
-                        <div class="field-box"><label>Qualifications</label><p>MBBS, FCPS, MSc (NASA Space Med)</p></div>
-                        <div class="field-box"><label>Experience</label><p>12 Years</p></div>
-                        <div class="field-box"><label>Primary Affiliation</label><p>Combined Military Hospital (CMH)</p></div>
-                        <div class="field-box md:col-span-3"><label>Practice Locations & Hours</label><p>Sat-Thu: 10:00 - 18:00 (Main Clinic)</p></div>
-                        <div class="field-box"><label>Digital Signature</label><p class="text-emerald-600 font-mono text-[10px]">VERIFIED_BLOCKCHAIN_HASH_882</p></div>
-                    `;
-                } else if (role === 'pharmacist') {
-                    fields = `
-                        <div class="field-box"><label>Pharmacist License</label><p>PHM-99182-BD</p></div>
-                        <div class="field-box"><label>License Authority</label><p>DGDA Bangladesh</p></div>
-                        <div class="field-box"><label>Affiliated Pharmacy</label><p>Lazz Pharma (Dhanmondi Branch)</p></div>
-                        <div class="field-box"><label>Dispensing Scope</label><p>Schedule IV Authorized</p></div>
-                        <div class="field-box"><label>Shift Timings</label><p>08:00 - 16:00 (General)</p></div>
-                        <div class="field-box"><label>Digital Signature</label><p class="text-emerald-600 font-mono text-[10px]">SIG_DISPENSE_AUTH_772</p></div>
-                    `;
-                } else if (role === 'pathologist') {
-                    fields = `
-                        <div class="field-box"><label>Registration Number</label><p>PTH-11029-LAB</p></div>
-                        <div class="field-box"><label>Specialty Area</label><p>Histopathology</p></div>
-                        <div class="field-box"><label>Affiliated Laboratory</label><p>Popular Diagnostic (Lab Node 1)</p></div>
-                        <div class="field-box"><label>Reporting Level</label><p>Authority Level 3 (Consultant)</p></div>
-                        <div class="field-box"><label>Privileges</label><p>Molecular Diagnostics Release</p></div>
-                        <div class="field-box"><label>Digital Signature</label><p class="text-emerald-600 font-mono text-[10px]">SIG_LAB_VAL_881</p></div>
-                    `;
-                }
-                container.innerHTML = fields;
+                container.innerHTML = '';
+                return;
             }
+
+            profLayer.classList.remove('hidden');
+            navProf.classList.remove('hidden');
+            navClin.classList.remove('hidden');
+            clinicalLayer.classList.remove('hidden');
+
+            let fields = '';
+            if (matrix && Array.isArray(matrix.layer2) && matrix.layer2.length > 0) {
+                matrix.layer2.forEach((profile) => {
+                    const specialty = Array.isArray(profile.specialty) ? profile.specialty.join(' / ') : (profile.specialty || 'General');
+                    const affiliation = profile.affiliation || 'National Health Grid';
+                    fields += `
+                        <div class="field-box"><label>${profile.roleType} License</label><p>${profile.licenseNumber || 'N/A'}</p></div>
+                        <div class="field-box"><label>Professional Role</label><p>${profile.roleType || 'Authority'}</p></div>
+                        <div class="field-box"><label>Specialty</label><p>${specialty}</p></div>
+                        <div class="field-box"><label>Affiliation</label><p>${affiliation}</p></div>
+                        <div class="field-box md:col-span-3"><label>Credentials</label><p>${specialty}</p></div>
+                    `;
+                });
+            } else {
+                const defaultTitle = role === 'doctor' ? 'Doctor' : role === 'pharmacist' ? 'Pharmacist' : 'Pathologist';
+                fields = `
+                    <div class="field-box md:col-span-3"><label>${defaultTitle} credentials</label><p class="text-slate-500">Professional profile will be populated after the Identity Matrix is loaded.</p></div>
+                `;
+            }
+
+            container.innerHTML = fields;
         }
 
         async function loadProfileData() {
             try {
-                const res = await fetch(`${API_BASE_URL}/api/auth/me`, { headers: { 'Authorization': `Bearer ${token}` } });
-                if(res.ok) {
-                    const user = await res.json();
-                    document.getElementById('field-name').innerText = user.name;
-                    document.getElementById('field-email').innerText = user.email;
-                    document.getElementById('field-nhi').innerText = decoded.uuid || 'N/A';
-                    document.getElementById('headerTitle').innerText = `${role.toUpperCase()} Profile: ${user.name}`;
+                const res = await fetch(`${API_BASE_URL}/api/profile/matrix`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (res.ok) {
+                    const matrix = await res.json();
+                    const contact = matrix.layer1.contact || {};
+                    document.getElementById('field-name').innerText = matrix.layer1.legalFullName || '-';
+                    document.getElementById('field-dob').innerText = matrix.layer1.dateOfBirth ? new Date(matrix.layer1.dateOfBirth).toLocaleDateString() : '-';
+                    document.getElementById('field-gender').innerText = matrix.layer1.genderLegal || '-';
+                    document.getElementById('field-nhi').innerText = matrix.layer1.gridId || '-';
+                    document.getElementById('field-mobile').innerText = contact.primaryMobile || '-';
+                    document.getElementById('field-email').innerText = contact.primaryEmail || matrix.layer5.security?.email || '-';
+                    document.getElementById('field-address').innerText = contact.address || 'Not Available';
+
+                    document.getElementById('field-mfa').innerText = matrix.layer5.security?.mfaEnabled ? 'Enabled (Biometric)' : 'Enabled (Token)';
+                    document.getElementById('field-proofing').innerText = matrix.layer5.security?.proofingLevel || 'NIST IAL2 Verified';
+                    document.getElementById('field-last-login').innerText = matrix.layer5.security?.lastLogin || matrix.layer5.security?.updatedAt || 'Unknown';
+                    document.getElementById('field-account-status').innerText = matrix.layer5.security?.status || 'Active / Unlocked';
+
+                    if (role === 'patient') {
+                        document.getElementById('field-blood').innerText = matrix.layer4?.bloodGroup || 'Not Available';
+                        document.getElementById('field-emergency').innerText = matrix.layer4?.emergencyContact || 'Not Available';
+                        document.getElementById('field-nok').innerText = matrix.layer4?.nextOfKin || 'Not Available';
+                        document.getElementById('field-insurance').innerText = matrix.layer4?.insuranceProvider || 'Not Available';
+                    }
+
+                    document.getElementById('headerTitle').innerText = `${role.toUpperCase()} Profile: ${matrix.layer1.legalFullName || '-'}`;
+                    renderRoleSpecificFields(matrix);
+                } else {
+                    const errorData = await res.json();
+                    console.error('Matrix Mapping Error:', errorData);
                 }
-            } catch(e) {}
+            } catch (error) {
+                console.error('Matrix Mapping Error:', error);
+            }
         }
 
         function scrollToSection(id) {

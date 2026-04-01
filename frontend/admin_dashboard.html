@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panopticon | Holmes eRx</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="antialiased text-slate-100 bg-slate-950 min-h-screen">
+    <div class="min-h-screen bg-slate-950">
+        <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-20">
+            <div class="max-w-7xl mx-auto px-6 lg:px-10 py-6 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+                <div>
+                    <p class="text-xs uppercase tracking-[0.35em] text-cyan-400 font-bold mb-2">Panopticon</p>
+                    <h1 class="text-3xl lg:text-4xl font-extrabold">Security Audit Dashboard</h1>
+                    <p class="text-slate-400 mt-2 max-w-2xl">Layer 5 monitoring for the Holmes National Health Grid. Review live user counts and prescription broadcast activity in real time.</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button onclick="logout()" class="inline-flex items-center gap-2 rounded-3xl border border-slate-700 bg-slate-900 px-5 py-3 text-xs uppercase tracking-widest text-slate-200 hover:bg-slate-800 transition-all">
+                        <i class="fa-solid fa-power-off"></i> Logout
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="max-w-7xl mx-auto px-6 lg:px-10 py-10 space-y-10">
+            <section class="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+                <div class="rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-xl shadow-slate-950/40">
+                    <p class="text-xs uppercase tracking-[0.3em] text-slate-500 font-bold">Patients</p>
+                    <p id="totalPatients" class="mt-4 text-4xl font-extrabold text-cyan-300">0</p>
+                    <p class="mt-2 text-sm text-slate-400">Total registered citizen profiles.</p>
+                </div>
+                <div class="rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-xl shadow-slate-950/40">
+                    <p class="text-xs uppercase tracking-[0.3em] text-slate-500 font-bold">Doctors</p>
+                    <p id="totalDoctors" class="mt-4 text-4xl font-extrabold text-emerald-300">0</p>
+                    <p class="mt-2 text-sm text-slate-400">Active prescribing authorities.</p>
+                </div>
+                <div class="rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-xl shadow-slate-950/40">
+                    <p class="text-xs uppercase tracking-[0.3em] text-slate-500 font-bold">Pharmacists</p>
+                    <p id="totalPharmacists" class="mt-4 text-4xl font-extrabold text-sky-300">0</p>
+                    <p class="mt-2 text-sm text-slate-400">Certified dispensary authorities.</p>
+                </div>
+                <div class="rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-xl shadow-slate-950/40">
+                    <p class="text-xs uppercase tracking-[0.3em] text-slate-500 font-bold">Pathologists</p>
+                    <p id="totalPathologists" class="mt-4 text-4xl font-extrabold text-rose-300">0</p>
+                    <p class="mt-2 text-sm text-slate-400">Lab authorities with diagnostics clearance.</p>
+                </div>
+            </section>
+
+            <section class="rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-xl shadow-slate-950/40">
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-white">Grid Activity Log</h2>
+                        <p class="text-slate-400 mt-2">Latest prescription broadcasts with practitioner and patient correlation.</p>
+                    </div>
+                    <span id="activityCount" class="inline-flex items-center rounded-full bg-slate-800 px-4 py-2 text-xs uppercase tracking-widest text-slate-400">0 events</span>
+                </div>
+                <div class="overflow-x-auto rounded-3xl border border-slate-800 bg-slate-950">
+                    <table class="min-w-full divide-y divide-slate-800 text-left text-sm text-slate-300">
+                        <thead class="bg-slate-900 text-slate-400 uppercase text-[10px] tracking-[0.25em]">
+                            <tr>
+                                <th class="px-5 py-4">Date / Time</th>
+                                <th class="px-5 py-4">Doctor</th>
+                                <th class="px-5 py-4">Patient</th>
+                                <th class="px-5 py-4">Broadcast ID</th>
+                                <th class="px-5 py-4">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="activityLog" class="divide-y divide-slate-800 bg-slate-950"></tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
+        const token = sessionStorage.getItem('eRx_Token');
+        if (!token) {
+            window.location.href = 'index.html';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchAdminStats();
+        });
+
+        async function fetchAdminStats() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/admin/stats`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (res.status === 403) {
+                    logout();
+                    return;
+                }
+
+                if (!res.ok) {
+                    throw new Error('Failed to fetch admin statistics');
+                }
+
+                const data = await res.json();
+                const stats = data.stats || {};
+
+                document.getElementById('totalPatients').innerText = stats.totalPatients ?? 0;
+                document.getElementById('totalDoctors').innerText = stats.totalDoctors ?? 0;
+                document.getElementById('totalPharmacists').innerText = stats.totalPharmacists ?? 0;
+                document.getElementById('totalPathologists').innerText = stats.totalPathologists ?? 0;
+
+                const activity = Array.isArray(data.recentActivity) ? data.recentActivity : [];
+                document.getElementById('activityCount').innerText = `${activity.length} events`;
+                renderActivityLog(activity);
+            } catch (error) {
+                console.error('Admin Stats Fetch Error:', error);
+                document.getElementById('activityLog').innerHTML = `
+                    <tr class="bg-slate-900">
+                        <td colspan="5" class="px-5 py-6 text-slate-400 text-center">Unable to load Panopticon data. Please verify your access or try again later.</td>
+                    </tr>
+                `;
+            }
+        }
+
+        function renderActivityLog(activity) {
+            const body = document.getElementById('activityLog');
+            if (!activity.length) {
+                body.innerHTML = `
+                    <tr class="bg-slate-900">
+                        <td colspan="5" class="px-5 py-6 text-slate-400 text-center">No recent activity available.</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            body.innerHTML = activity.map(item => {
+                const dateTime = new Date(item.createdAt).toLocaleString();
+                const statusClass = item.status === 'Active'
+                    ? 'bg-cyan-500/10 text-cyan-300 border border-cyan-500/20'
+                    : 'bg-slate-800 text-slate-200 border border-slate-700';
+                return `
+                    <tr class="bg-slate-950 hover:bg-slate-900">
+                        <td class="px-5 py-4 align-top font-medium text-slate-200">${escapeHtml(dateTime)}</td>
+                        <td class="px-5 py-4 align-top text-slate-300">${escapeHtml(item.doctorName)}</td>
+                        <td class="px-5 py-4 align-top text-slate-300">${escapeHtml(item.patientName)}</td>
+                        <td class="px-5 py-4 align-top font-mono text-slate-400">${escapeHtml(item.broadcastId)}</td>
+                        <td class="px-5 py-4 align-top">
+                            <span class="inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] ${statusClass}">${escapeHtml(item.status)}</span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function escapeHtml(value) {
+            return String(value || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+
+        function logout() {
+            sessionStorage.clear();
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

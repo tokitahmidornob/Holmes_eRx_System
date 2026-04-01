@@ -82,12 +82,28 @@
             </a>
 
         </div>
+
+        <section class="mt-10 bg-white rounded-3xl border border-slate-200 shadow-sm p-8">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h3 class="text-xl font-bold text-slate-800">Master Archive</h3>
+                    <p class="text-sm text-slate-500 mt-1">Live broadcast payload history for your doctor account.</p>
+                </div>
+                <span class="text-xs uppercase tracking-widest text-slate-400 font-bold">Recent Activity</span>
+            </div>
+            <div id="archiveContainer" class="space-y-4 min-h-[220px]"></div>
+        </section>
     </main>
 
     <script>
+        const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
         // Security Check
         const token = sessionStorage.getItem('eRx_Token');
         if (!token) window.location.href = 'index.html';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchArchive();
+        });
 
         // Load Doctor's Identity
         const drName = sessionStorage.getItem('eRx_UserName');
@@ -98,6 +114,62 @@
             document.getElementById('hubGridId').innerText = decoded.uuid || 'ID-SYNC-REQUIRED';
         } catch (e) {
             console.error("Token decoding failed.");
+        }
+
+        async function fetchArchive() {
+            const archiveContainer = document.getElementById('archiveContainer');
+            archiveContainer.innerHTML = '<div class="rounded-3xl border border-slate-200 bg-slate-50 p-6 text-slate-500">Loading archive...</div>';
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/prescriptions/doctor/me`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                if (!res.ok) {
+                    const errorBody = await res.json().catch(() => ({}));
+                    archiveContainer.innerHTML = `<div class="rounded-3xl border border-rose-200 bg-rose-50 p-6 text-rose-700">Unable to load archive: ${escapeHtml(errorBody.msg || 'Server returned an error.')}</div>`;
+                    return;
+                }
+                const archive = await res.json();
+                if (!Array.isArray(archive) || archive.length === 0) {
+                    archiveContainer.innerHTML = '<div class="rounded-3xl border border-slate-200 bg-slate-50 p-8 text-center text-slate-500">No payloads broadcasted yet.</div>';
+                    return;
+                }
+
+                archiveContainer.innerHTML = archive.map(item => {
+                    const statusClass = item.status === 'Dispensed' || item.status === 'Completed' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-slate-50 border-slate-200 text-slate-700';
+                    const when = new Date(item.createdAt).toLocaleString();
+                    const medCount = Array.isArray(item.medications) ? item.medications.length : 0;
+                    const invCount = Array.isArray(item.investigations) ? item.investigations.length : 0;
+                    return `
+                        <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                            <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+                                <div class="space-y-2">
+                                    <p class="text-[11px] uppercase tracking-widest text-slate-400 font-bold">Patient</p>
+                                    <p class="text-lg font-bold text-slate-900">${escapeHtml(item.patientId || 'Unknown Patient')}</p>
+                                    <p class="text-sm text-slate-500">Broadcast ID: <span class="font-mono text-slate-600">${escapeHtml(item.broadcastId || 'N/A')}</span></p>
+                                </div>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-widest ${statusClass}">${escapeHtml(item.status || 'Unknown')}</span>
+                                    <span class="rounded-full border border-slate-200 px-3 py-1 text-[11px] font-semibold text-slate-600">${medCount} meds</span>
+                                    <span class="rounded-full border border-slate-200 px-3 py-1 text-[11px] font-semibold text-slate-600">${invCount} tests</span>
+                                </div>
+                            </div>
+                            <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-slate-500">
+                                <p>OTP: <span class="font-mono text-slate-700">${escapeHtml(item.otp || 'N/A')}</span></p>
+                                <p>Created: ${escapeHtml(when)}</p>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Archive Fetch Error:', error);
+                archiveContainer.innerHTML = '<div class="rounded-3xl border border-rose-200 bg-rose-50 p-6 text-rose-700">Network error while loading the archive. Please try again later.</div>';
+            }
+        }
+
+        function escapeHtml(value) {
+            return String(value || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
         }
 
         function logout() {

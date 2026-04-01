@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const { Patient, Person, AllergyProfile, Medicine } = require('../models/GridModels');
+const { Patient, Person, AllergyProfile, Medicine, Prescription } = require('../models/GridModels');
 
 // Cryptographic Check
 const verifyToken = (req, res, next) => {
@@ -93,17 +93,33 @@ router.post('/search', verifyToken, async (req, res) => {
 });
 
 // ==========================================
-// 3. CLINICAL DOSSIER (Fetch Allergies)
+// 3. CLINICAL DOSSIER (Fetch Allergies + Active Medications)
 // ==========================================
 router.get('/dossier/:id', verifyToken, async (req, res) => {
     try {
         const patientId = req.params.id;
         const allergies = await AllergyProfile.find({ patientId: patientId });
-        
+
+        const prescriptions = await Prescription.find({
+            patientId: patientId,
+            status: { $in: ['Active', 'Dispensed'] }
+        }).lean();
+
+        const activeMedications = prescriptions.reduce((acc, rx) => {
+            if (Array.isArray(rx.medications)) {
+                return acc.concat(rx.medications.map(m => ({
+                    brandName: m.brandName || 'Unknown Drug',
+                    dosage: m.dosage || '',
+                    timing: m.timing || '',
+                    duration: m.duration || ''
+                })));
+            }
+            return acc;
+        }, []);
+
         res.json({
-            allergies: allergies,
-            conditions: [], // Placeholder for future features
-            activeMedications: [] // Placeholder for future features
+            allergies: allergies || [],
+            activeMedications: activeMedications || []
         });
     } catch (err) {
         console.error("DOSSIER_ERR:", err);

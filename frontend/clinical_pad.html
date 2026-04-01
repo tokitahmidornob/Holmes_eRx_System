@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clinical Pad | Holmes eRx</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="antialiased text-slate-800 bg-slate-50 flex h-screen overflow-hidden">
+
+    <aside class="w-72 bg-slate-900 text-white flex flex-col shrink-0 border-r border-slate-800">
+        <div class="h-24 flex items-center px-8 bg-slate-950/50">
+            <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg"><i class="fa-solid fa-notes-medical"></i></div>
+            <h1 class="ml-4 text-xl font-bold">Clinical <span class="text-blue-400">Pad</span></h1>
+        </div>
+        <nav class="flex-1 py-8 px-4 space-y-2">
+            <button onclick="goHome()" class="w-full flex items-center p-3.5 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition-all font-medium">
+                <i class="fa-solid fa-house text-lg mr-4 w-6"></i><span class="text-sm">Command Hub</span>
+            </button>
+            <button onclick="window.location.href='doctor_home.html'" class="w-full flex items-center p-3.5 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition-all font-medium">
+                <i class="fa-solid fa-hand-point-left text-lg mr-4 w-6"></i><span class="text-sm">Doctor Hub</span>
+            </button>
+            <button onclick="window.location.href='profile.html'" class="w-full flex items-center p-3.5 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition-all font-medium">
+                <i class="fa-solid fa-id-card text-lg mr-4 w-6"></i><span class="text-sm">Identity Matrix</span>
+            </button>
+            <button onclick="window.location.href='dashboard.html'" class="w-full flex items-center p-3.5 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition-all font-medium">
+                <i class="fa-solid fa-vault text-lg mr-4 w-6"></i><span class="text-sm">Prescription Vault</span>
+            </button>
+        </nav>
+    </aside>
+
+    <main class="flex-1 flex flex-col h-screen overflow-hidden">
+        <header class="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-8 shrink-0 shadow-sm">
+            <div>
+                <h2 class="text-xl font-bold text-slate-900">Clinical Formulation Pad</h2>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Secure Doctor Workflow • Seal Prescription Payloads</p>
+            </div>
+            <button onclick="logout()" class="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-slate-100 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 text-slate-600 hover:text-rose-600 font-bold text-xs uppercase tracking-wider transition-all">
+                <i class="fa-solid fa-power-off"></i><span class="hidden sm:inline">Logout</span>
+            </button>
+        </header>
+
+        <div class="flex-1 overflow-y-auto custom-scrollbar p-10 space-y-10 bg-slate-50/70">
+            <section class="bg-white rounded-[32px] border border-slate-200 shadow-sm p-8 grid gap-8">
+                <div class="flex items-center justify-between gap-4">
+                    <div>
+                        <p class="text-sm font-black text-slate-500 uppercase tracking-[0.2em]">Section 1: MPI Search</p>
+                        <p class="text-xs text-slate-400 mt-1">Find a patient by name, NHI, or national ID and lock their profile.</p>
+                    </div>
+                    <span id="selectedPatientBadge" class="px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-widest bg-slate-100 text-slate-600 hidden"></span>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-6">
+                    <div class="space-y-4">
+                        <input id="patientSearchInput" type="text" placeholder="Search patient by name, NHI or NID" class="w-full rounded-3xl border border-slate-200 px-5 py-4 text-sm shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none" />
+                        <div id="searchResults" class="max-h-72 overflow-y-auto rounded-3xl border border-slate-200 bg-slate-50 p-3 space-y-2"></div>
+                    </div>
+                    <div class="bg-slate-100 rounded-3xl p-6 space-y-4">
+                        <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Selected Patient</p>
+                        <div class="space-y-3 text-sm text-slate-700">
+                            <p><span class="font-semibold">Name:</span> <span id="selectedPatientName">None</span></p>
+                            <p><span class="font-semibold">Age:</span> <span id="selectedPatientAge">-</span></p>
+                            <p><span class="font-semibold">Gender:</span> <span id="selectedPatientGender">-</span></p>
+                            <p><span class="font-semibold">NHI:</span> <span id="selectedPatientNhi">-</span></p>
+                        </div>
+                    </div>
+                </div>
+                <div id="clinicalIntelligencePanel" class="hidden rounded-3xl border border-slate-200 bg-slate-50 p-6 space-y-6">
+                    <div class="rounded-3xl border border-rose-200 bg-rose-50 p-5">
+                        <p class="text-sm uppercase tracking-widest text-rose-600 font-bold mb-3">Allergy Intelligence</p>
+                        <div id="allergyPanel" class="text-sm text-slate-600">Loading allergies...</div>
+                    </div>
+                    <div class="rounded-3xl border border-blue-200 bg-blue-50 p-5">
+                        <p class="text-sm uppercase tracking-widest text-blue-600 font-bold mb-3">Active Medication History</p>
+                        <div id="medicationHistoryPanel" class="text-sm text-slate-600">Loading active medications...</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="bg-white rounded-[32px] border border-slate-200 shadow-sm p-8 grid gap-8">
+                <div>
+                    <p class="text-sm font-black text-slate-500 uppercase tracking-[0.2em]">Section 2: Medication Formulation</p>
+                    <p class="text-xs text-slate-400 mt-1">Create the prescription payload using formulary intelligence or free-text medicine entry.</p>
+                </div>
+                <div class="grid grid-cols-1 xl:grid-cols-[1.5fr_1fr] gap-6">
+                    <div class="space-y-4">
+                        <div class="relative">
+                            <input id="drugInput" type="text" placeholder="Drug Name / Search formulary" class="w-full rounded-3xl border border-slate-200 px-5 py-4 text-sm shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none" autocomplete="off" />
+                            <div id="formularySuggestions" class="absolute left-0 right-0 mt-2 max-h-60 overflow-y-auto rounded-3xl border border-slate-200 bg-white shadow-lg hidden z-20"></div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <input id="dosageInput" type="text" placeholder="Dosage (e.g. 500mg)" class="w-full rounded-3xl border border-slate-200 px-5 py-4 text-sm shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none" />
+                            <input id="frequencyInput" type="text" placeholder="Frequency (e.g. 2x/day)" class="w-full rounded-3xl border border-slate-200 px-5 py-4 text-sm shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none" />
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4">
+                            <input id="durationInput" type="text" placeholder="Duration (e.g. 7 days)" class="w-full rounded-3xl border border-slate-200 px-5 py-4 text-sm shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none" />
+                            <button id="addMedicationBtn" onclick="addMedication()" class="rounded-3xl bg-blue-600 hover:bg-blue-700 text-white font-bold uppercase text-sm px-6 py-4 transition-all shadow-sm">Add Medication</button>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 rounded-3xl border border-slate-200 p-6">
+                        <p class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Medication Queue</p>
+                        <div id="medicationList" class="space-y-3 min-h-[220px]"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="bg-white rounded-[32px] border border-slate-200 shadow-sm p-8 grid gap-8">
+                <div class="flex items-center justify-between gap-4">
+                    <div>
+                        <p class="text-sm font-black text-slate-500 uppercase tracking-[0.2em]">Section 3: Investigations</p>
+                        <p class="text-xs text-slate-400 mt-1">Add required lab tests or imaging orders to the payload.</p>
+                    </div>
+                    <button id="addInvestigationBtn" onclick="addInvestigation()" class="rounded-3xl bg-slate-900 hover:bg-slate-800 text-white font-bold uppercase text-xs px-5 py-3 transition-all shadow-sm">Add Test</button>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
+                    <div class="space-y-4">
+                        <input id="investigationInput" type="text" placeholder="Investigation name (e.g. CBC, MRI Brain)" class="w-full rounded-3xl border border-slate-200 px-5 py-4 text-sm shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none" />
+                        <div id="investigationList" class="space-y-3 min-h-[180px]"></div>
+                    </div>
+                    <div class="bg-slate-50 rounded-3xl border border-slate-200 p-6">
+                        <p class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Selected Patient Summary</p>
+                        <div class="space-y-3 text-sm text-slate-700">
+                            <p><span class="font-semibold">Patient ID:</span> <span id="selectedPatientId">None</span></p>
+                            <p><span class="font-semibold">Medications:</span> <span id="selectedMedicationCount">0</span></p>
+                            <p><span class="font-semibold">Investigations:</span> <span id="selectedInvestigationCount">0</span></p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="bg-white rounded-[32px] border border-slate-200 shadow-sm p-8">
+                <div class="md:flex md:items-center md:justify-between gap-6 mb-6">
+                    <div>
+                        <p class="text-sm font-black text-slate-500 uppercase tracking-[0.2em]">Section 4: The Forge</p>
+                        <p class="text-xs text-slate-400 mt-1">Seal the prescription and broadcast it securely to the patient-facing grid.</p>
+                    </div>
+                    <button id="sealBtn" onclick="sealPayload()" class="w-full md:w-auto rounded-3xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold uppercase text-sm px-8 py-4 transition-all shadow-sm">Seal & Broadcast Payload</button>
+                </div>
+                <div class="bg-slate-50 rounded-3xl border border-slate-200 p-6 text-slate-700 text-sm space-y-4">
+                    <p id="forgeStatus" class="font-medium text-slate-600">Ready to seal. Ensure the patient is selected and the clinical payload is complete.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-slate-500">
+                        <div class="rounded-3xl border border-slate-200 p-4">
+                            <p class="font-bold text-slate-700 uppercase tracking-widest mb-2">Payload Preview</p>
+                            <p>Medications: <span id="payloadMedicationPreview">0</span></p>
+                            <p>Investigations: <span id="payloadInvestigationPreview">0</span></p>
+                        </div>
+                        <div class="rounded-3xl border border-slate-200 p-4">
+                            <p class="font-bold text-slate-700 uppercase tracking-widest mb-2">Patient Reference</p>
+                            <p id="payloadPatientPreview">No patient selected</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <div id="successModal" class="fixed inset-0 bg-slate-950/70 hidden items-center justify-center p-6 z-50">
+        <div class="bg-white rounded-[32px] border border-slate-200 shadow-2xl max-w-xl w-full p-8 text-center">
+            <div class="flex items-center justify-center mb-6">
+                <div class="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center text-3xl"><i class="fa-solid fa-check"></i></div>
+            </div>
+            <h3 class="text-2xl font-bold text-slate-900 mb-4">Prescription Sealed Successfully</h3>
+            <p class="text-sm text-slate-500 mb-6">Share this broadcast payload with the patient for secure retrieval.</p>
+            <div class="grid grid-cols-1 gap-4 text-left">
+                <div class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+                    <p class="text-[10px] uppercase tracking-widest text-slate-500 mb-2">Broadcast ID</p>
+                    <p id="successBroadcastId" class="font-mono text-slate-900 text-lg"></p>
+                </div>
+                <div class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+                    <p class="text-[10px] uppercase tracking-widest text-slate-500 mb-2">OTP Key</p>
+                    <p id="successOtp" class="font-mono text-slate-900 text-lg"></p>
+                </div>
+            </div>
+            <button onclick="closeSuccessModal()" class="mt-8 rounded-3xl bg-slate-900 hover:bg-slate-800 text-white uppercase text-sm px-8 py-4 font-bold transition-all">Close</button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
+        const token = sessionStorage.getItem('eRx_Token');
+        if (!token) window.location.href = 'index.html';
+
+        let selectedPatientId = null;
+        let selectedPatient = null;
+        let medications = [];
+        let investigations = [];
+        let formulary = [];
+
+        function escapeHtml(value) {
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            bindSearch();
+            loadFormulary();
+            renderPayloadSummary();
+        });
+
+        function bindSearch() {
+            const searchInput = document.getElementById('patientSearchInput');
+            searchInput.addEventListener('input', async () => {
+                const query = searchInput.value.trim();
+                if (!query) {
+                    document.getElementById('searchResults').innerHTML = '';
+                    clearClinicalIntelligencePanel();
+                    return;
+                }
+                clearClinicalIntelligencePanel();
+
+                try {
+                    const res = await fetch(`${API_BASE_URL}/api/clinical/search`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ query })
+                    });
+                    const results = await res.json();
+                    renderSearchResults(results);
+                } catch (err) {
+                    console.error('Clinical Search Error:', err);
+                }
+            });
+        }
+
+        function renderSearchResults(results) {
+            const container = document.getElementById('searchResults');
+            if (!Array.isArray(results) || results.length === 0) {
+                container.innerHTML = '<p class="text-sm text-slate-500">No matches found.</p>';
+                return;
+            }
+            container.innerHTML = '';
+            results.forEach(item => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'w-full text-left rounded-3xl border border-slate-200 bg-white p-4 shadow-sm hover:bg-blue-50 transition-all';
+                btn.innerHTML = `
+                    <p class="font-bold text-slate-900">${escapeHtml(item.name)}</p>
+                    <p class="text-[11px] text-slate-500">${escapeHtml(item.gender)} • Age ${escapeHtml(item.age)} • ${escapeHtml(item.nhi)}</p>
+                `;
+                btn.addEventListener('click', () => selectPatient(item.patientId, item.name, item.age, item.gender, item.nhi));
+                container.appendChild(btn);
+            });
+        }
+
+        function selectPatient(id, name, age, gender, nhi) {
+            selectedPatientId = id;
+            selectedPatient = { name, age, gender, nhi };
+            document.getElementById('selectedPatientId').innerText = id;
+            document.getElementById('selectedPatientName').innerText = name;
+            document.getElementById('selectedPatientAge').innerText = age;
+            document.getElementById('selectedPatientGender').innerText = gender;
+            document.getElementById('selectedPatientNhi').innerText = nhi;
+            document.getElementById('selectedPatientBadge').classList.remove('hidden');
+            document.getElementById('selectedPatientBadge').innerText = 'Patient Locked';
+            document.getElementById('payloadPatientPreview').innerText = `${name} • ${nhi}`;
+            fetchClinicalIntelligence(id);
+        }
+
+        function clearClinicalIntelligencePanel() {
+            const panel = document.getElementById('clinicalIntelligencePanel');
+            panel.classList.add('hidden');
+            document.getElementById('allergyPanel').innerHTML = '';
+            document.getElementById('medicationHistoryPanel').innerHTML = '';
+        }
+
+        async function fetchClinicalIntelligence(patientId) {
+            const panel = document.getElementById('clinicalIntelligencePanel');
+            panel.classList.remove('hidden');
+            document.getElementById('allergyPanel').innerText = 'Loading allergies...';
+            document.getElementById('medicationHistoryPanel').innerText = 'Loading active medications...';
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/clinical/dossier/${patientId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                if (!res.ok) {
+                    const errorBody = await res.json().catch(() => ({}));
+                    document.getElementById('allergyPanel').innerText = 'Unable to load clinical dossier.';
+                    document.getElementById('medicationHistoryPanel').innerText = errorBody.msg || 'Unable to load clinical dossier.';
+                    return;
+                }
+
+                const data = await res.json();
+                const allergies = Array.isArray(data.allergies) ? data.allergies : [];
+                const activeMedications = Array.isArray(data.activeMedications) ? data.activeMedications : [];
+
+                if (allergies.length === 0) {
+                    document.getElementById('allergyPanel').innerHTML = '<p class="text-slate-500">No known allergies.</p>';
+                } else {
+                    document.getElementById('allergyPanel').innerHTML = `<ul class="space-y-2 text-slate-700">${allergies.map(a => `<li class="font-semibold text-rose-700">${escapeHtml(a.substance || a.name || 'Allergy')}</li>`).join('')}</ul>`;
+                }
+
+                if (activeMedications.length === 0) {
+                    document.getElementById('medicationHistoryPanel').innerHTML = '<p class="text-slate-500">No active medications.</p>';
+                } else {
+                    document.getElementById('medicationHistoryPanel').innerHTML = `<ul class="space-y-2 text-slate-700">${activeMedications.map(m => `<li>${escapeHtml(m.brandName)} ${escapeHtml(m.dosage)} ${escapeHtml(m.timing)} ${escapeHtml(m.duration)}</li>`).join('')}</ul>`;
+                }
+            } catch (err) {
+                console.error('Clinical Intelligence Fetch Error:', err);
+                document.getElementById('allergyPanel').innerText = 'Unable to retrieve clinical history.';
+                document.getElementById('medicationHistoryPanel').innerText = 'Unable to retrieve medication history.';
+            }
+        }
+
+        async function loadFormulary() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/clinical/formulary`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                formulary = await res.json();
+            } catch (err) {
+                console.error('Formulary Load Error:', err);
+            }
+
+            const drugInput = document.getElementById('drugInput');
+            drugInput.addEventListener('input', () => {
+                const query = drugInput.value.trim().toLowerCase();
+                const suggestions = query ? formulary.filter(item => item.display.toLowerCase().includes(query)).slice(0, 8) : [];
+                const box = document.getElementById('formularySuggestions');
+                if (suggestions.length === 0) {
+                    box.classList.add('hidden');
+                    box.innerHTML = '';
+                    return;
+                }
+                box.innerHTML = '';
+                suggestions.forEach(item => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'w-full text-left px-4 py-3 hover:bg-slate-100 transition-all text-sm';
+                    btn.innerHTML = `
+                        <p class="font-semibold text-slate-900">${escapeHtml(item.display)}</p>
+                        <p class="text-[11px] text-slate-500">Dosage: ${escapeHtml(item.dosage)}</p>
+                    `;
+                    btn.addEventListener('click', () => {
+                        applyFormulary(item.display, item.dosage, item.indications, item.administration);
+                    });
+                    box.appendChild(btn);
+                });
+                box.classList.remove('hidden');
+            });
+
+            document.addEventListener('click', (event) => {
+                const box = document.getElementById('formularySuggestions');
+                if (!event.target.closest('#drugInput') && !event.target.closest('#formularySuggestions')) {
+                    box.classList.add('hidden');
+                }
+            });
+        }
+
+        function applyFormulary(display, dosage, indications, administration) {
+            document.getElementById('drugInput').value = display;
+            document.getElementById('dosageInput').value = dosage;
+            document.getElementById('frequencyInput').value = 'As directed';
+            document.getElementById('durationInput').value = '7 days';
+            document.getElementById('formularySuggestions').classList.add('hidden');
+        }
+
+        function addMedication() {
+            const drugName = document.getElementById('drugInput').value.trim();
+            const dosage = document.getElementById('dosageInput').value.trim();
+            const frequency = document.getElementById('frequencyInput').value.trim();
+            const duration = document.getElementById('durationInput').value.trim();
+
+            if (!drugName || !dosage || !frequency || !duration) {
+                updateForgeStatus('Please complete all medication fields before adding.', 'text-rose-600');
+                return;
+            }
+            medications.push({ brandName: drugName, dosage, timing: frequency, duration });
+            document.getElementById('drugInput').value = '';
+            document.getElementById('dosageInput').value = '';
+            document.getElementById('frequencyInput').value = '';
+            document.getElementById('durationInput').value = '';
+            renderMedicationList();
+            renderPayloadSummary();
+            updateForgeStatus('Medication added to payload.', 'text-emerald-600');
+        }
+
+        function renderMedicationList() {
+            const container = document.getElementById('medicationList');
+            if (medications.length === 0) {
+                container.innerHTML = '<p class="text-sm text-slate-500">No medications added yet.</p>';
+                return;
+            }
+            container.innerHTML = medications.map((med, idx) => `
+                <div class="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm flex items-start justify-between gap-4">
+                    <div>
+                        <p class="font-bold text-slate-900">${med.brandName}</p>
+                        <p class="text-[12px] text-slate-500 mt-1">${med.dosage} • ${med.timing} • ${med.duration}</p>
+                    </div>
+                    <button type="button" onclick="removeMedication(${idx})" class="text-rose-500 hover:text-rose-700 text-sm font-bold">Remove</button>
+                </div>
+            `).join('');
+        }
+
+        function removeMedication(index) {
+            medications.splice(index, 1);
+            renderMedicationList();
+            renderPayloadSummary();
+        }
+
+        function addInvestigation() {
+            const testName = document.getElementById('investigationInput').value.trim();
+            if (!testName) {
+                updateForgeStatus('Enter an investigation name first.', 'text-rose-600');
+                return;
+            }
+            investigations.push(testName);
+            document.getElementById('investigationInput').value = '';
+            renderInvestigationList();
+            renderPayloadSummary();
+            updateForgeStatus('Investigation added.', 'text-emerald-600');
+        }
+
+        function renderInvestigationList() {
+            const container = document.getElementById('investigationList');
+            if (investigations.length === 0) {
+                container.innerHTML = '<p class="text-sm text-slate-500">No investigations added yet.</p>';
+                return;
+            }
+            container.innerHTML = investigations.map((item, idx) => `
+                <div class="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm flex items-center justify-between gap-4">
+                    <p class="font-medium text-slate-900">${item}</p>
+                    <button type="button" onclick="removeInvestigation(${idx})" class="text-rose-500 hover:text-rose-700 text-sm font-bold">Remove</button>
+                </div>
+            `).join('');
+        }
+
+        function removeInvestigation(index) {
+            investigations.splice(index, 1);
+            renderInvestigationList();
+            renderPayloadSummary();
+        }
+
+        function renderPayloadSummary() {
+            document.getElementById('selectedMedicationCount').innerText = medications.length;
+            document.getElementById('selectedInvestigationCount').innerText = investigations.length;
+            document.getElementById('payloadMedicationPreview').innerText = medications.length;
+            document.getElementById('payloadInvestigationPreview').innerText = investigations.length;
+            document.getElementById('payloadPatientPreview').innerText = selectedPatient ? `${selectedPatient.name} • ${selectedPatient.nhi}` : 'No patient selected';
+        }
+
+        function updateForgeStatus(message, textClass) {
+            const forge = document.getElementById('forgeStatus');
+            forge.innerText = message;
+            forge.className = `font-medium ${textClass}`;
+        }
+
+        async function sealPayload() {
+            if (!selectedPatientId) {
+                updateForgeStatus('Select a patient before sealing the payload.', 'text-rose-600');
+                return;
+            }
+            if (medications.length === 0 && investigations.length === 0) {
+                updateForgeStatus('Add medication or investigation items before sealing.', 'text-rose-600');
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/prescriptions`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ patientId: selectedPatientId, medications, investigations })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    document.getElementById('successBroadcastId').innerText = data.broadcastId;
+                    document.getElementById('successOtp').innerText = data.otp;
+                    document.getElementById('successModal').classList.remove('hidden');
+                    updateForgeStatus('Payload sealed successfully.', 'text-emerald-600');
+                } else {
+                    updateForgeStatus(data.msg || 'Failed to seal the payload.', 'text-rose-600');
+                }
+            } catch (err) {
+                console.error('Payload Seal Error:', err);
+                updateForgeStatus('Network error while sealing payload.', 'text-rose-600');
+            }
+        }
+
+        function closeSuccessModal() {
+            document.getElementById('successModal').classList.add('hidden');
+        }
+
+        function goHome() {
+            window.location.href = 'doctor_home.html';
+        }
+
+        function logout() {
+            sessionStorage.clear();
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

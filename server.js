@@ -34,7 +34,7 @@ app.use(logAudit);
 
 // ROUTES (Points to the folders you just moved to the root)
 app.use('/api/auth', require('./routes/auth'));
-app.use('/api/prescriptions', require('./routes/prescriptions'));
+app.use('/api/prescriptions', prescriptionRoutes);
 app.use('/api/medicines', require('./routes/medicines'));
 app.use('/api/labs', require('./routes/labs'));
 app.use('/api/profile', require('./routes/profile'));
@@ -43,13 +43,10 @@ app.use('/api/credentials', credentialRoutes);
 app.use('/api/affiliation', affiliationRoutes);
 app.use('/api/patients', patientRoutes);
 app.use('/api/clinical', clinicalRoutes);
-app.use('/api/prescriptions', prescriptionRoutes);
 app.use('/api/pharmacy', require('./routes/pharmacy'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/analytics', require('./routes/analytics'));
 app.use('/api/patient', require('./routes/patient'));
-app.use('/api/clinical', require('./routes/clinical'));
-app.use('/api/prescriptions', require('./routes/prescriptions'));
 
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, '0.0.0.0', () => {

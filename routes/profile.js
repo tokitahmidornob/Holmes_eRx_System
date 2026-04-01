@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const { Person, Patient, PractitionerRole } = require('../models/GridModels');
+const { User, Person, Patient, PractitionerRole } = require('../models/GridModels');
 
 // Cryptographic Token Verification
 const verifyToken = (req, res, next) => {
@@ -37,7 +37,54 @@ router.get('/', verifyToken, async (req, res) => {
 });
 
 // ==========================================
-// 📤 PUT: UPDATE ELABORATED PROFILE
+// � GET: PROFILE MATRIX AGGREGATOR
+// ==========================================
+router.get('/matrix', verifyToken, async (req, res) => {
+    try {
+        const security = await User.findById(req.user.id).select('-passwordHash -__v');
+        if (!security) return res.status(404).json({ msg: 'Security profile not found.' });
+
+        const coreIdentity = await Person.findById(req.user.id).select('-passwordHash -__v');
+        if (!coreIdentity) return res.status(404).json({ msg: 'Core identity not found.' });
+
+        const matrix = {
+            layer5: {
+                accountId: req.user.id,
+                role: req.user.role,
+                security: security
+            },
+            layer1: {
+                personId: coreIdentity._id,
+                legalFullName: coreIdentity.legalFullName,
+                gridId: coreIdentity.gridId,
+                contact: coreIdentity.contact,
+                dateOfBirth: coreIdentity.dateOfBirth,
+                genderLegal: coreIdentity.genderLegal
+            },
+            layer2: null,
+            layer3: null,
+            layer4: null
+        };
+
+        if (req.user.role === 'patient') {
+            const patientProfile = await Patient.findOne({ personId: req.user.id }).select('-__v');
+            matrix.layer4 = patientProfile;
+            matrix.patientProfile = patientProfile;
+        } else {
+            const practitionerProfiles = await PractitionerRole.find({ personId: req.user.id }).select('-__v');
+            matrix.layer2 = practitionerProfiles;
+            matrix.practitionerRoles = practitionerProfiles;
+        }
+
+        res.json(matrix);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ msg: 'Grid Error: Cannot construct the Identity Matrix.' });
+    }
+});
+
+// ==========================================
+// �📤 PUT: UPDATE ELABORATED PROFILE
 // ==========================================
 router.put('/', verifyToken, async (req, res) => {
     try {
