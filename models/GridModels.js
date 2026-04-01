@@ -31,7 +31,7 @@ const PatientSchema = new mongoose.Schema({
 // ==========================================
 const PractitionerRoleSchema = new mongoose.Schema({
     personId: { type: mongoose.Schema.Types.ObjectId, ref: 'Person', required: true },
-    roleType: { type: String, enum: ['Doctor', 'Pharmacist', 'Pathologist', 'Admin'], required: true },
+    roleType: { type: String, enum: ['Doctor', 'Pharmacist', 'Pathologist', 'Admin', 'Insurance'], required: true },
     licenseNumber: { type: String },
     specialty: [{ type: String }]
 }, { timestamps: true });
@@ -73,7 +73,8 @@ const PrescriptionSchema = new mongoose.Schema({
     investigations: [{ type: String }],
     broadcastId: { type: String, unique: true },
     otp: { type: String },
-    status: { type: String, enum: ['Active', 'Dispensed', 'Revoked'], default: 'Active' }
+    status: { type: String, enum: ['Active', 'Dispensed', 'Revoked'], default: 'Active' },
+    insuranceStatus: { type: String, enum: ['Pending', 'Approved', 'Rejected'], default: 'Pending' }
 }, { timestamps: true });
 
 // ==========================================

@@ -23,6 +23,7 @@ router.post('/register', async (req, res) => {
         else if (role === 'doctor') idPrefix = 'DOC';
         else if (role === 'pharmacist') idPrefix = 'PHM';
         else if (role === 'pathologist') idPrefix = 'PTH';
+        else if (role === 'insurance') idPrefix = 'INS';
         
         const generatedGridId = `${idPrefix}-${Math.floor(1000000 + Math.random() * 9000000).toString()}`;
 
@@ -43,7 +44,7 @@ router.post('/register', async (req, res) => {
             const patient = new Patient({ personId: person._id, nationalHealthId: nhi, nationalId: placeholderNid });
             await patient.save();
         } else {
-            const roleMapping = { 'doctor': 'Doctor', 'pharmacist': 'Pharmacist', 'pathologist': 'Pathologist', 'admin': 'Admin' };
+            const roleMapping = { 'doctor': 'Doctor', 'pharmacist': 'Pharmacist', 'pathologist': 'Pathologist', 'admin': 'Admin', 'insurance': 'Insurance' };
             const pracRole = new PractitionerRole({ personId: person._id, roleType: roleMapping[role] || 'Doctor' });
             await pracRole.save();
         }
@@ -72,7 +73,7 @@ router.post('/login', async (req, res) => {
             const pat = await Patient.findOne({ personId: person._id });
             if (!pat) return res.status(403).json({ msg: 'Identity is not registered as a Citizen.' });
         } else {
-            const roleMapping = { 'doctor': 'Doctor', 'pharmacist': 'Pharmacist', 'pathologist': 'Pathologist', 'admin': 'Admin' };
+            const roleMapping = { 'doctor': 'Doctor', 'pharmacist': 'Pharmacist', 'pathologist': 'Pathologist', 'admin': 'Admin', 'insurance': 'Insurance' };
             const prac = await PractitionerRole.findOne({ personId: person._id, roleType: roleMapping[role] });
             if (!prac) return res.status(403).json({ msg: `Identity is not registered as a ${roleMapping[role]}.` });
         }

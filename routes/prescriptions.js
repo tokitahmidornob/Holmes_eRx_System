@@ -31,6 +31,44 @@ const requireRole = (...allowedRoles) => {
     };
 };
 
+const ENCRYPTION_KEY = process.env.AES_KEY || 'holmes_master_key_32_bytes_long!';
+const ALGORITHM = 'aes-256-cbc';
+const IV_LENGTH = 16;
+
+const encrypt = (text) => {
+    if (typeof text !== 'string') return text;
+    const iv = crypto.randomBytes(IV_LENGTH);
+    const cipher = crypto.createCipheriv(ALGORITHM, Buffer.from(ENCRYPTION_KEY), iv);
+    let encrypted = cipher.update(text, 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+    return `${iv.toString('hex')}:${encrypted}`;
+};
+
+const decrypt = (text) => {
+    if (typeof text !== 'string') return text;
+    try {
+        const [ivHex, encrypted] = text.split(':');
+        if (!ivHex || !encrypted) return text;
+        const iv = Buffer.from(ivHex, 'hex');
+        const decipher = crypto.createDecipheriv(ALGORITHM, Buffer.from(ENCRYPTION_KEY), iv);
+        let decrypted = decipher.update(encrypted, 'hex', 'utf8');
+        decrypted += decipher.final('utf8');
+        return decrypted;
+    } catch (err) {
+        return text;
+    }
+};
+
+const decryptMedicationObject = (item) => {
+    if (!item || typeof item !== 'object') return item;
+    return {
+        brandName: typeof item.brandName === 'string' ? decrypt(item.brandName) : item.brandName,
+        dosage: typeof item.dosage === 'string' ? decrypt(item.dosage) : item.dosage,
+        timing: typeof item.timing === 'string' ? decrypt(item.timing) : item.timing,
+        duration: typeof item.duration === 'string' ? decrypt(item.duration) : item.duration
+    };
+};
+
 const createEmailTransporter = async () => {
     if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
         return nodemailer.createTransport({
@@ -110,10 +148,22 @@ router.post('/', verifyToken, requireRole('doctor'), async (req, res) => {
         const broadcastId = 'RX-' + crypto.randomBytes(2).toString('hex').toUpperCase() + '-' + crypto.randomBytes(2).toString('hex').toUpperCase();
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
+        const encryptedMedications = medications.map((med) => {
+            if (typeof med === 'string') {
+                return encrypt(med);
+            }
+            return {
+                brandName: typeof med.brandName === 'string' ? encrypt(med.brandName) : med.brandName,
+                dosage: typeof med.dosage === 'string' ? encrypt(med.dosage) : med.dosage,
+                timing: typeof med.timing === 'string' ? encrypt(med.timing) : med.timing,
+                duration: typeof med.duration === 'string' ? encrypt(med.duration) : med.duration
+            };
+        });
+
         const newRx = new Prescription({
             patientId: patientId,
             practitionerId: practitioner._id,
-            medications: medications,
+            medications: encryptedMedications,
             investigations: investigations || [],
             broadcastId: broadcastId,
             otp: otp,
@@ -162,7 +212,7 @@ router.get('/doctor/me', verifyToken, requireRole('doctor'), async (req, res) =>
             otp: rx.otp,
             status: rx.status,
             createdAt: rx.createdAt,
-            medications: rx.medications,
+            medications: Array.isArray(rx.medications) ? rx.medications.map(decryptMedicationObject) : rx.medications,
             investigations: rx.investigations,
             patientId: rx.patientId && rx.patientId.personId ? rx.patientId.personId.legalFullName : 'Unknown Citizen'
         }));
@@ -191,7 +241,7 @@ router.get('/patient/me', verifyToken, requireRole('patient'), async (req, res) 
             otp: rx.otp,
             status: rx.status,
             createdAt: rx.createdAt,
-            medications: rx.medications,
+            medications: Array.isArray(rx.medications) ? rx.medications.map(decryptMedicationObject) : rx.medications,
             investigations: rx.investigations,
             doctorName: rx.practitionerId && rx.practitionerId.personId ? rx.practitionerId.personId.legalFullName : 'Unknown Doctor'
         }));
@@ -228,7 +278,7 @@ router.post('/decrypt', verifyToken, requireRole('pharmacist', 'pathologist'), a
         };
 
         if (req.user.role === 'pharmacist') {
-            filteredData.medications = rx.medications;
+            filteredData.medications = Array.isArray(rx.medications) ? rx.medications.map(decryptMedicationObject) : rx.medications;
         } else if (req.user.role === 'pathologist') {
             filteredData.investigations = rx.investigations;
         }

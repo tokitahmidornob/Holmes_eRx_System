@@ -50,6 +50,7 @@
                             <option value="doctor">Practitioner (Doctor)</option>
                             <option value="pharmacist">Authority (Pharmacist)</option>
                             <option value="pathologist">Pathology (Lab)</option>
+                            <option value="insurance">Insurance / Payer</option>
                         </select>
                         <i class="fa-solid fa-chevron-down text-slate-400 absolute right-4 z-10 text-xs pointer-events-none"></i>
                     </div>
@@ -86,6 +87,7 @@
                             <option value="doctor">Practitioner (Doctor)</option>
                             <option value="pharmacist">Authority (Pharmacist)</option>
                             <option value="pathologist">Pathology (Lab)</option>
+                            <option value="insurance">Insurance / Payer</option>
                         </select>
                         <i class="fa-solid fa-chevron-down text-slate-400 absolute right-4 top-1/2 -translate-y-1/2 text-xs pointer-events-none"></i>
                     </div>
@@ -154,6 +156,7 @@
             if (role === 'doctor') window.location.href = 'doctor_home.html';
             else if (role === 'pharmacist') window.location.href = 'pharmacist_home.html';
             else if (role === 'pathologist') window.location.href = 'pathologist_home.html';
+            else if (role === 'insurance') window.location.href = 'insurance_portal.html';
             else if (role === 'admin') window.location.href = 'admin_portal.html';
             else window.location.href = 'patient_home.html'; 
         }

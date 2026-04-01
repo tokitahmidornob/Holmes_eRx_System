@@ -1,13 +1,14 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+require('dotenv').config();
 const orgRoutes = require('./routes/organizations');
 const credentialRoutes = require('./routes/credentials');
 const affiliationRoutes = require('./routes/affiliation');
 const patientRoutes = require('./routes/patients');
 const clinicalRoutes = require('./routes/clinical');
 const prescriptionRoutes = require('./routes/prescriptions');
-require('dotenv').config();
+const insuranceRoutes = require('./routes/insurance');
 
 const app = express();
 
@@ -45,6 +46,7 @@ app.use('/api/patients', patientRoutes);
 app.use('/api/clinical', clinicalRoutes);
 app.use('/api/pharmacy', require('./routes/pharmacy'));
 app.use('/api/admin', require('./routes/admin'));
+app.use('/api/insurance', insuranceRoutes);
 app.use('/api/analytics', require('./routes/analytics'));
 app.use('/api/patient', require('./routes/patient'));
 

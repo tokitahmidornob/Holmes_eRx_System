@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insurance Claims Portal | Holmes eRx</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .glass-panel { background: rgba(255,255,255,0.92); backdrop-filter: blur(18px); border: 1px solid rgba(226,232,240,0.85); }
+        .fade-in-up { animation: fadeInUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="antialiased text-slate-800 bg-slate-100 min-h-screen">
+    <header class="sticky top-0 bg-slate-50/95 backdrop-blur border-b border-slate-200 z-30">
+        <div class="max-w-7xl mx-auto px-6 lg:px-10 py-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div>
+                <p class="text-xs uppercase tracking-[0.35em] text-amber-500 font-bold mb-2">Insurance Claims Console</p>
+                <h1 class="text-3xl lg:text-4xl font-extrabold text-slate-900">Holmes Payer Intelligence</h1>
+                <p class="mt-2 text-sm text-slate-500 max-w-2xl">Review policy claims, authorize payments, and keep the national health ledger aligned with financial clearance.</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="logout()" class="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white text-slate-700 px-4 py-3 text-sm font-bold hover:bg-amber-50 hover:border-amber-200 transition-all">
+                    <i class="fa-solid fa-power-off"></i> Sign Out
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 lg:px-10 py-8 space-y-8">
+        <div class="grid gap-6 md:grid-cols-3">
+            <div class="glass-panel rounded-3xl p-7 shadow-sm border border-amber-100">
+                <p class="text-xs uppercase tracking-[0.35em] text-amber-500 font-black mb-4">Pending Claims</p>
+                <p id="pendingCount" class="text-5xl font-extrabold text-slate-900">0</p>
+                <p class="mt-3 text-sm text-slate-500">Claims requiring insurance authorization.</p>
+            </div>
+            <div class="glass-panel rounded-3xl p-7 shadow-sm border border-slate-200">
+                <p class="text-xs uppercase tracking-[0.35em] text-slate-500 font-black mb-4">Approved Payouts</p>
+                <p id="approvedCount" class="text-5xl font-extrabold text-slate-900">0</p>
+                <p class="mt-3 text-sm text-slate-500">Successfully approved claims.</p>
+            </div>
+            <div class="glass-panel rounded-3xl p-7 shadow-sm border border-slate-200">
+                <p class="text-xs uppercase tracking-[0.35em] text-amber-500 font-black mb-4">Rejected</p>
+                <p id="rejectedCount" class="text-5xl font-extrabold text-slate-900">0</p>
+                <p class="mt-3 text-sm text-slate-500">Claims flagged as non-compliant.</p>
+            </div>
+        </div>
+
+        <section class="space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h2 class="text-xl font-black text-slate-900">Claim Ledger</h2>
+                    <p class="text-sm text-slate-500">Latest prescription records awaiting insurance review.</p>
+                </div>
+                <button onclick="fetchClaims()" class="inline-flex items-center gap-2 rounded-2xl bg-amber-500 text-white px-5 py-3 text-sm font-bold hover:bg-amber-600 transition-all">
+                    <i class="fa-solid fa-arrow-rotate-right"></i> Refresh Ledger
+                </button>
+            </div>
+
+            <div id="claimsContainer" class="grid gap-5"></div>
+        </section>
+    </main>
+
+    <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-3 pointer-events-none w-full max-w-sm px-4"></div>
+
+    <script>
+        const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
+        const token = sessionStorage.getItem('eRx_Token');
+
+        if (!token) {
+            window.location.href = 'index.html';
+        }
+
+        const decoded = parseJwt(token);
+        if (decoded.role !== 'insurance') {
+            window.location.href = 'index.html';
+        }
+
+        function parseJwt(t) {
+            try { return JSON.parse(atob(t.split('.')[1])); } catch (e) { return {}; }
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const colors = type === 'error' ? 'border-rose-500 bg-white' : type === 'success' ? 'border-emerald-500 bg-white' : 'border-amber-500 bg-white';
+            const icon = type === 'error' ? 'fa-triangle-exclamation' : type === 'success' ? 'fa-check' : 'fa-circle-info';
+            const accent = type === 'error' ? 'text-rose-500 bg-rose-50' : type === 'success' ? 'text-emerald-500 bg-emerald-50' : 'text-amber-500 bg-amber-50';
+            const toast = document.createElement('div');
+            toast.className = `flex items-start gap-3 p-4 rounded-3xl shadow-xl border-l-4 ${colors} transform transition-all duration-300 translate-y-6 opacity-0`;
+            toast.innerHTML = `<div class="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${accent}"><i class="fa-solid ${icon}"></i></div><div><p class="text-xs font-black uppercase tracking-widest text-slate-900">${type === 'error' ? 'Alert' : type === 'success' ? 'Success' : 'Notice'}</p><p class="mt-1 text-sm text-slate-600">${message}</p></div>`;
+            container.appendChild(toast);
+            requestAnimationFrame(() => { toast.classList.remove('translate-y-6', 'opacity-0'); });
+            setTimeout(() => { toast.classList.add('translate-y-6', 'opacity-0'); setTimeout(() => toast.remove(), 400); }, 4000);
+        }
+
+        async function fetchClaims() {
+            const container = document.getElementById('claimsContainer');
+            container.innerHTML = '<div class="col-span-full p-8 rounded-3xl bg-white border border-slate-200 shadow-sm text-slate-500 text-center">Loading claim ledger...</div>';
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/insurance/claims`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) throw new Error('Unable to sync claims.');
+                const claims = await res.json();
+
+                const pending = claims.filter(c => c.insuranceStatus === 'Pending').length;
+                const approved = claims.filter(c => c.insuranceStatus === 'Approved').length;
+                const rejected = claims.filter(c => c.insuranceStatus === 'Rejected').length;
+                document.getElementById('pendingCount').innerText = pending;
+                document.getElementById('approvedCount').innerText = approved;
+                document.getElementById('rejectedCount').innerText = rejected;
+
+                if (!claims.length) {
+                    container.innerHTML = '<div class="col-span-full p-10 rounded-3xl bg-white border border-slate-200 shadow-sm text-slate-500 text-center">No claims available. Refresh to sync the insurance ledger.</div>';
+                    return;
+                }
+
+                container.innerHTML = claims.map((claim, index) => `
+                    <article class="glass-panel rounded-3xl p-6 border border-slate-200 shadow-sm ${index === 0 ? 'fade-in-up' : ''}">
+                        <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                            <div class="space-y-3">
+                                <div class="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.35em] font-black text-slate-500">
+                                    <span class="px-3 py-1 rounded-full bg-amber-50 text-amber-600 border border-amber-100">${claim.insuranceStatus}</span>
+                                    <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200">Prescription ${claim.status}</span>
+                                </div>
+                                <h3 class="text-xl font-extrabold text-slate-900">${escapeHtml(claim.broadcastId)}</h3>
+                                <p class="text-sm text-slate-500">Patient: <span class="font-semibold text-slate-900">${escapeHtml(claim.patientName)}</span> • Doctor: <span class="font-semibold text-slate-900">${escapeHtml(claim.doctorName)}</span></p>
+                                <p class="text-sm text-slate-400">Claim created: ${new Date(claim.createdAt).toLocaleString()}</p>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <div class="text-right text-slate-500 text-xs uppercase tracking-[0.35em] font-bold">Patient Grid ID</div>
+                                <div class="rounded-3xl bg-slate-50 px-4 py-3 text-slate-800 font-semibold text-sm border border-slate-200">${escapeHtml(claim.patientGridId)}</div>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 grid gap-4 md:grid-cols-2">
+                            <div class="rounded-3xl bg-slate-50 p-4 border border-slate-200">
+                                <p class="text-[11px] uppercase tracking-[0.35em] text-slate-500 font-black mb-3">Medication Summary</p>
+                                ${claim.medications && claim.medications.length ? claim.medications.map(med => `
+                                    <div class="mb-3 last:mb-0">
+                                        <p class="text-sm font-semibold text-slate-900">${escapeHtml(med.brandName || 'Unknown')}</p>
+                                        <p class="text-xs text-slate-500">${escapeHtml(med.dosage || '-')} • ${escapeHtml(med.timing || '-')} • ${escapeHtml(med.duration || '-')}</p>
+                                    </div>
+                                `).join('') : '<p class="text-sm text-slate-500">No medication data available.</p>'}
+                            </div>
+                            <div class="rounded-3xl bg-slate-50 p-4 border border-slate-200">
+                                <p class="text-[11px] uppercase tracking-[0.35em] text-slate-500 font-black mb-3">Clinical Investigations</p>
+                                ${claim.investigations && claim.investigations.length ? `<ul class="list-disc pl-5 space-y-2 text-sm text-slate-600">${claim.investigations.map(inv => `<li>${escapeHtml(inv)}</li>`).join('')}</ul>` : '<p class="text-sm text-slate-500">No investigations attached.</p>'}
+                            </div>
+                        </div>
+
+                        <div class="mt-6 flex flex-wrap gap-3 items-center justify-end">
+                            <button onclick="handleClaim('${claim.id}', 'approve')" ${claim.insuranceStatus !== 'Pending' ? 'disabled' : ''} class="btn-action bg-emerald-600 text-white ${claim.insuranceStatus !== 'Pending' ? 'opacity-50 cursor-not-allowed' : 'hover:bg-emerald-700'}">
+                                <i class="fa-solid fa-circle-check"></i> Approve
+                            </button>
+                            <button onclick="handleClaim('${claim.id}', 'reject')" ${claim.insuranceStatus !== 'Pending' ? 'disabled' : ''} class="btn-action bg-rose-500 text-white ${claim.insuranceStatus !== 'Pending' ? 'opacity-50 cursor-not-allowed' : 'hover:bg-rose-600'}">
+                                <i class="fa-solid fa-xmark"></i> Reject
+                            </button>
+                        </div>
+                    </article>
+                `).join('');
+            } catch (err) {
+                container.innerHTML = '<div class="col-span-full p-10 rounded-3xl bg-white border border-slate-200 shadow-sm text-slate-500 text-center">Unable to load the insurance ledger.</div>';
+                showToast('Unable to sync claims at this time.', 'error');
+                console.error(err);
+            }
+        }
+
+        async function handleClaim(id, action) {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/insurance/claims/${id}/${action}`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.msg || 'Failed claim action.');
+                showToast(data.msg, 'success');
+                fetchClaims();
+            } catch (err) {
+                showToast(err.message || 'Action failed.', 'error');
+            }
+        }
+
+        function escapeHtml(value) {
+            return String(value || '').replace(/[&<>'\"]+/g, (match) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[match]));
+        }
+
+        function logout() {
+            sessionStorage.clear();
+            window.location.href = 'index.html';
+        }
+
+        fetchClaims();
+    </script>
+</body>
+</html>
