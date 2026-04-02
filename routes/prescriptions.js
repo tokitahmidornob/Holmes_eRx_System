@@ -133,7 +133,7 @@ const sendPrescriptionNotification = async ({ patientEmail, patientName, doctorN
 // ==========================================
 router.post('/', verifyToken, requireRole('doctor'), async (req, res) => {
     try {
-        const { patientId, medications, investigations } = req.body;
+        const { patientId, medications, investigations, conditions } = req.body;
         if (!patientId || !medications || medications.length === 0) {
             return res.status(400).json({ msg: "Invalid Payload. Patient and Therapy required." });
         }
@@ -171,6 +171,32 @@ router.post('/', verifyToken, requireRole('doctor'), async (req, res) => {
         });
 
         await newRx.save();
+
+        // Process and push time-bound conditions to the Patient document
+        if (patient && Array.isArray(conditions) && conditions.length > 0) {
+            const durationMap = {
+                '1_week': 7 * 24 * 60 * 60 * 1000,
+                '1_month': 30 * 24 * 60 * 60 * 1000,
+                '3_months': 90 * 24 * 60 * 60 * 1000,
+                '6_months': 180 * 24 * 60 * 60 * 1000,
+                'chronic': 100 * 365 * 24 * 60 * 60 * 1000  // 100 years — never expires
+            };
+
+            const newConditions = conditions.map(c => {
+                const durationMs = durationMap[c.duration] || durationMap['1_month'];
+                return {
+                    conditionName: c.conditionName,
+                    diagnosedDate: new Date(),
+                    durationText: c.durationText || c.duration,
+                    endDate: new Date(Date.now() + durationMs),
+                    status: 'active'
+                };
+            });
+
+            patient.conditions = patient.conditions || [];
+            patient.conditions.push(...newConditions);
+            await patient.save();
+        }
 
         res.status(201).json({ 
             msg: "Payload Sealed Successfully.", 

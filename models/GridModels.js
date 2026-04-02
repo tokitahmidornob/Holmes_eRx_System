@@ -28,7 +28,14 @@ const PatientSchema = new mongoose.Schema({
     bloodGroup: { type: String },
     emergencyContact: { type: String, default: '' },
     guardian: { type: String, default: '' },
-    insuranceProvider: { type: String, default: '' }
+    insuranceProvider: { type: String, default: '' },
+    conditions: [{
+        conditionName: { type: String, required: true },
+        diagnosedDate: { type: Date, default: Date.now },
+        durationText: { type: String },
+        endDate: { type: Date },
+        status: { type: String, enum: ['active', 'resolved'], default: 'active' }
+    }]
 }, { timestamps: true });
 
 // ==========================================

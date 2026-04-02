@@ -117,9 +117,28 @@ router.get('/dossier/:id', verifyToken, async (req, res) => {
             return acc;
         }, []);
 
+        // Auto-expire time-bound conditions
+        const patient = await Patient.findById(patientId);
+        let conditionsModified = false;
+        if (patient && Array.isArray(patient.conditions)) {
+            const now = new Date();
+            patient.conditions.forEach(cond => {
+                if (cond.status === 'active' && cond.endDate && cond.endDate < now) {
+                    cond.status = 'resolved';
+                    conditionsModified = true;
+                }
+            });
+            if (conditionsModified) {
+                await patient.save();
+            }
+        }
+
+        const conditions = patient && Array.isArray(patient.conditions) ? patient.conditions : [];
+
         res.json({
             allergies: allergies || [],
-            activeMedications: activeMedications || []
+            activeMedications: activeMedications || [],
+            conditions: conditions
         });
     } catch (err) {
         console.error("DOSSIER_ERR:", err);
