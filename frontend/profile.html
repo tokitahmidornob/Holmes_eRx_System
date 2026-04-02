@@ -70,6 +70,22 @@
                     <form id="editProfileForm" class="space-y-6" onsubmit="submitProfileUpdate(event)">
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                             <label class="block text-slate-700 font-bold text-xs uppercase tracking-[0.2em]">
+                                Legal Full Name
+                                <input id="editLegalFullName" type="text" class="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-blue-500 outline-none" placeholder="John Doe">
+                            </label>
+                            <label class="block text-slate-700 font-bold text-xs uppercase tracking-[0.2em]">
+                                Date of Birth
+                                <input id="editDateOfBirth" type="date" class="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-blue-500 outline-none">
+                            </label>
+                            <label class="block text-slate-700 font-bold text-xs uppercase tracking-[0.2em]">
+                                Sex / Gender
+                                <input id="editGender" type="text" class="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-blue-500 outline-none" placeholder="Male / Female / Other">
+                            </label>
+                            <label class="block text-slate-700 font-bold text-xs uppercase tracking-[0.2em]">
+                                National Health ID
+                                <input id="editHealthId" type="text" class="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-blue-500 outline-none" placeholder="NHI-XXXXXX">
+                            </label>
+                            <label class="block text-slate-700 font-bold text-xs uppercase tracking-[0.2em]">
                                 Mobile Contact
                                 <input id="editMobile" type="text" class="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-blue-500 outline-none" placeholder="+880 1XXXXXXXXX">
                             </label>
@@ -85,27 +101,22 @@
                                 Language Pref
                                 <input id="editLanguagePref" type="text" class="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-blue-500 outline-none" placeholder="English, বাংলা, العربية">
                             </label>
-                        </div>
-                        <div id="patientEditFields" class="hidden space-y-4">
-                            <p class="text-sm font-bold uppercase tracking-[0.2em] text-slate-500">Patient-only details</p>
-                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                <label class="block text-slate-700 font-bold text-xs uppercase tracking-[0.2em]">
-                                    Blood Group
-                                    <input id="editBloodGroup" type="text" class="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-blue-500 outline-none" placeholder="A+ / B- / O+">
-                                </label>
-                                <label class="block text-slate-700 font-bold text-xs uppercase tracking-[0.2em]">
-                                    Emergency Contact
-                                    <input id="editEmergencyContact" type="text" class="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-blue-500 outline-none" placeholder="Name, Relation, Phone">
-                                </label>
-                                <label class="block text-slate-700 font-bold text-xs uppercase tracking-[0.2em]">
-                                    Guardian / Next of Kin
-                                    <input id="editGuardian" type="text" class="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-blue-500 outline-none" placeholder="Guardian or NOK">
-                                </label>
-                                <label class="block text-slate-700 font-bold text-xs uppercase tracking-[0.2em]">
-                                    Insurance Provider
-                                    <input id="editInsurance" type="text" class="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-blue-500 outline-none" placeholder="Insurance Company Name">
-                                </label>
-                            </div>
+                            <label class="block text-slate-700 font-bold text-xs uppercase tracking-[0.2em]">
+                                Blood Group
+                                <input id="editBloodGroup" type="text" class="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-blue-500 outline-none" placeholder="A+ / B- / O+">
+                            </label>
+                            <label class="block text-slate-700 font-bold text-xs uppercase tracking-[0.2em]">
+                                Emergency Contact
+                                <input id="editEmergencyContact" type="text" class="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-blue-500 outline-none" placeholder="Name, Relation, Phone">
+                            </label>
+                            <label class="block text-slate-700 font-bold text-xs uppercase tracking-[0.2em]">
+                                Guardian / Next of Kin
+                                <input id="editGuardian" type="text" class="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-blue-500 outline-none" placeholder="Guardian or NOK">
+                            </label>
+                            <label class="block text-slate-700 font-bold text-xs uppercase tracking-[0.2em]">
+                                Insurance Provider
+                                <input id="editInsurance" type="text" class="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-blue-500 outline-none" placeholder="Insurance Company Name">
+                            </label>
                         </div>
                         <div class="flex flex-col sm:flex-row items-center justify-end gap-3 pt-3 border-t border-slate-200">
                             <button type="button" onclick="closeEditModal()" class="w-full sm:w-auto bg-slate-100 hover:bg-slate-200 text-slate-700 px-6 py-3 rounded-2xl text-xs font-bold uppercase tracking-wide transition-all">Cancel</button>
@@ -332,22 +343,20 @@
         }
 
         function openEditModal() {
+            document.getElementById('editLegalFullName').value = document.getElementById('field-name').innerText === '-' ? '' : document.getElementById('field-name').innerText;
+            const dobText = document.getElementById('field-dob').innerText;
+            const dobValue = dobText && dobText !== '-' ? new Date(dobText) : null;
+            document.getElementById('editDateOfBirth').value = dobValue && !isNaN(dobValue) ? dobValue.toISOString().split('T')[0] : '';
+            document.getElementById('editGender').value = document.getElementById('field-gender').innerText === '-' ? '' : document.getElementById('field-gender').innerText;
+            document.getElementById('editHealthId').value = document.getElementById('field-nhi').innerText === '-' ? '' : document.getElementById('field-nhi').innerText;
             document.getElementById('editMobile').value = document.getElementById('field-mobile').innerText === '-' ? '' : document.getElementById('field-mobile').innerText;
             document.getElementById('editAddress').value = document.getElementById('field-address').innerText === 'Not Available' ? '' : document.getElementById('field-address').innerText;
             document.getElementById('editEmail').value = document.getElementById('field-email').innerText === '-' ? '' : document.getElementById('field-email').innerText;
             document.getElementById('editLanguagePref').value = document.getElementById('field-lang').innerText === 'Not Available' ? '' : document.getElementById('field-lang').innerText;
-
-            const patientSection = document.getElementById('patientEditFields');
-            if (role === 'patient') {
-                patientSection.classList.remove('hidden');
-                document.getElementById('editBloodGroup').value = document.getElementById('field-blood').innerText === 'Not Available' ? '' : document.getElementById('field-blood').innerText;
-                document.getElementById('editEmergencyContact').value = document.getElementById('field-emergency').innerText === 'Not Available' ? '' : document.getElementById('field-emergency').innerText;
-                document.getElementById('editGuardian').value = document.getElementById('field-nok').innerText === 'Not Available' ? '' : document.getElementById('field-nok').innerText;
-                document.getElementById('editInsurance').value = document.getElementById('field-insurance').innerText === 'Not Available' ? '' : document.getElementById('field-insurance').innerText;
-            } else {
-                patientSection.classList.add('hidden');
-            }
-
+            document.getElementById('editBloodGroup').value = document.getElementById('field-blood') ? (document.getElementById('field-blood').innerText === 'Not Available' ? '' : document.getElementById('field-blood').innerText) : '';
+            document.getElementById('editEmergencyContact').value = document.getElementById('field-emergency') ? (document.getElementById('field-emergency').innerText === 'Not Available' ? '' : document.getElementById('field-emergency').innerText) : '';
+            document.getElementById('editGuardian').value = document.getElementById('field-nok') ? (document.getElementById('field-nok').innerText === 'Not Available' ? '' : document.getElementById('field-nok').innerText) : '';
+            document.getElementById('editInsurance').value = document.getElementById('field-insurance') ? (document.getElementById('field-insurance').innerText === 'Not Available' ? '' : document.getElementById('field-insurance').innerText) : '';
             document.getElementById('editModal').classList.remove('hidden');
         }
 
@@ -357,18 +366,20 @@
 
         async function submitProfileUpdate(event) {
             event.preventDefault();
+            const legalFullName = document.getElementById('editLegalFullName').value.trim();
+            const dateOfBirth = document.getElementById('editDateOfBirth').value;
+            const gender = document.getElementById('editGender').value.trim();
+            const healthId = document.getElementById('editHealthId').value.trim();
             const mobile = document.getElementById('editMobile').value.trim();
             const address = document.getElementById('editAddress').value.trim();
             const email = document.getElementById('editEmail').value.trim();
             const languagePref = document.getElementById('editLanguagePref').value.trim();
+            const bloodGroup = document.getElementById('editBloodGroup').value.trim();
+            const emergencyContact = document.getElementById('editEmergencyContact').value.trim();
+            const guardian = document.getElementById('editGuardian').value.trim();
+            const insurance = document.getElementById('editInsurance').value.trim();
 
-            const payload = { mobile, address, email, languagePref };
-            if (role === 'patient') {
-                payload.bloodGroup = document.getElementById('editBloodGroup').value.trim();
-                payload.emergencyContact = document.getElementById('editEmergencyContact').value.trim();
-                payload.guardian = document.getElementById('editGuardian').value.trim();
-                payload.insurance = document.getElementById('editInsurance').value.trim();
-            }
+            const payload = { legalFullName, dateOfBirth, gender, healthId, mobile, address, email, languagePref, bloodGroup, emergencyContact, guardian, insurance };
 
             try {
                 const res = await fetch(`${API_BASE_URL}/api/profile/update`, {

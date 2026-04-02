@@ -37,11 +37,24 @@ router.get('/', verifyToken, async (req, res) => {
 });
 
 // ==========================================
-// 🔐 PUT: UPDATE MUTABLE CONTACT INFO
+// 🔐 PUT: UPDATE FULL IDENTITY MATRIX
 // ==========================================
 router.put('/update', verifyToken, async (req, res) => {
     try {
-        const { email, mobile, address, languagePref, bloodGroup, emergencyContact, guardian, insurance } = req.body;
+        const {
+            legalFullName,
+            dateOfBirth,
+            gender,
+            healthId,
+            mobile,
+            email,
+            address,
+            languagePref,
+            bloodGroup,
+            emergencyContact,
+            guardian,
+            insurance
+        } = req.body;
 
         const person = await Person.findById(req.user.id);
         if (!person) return res.status(404).json({ msg: "Person record not found." });
@@ -49,6 +62,25 @@ router.put('/update', verifyToken, async (req, res) => {
         person.contact = person.contact || {};
         let personModified = false;
 
+        if (typeof legalFullName === 'string' && legalFullName.trim() !== '') {
+            person.legalFullName = legalFullName.trim();
+            personModified = true;
+        }
+        if (typeof dateOfBirth === 'string' && dateOfBirth.trim() !== '') {
+            const parsedDob = new Date(dateOfBirth);
+            if (!isNaN(parsedDob)) {
+                person.dateOfBirth = parsedDob;
+                personModified = true;
+            }
+        }
+        if (typeof gender === 'string' && gender.trim() !== '') {
+            person.genderLegal = gender.trim();
+            personModified = true;
+        }
+        if (typeof healthId === 'string' && healthId.trim() !== '') {
+            person.gridId = healthId.trim();
+            personModified = true;
+        }
         if (typeof email === 'string' && email.trim() !== '') {
             person.contact.primaryEmail = email.trim();
             personModified = true;
@@ -66,13 +98,9 @@ router.put('/update', verifyToken, async (req, res) => {
             personModified = true;
         }
 
+        const patient = await Patient.findOne({ personId: req.user.id });
         let patientModified = false;
-        let patient = null;
-
-        if (req.user.role === 'patient') {
-            patient = await Patient.findOne({ personId: req.user.id });
-            if (!patient) return res.status(404).json({ msg: "Patient profile not found." });
-
+        if (patient) {
             if (typeof bloodGroup === 'string' && bloodGroup.trim() !== '') {
                 patient.bloodGroup = bloodGroup.trim();
                 patientModified = true;
@@ -91,12 +119,20 @@ router.put('/update', verifyToken, async (req, res) => {
             }
         }
 
-        if (!personModified && !patientModified) {
-            return res.status(400).json({ msg: "No mutable fields provided for update." });
+        const practitioner = !patient ? await PractitionerRole.findOne({ personId: req.user.id }) : null;
+        let practitionerModified = false;
+        if (practitioner) {
+            // Reserved for future expanded experience fields.
+            practitionerModified = false;
+        }
+
+        if (!personModified && !patientModified && !practitionerModified) {
+            return res.status(400).json({ msg: "No identity fields were provided for update." });
         }
 
         if (personModified) await person.save();
         if (patientModified) await patient.save();
+        if (practitioner && practitionerModified) await practitioner.save();
 
         res.json({ msg: "Identity Matrix updated successfully." });
     } catch (err) {
