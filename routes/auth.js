@@ -69,22 +69,27 @@ router.post('/login', async (req, res) => {
         const isMatch = await bcrypt.compare(password, person.passwordHash);
         if (!isMatch) return res.status(400).json({ msg: 'Invalid Credentials.' });
 
-        if (role === 'patient') {
-            const pat = await Patient.findOne({ personId: person._id });
-            if (!pat) return res.status(403).json({ msg: 'Identity is not registered as a Citizen.' });
-        } else {
-            const roleMapping = { 'doctor': 'Doctor', 'pharmacist': 'Pharmacist', 'pathologist': 'Pathologist', 'admin': 'Admin', 'insurance': 'Insurance' };
-            const prac = await PractitionerRole.findOne({ personId: person._id, roleType: roleMapping[role] });
-            if (!prac) return res.status(403).json({ msg: `Identity is not registered as a ${roleMapping[role]}.` });
+        let actualRole = null;
+        const isPatient = await Patient.findOne({ personId: person._id });
+        if (isPatient) actualRole = 'patient';
+        else {
+            const prac = await PractitionerRole.findOne({ personId: person._id });
+            if (!prac) return res.status(403).json({ msg: 'Identity is not registered with the requested access role.' });
+            actualRole = prac.roleType.toLowerCase() === 'admin' ? 'admin' : prac.roleType.toLowerCase();
+        }
+
+        if (actualRole !== 'admin' && role !== actualRole) {
+            return res.status(400).json({ msg: 'Role mismatch. Please select the correct access role.' });
         }
 
         // 🚨 THE SELF-HEALING FAIL-SAFE: Generate ID if missing!
         if (!person.gridId || person.gridId === 'null') {
             let idPrefix = 'ADM';
-            if (role === 'patient') idPrefix = 'CIT';
-            else if (role === 'doctor') idPrefix = 'DOC';
-            else if (role === 'pharmacist') idPrefix = 'PHM';
-            else if (role === 'pathologist') idPrefix = 'PTH';
+            if (actualRole === 'patient') idPrefix = 'CIT';
+            else if (actualRole === 'doctor') idPrefix = 'DOC';
+            else if (actualRole === 'pharmacist') idPrefix = 'PHM';
+            else if (actualRole === 'pathologist') idPrefix = 'PTH';
+            else if (actualRole === 'admin' || actualRole === 'insurance') idPrefix = actualRole === 'insurance' ? 'INS' : 'ADM';
             
             person.gridId = `${idPrefix}-${Math.floor(1000000 + Math.random() * 9000000).toString()}`;
             await person.save(); // Save the new ID permanently to MongoDB
@@ -93,7 +98,7 @@ router.post('/login', async (req, res) => {
         const payload = {
             id: person._id,
             name: person.legalFullName,
-            role: role,
+            role: actualRole,
             uuid: person.gridId // Send the guaranteed ID to the frontend
         };
 
