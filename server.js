@@ -13,6 +13,7 @@ const prescriptionRoutes = require('./routes/prescriptions');
 const insuranceRoutes = require('./routes/insurance');
 
 const app = express();
+app.set('trust proxy', 1);
 
 app.use(helmet());
 app.use(cors({ origin: '*' }));
