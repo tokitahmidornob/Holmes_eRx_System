@@ -10,8 +10,8 @@ const verifyToken = (req, res, next) => {
     try {
         req.user = jwt.verify(token.replace('Bearer ', ''), process.env.JWT_SECRET || 'holmes_emergency_grid_secret_2026');
         next();
-    } catch (err) { 
-        res.status(400).json({ msg: "Invalid Identity Token." }); 
+    } catch (err) {
+        res.status(400).json({ msg: "Invalid Identity Token." });
     }
 };
 
@@ -22,17 +22,17 @@ router.get('/', verifyToken, async (req, res) => {
     try {
         const person = await Person.findById(req.user.id);
         let roleData = null;
-        
+
         if (req.user.role === 'patient') {
             roleData = await Patient.findOne({ personId: req.user.id });
         } else {
             roleData = await PractitionerRole.findOne({ personId: req.user.id });
         }
-        
+
         res.json({ person, roleData, role: req.user.role });
-    } catch (err) { 
+    } catch (err) {
         console.error(err);
-        res.status(500).json({ msg: "Grid Error: Cannot fetch Identity Matrix." }); 
+        res.status(500).json({ msg: "Grid Error: Cannot fetch Identity Matrix." });
     }
 });
 
@@ -130,7 +130,10 @@ router.put('/update', verifyToken, async (req, res) => {
             return res.status(400).json({ msg: "No identity fields were provided for update." });
         }
 
-        if (personModified) await person.save();
+        if (personModified) {
+            person.markModified('contact');
+            await person.save();
+        }
         if (patientModified) await patient.save();
         if (practitioner && practitionerModified) await practitioner.save();
 
@@ -205,20 +208,20 @@ router.put('/', verifyToken, async (req, res) => {
         // 2. Update Role-Specific Details
         if (req.user.role === 'patient') {
             await Patient.findOneAndUpdate({ personId: req.user.id }, {
-                bloodGroup: bloodGroup, 
+                bloodGroup: bloodGroup,
                 nationalId: nationalId
             });
         } else {
             await PractitionerRole.findOneAndUpdate({ personId: req.user.id }, {
-                licenseNumber: licenseNumber, 
+                licenseNumber: licenseNumber,
                 specialty: specialty ? specialty.split(',').map(s => s.trim()) : []
             });
         }
-        
+
         res.json({ msg: "Identity Matrix Successfully Updated and Sealed." });
-    } catch (err) { 
+    } catch (err) {
         console.error(err);
-        res.status(500).json({ msg: "Grid Error: Failed to update Identity Matrix." }); 
+        res.status(500).json({ msg: "Grid Error: Failed to update Identity Matrix." });
     }
 });
 

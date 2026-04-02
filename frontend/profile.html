@@ -21,19 +21,19 @@
             </button>
             <div class="h-px bg-slate-800 my-4"></div>
             <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-4 mb-2">Matrix Layers</p>
-            <button onclick="scrollToSection('layer-identity')" class="w-full flex items-center p-3.5 rounded-xl bg-blue-600 text-white font-medium shadow-md">
+            <button onclick="scrollToSection('layer-identity', event)" class="w-full flex items-center p-3.5 rounded-xl bg-blue-600 text-white font-medium shadow-md">
                 <i class="fa-solid fa-user-check text-lg mr-4 w-6"></i><span class="text-sm">1. Identity Profile</span>
             </button>
-            <button id="navLayerProfessional" onclick="scrollToSection('layer-professional')" class="w-full flex items-center p-3.5 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition-all font-medium">
+            <button id="navLayerProfessional" onclick="scrollToSection('layer-professional', event)" class="w-full flex items-center p-3.5 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition-all font-medium">
                 <i class="fa-solid fa-briefcase text-lg mr-4 w-6"></i><span class="text-sm">2. Professional Context</span>
             </button>
-            <button id="navLayerClinical" onclick="scrollToSection('layer-clinical')" class="w-full flex items-center p-3.5 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition-all font-medium">
+            <button id="navLayerClinical" onclick="scrollToSection('layer-clinical', event)" class="w-full flex items-center p-3.5 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition-all font-medium">
                 <i class="fa-solid fa-notes-medical text-lg mr-4 w-6"></i><span class="text-sm">3. Clinical Linkage</span>
             </button>
-            <button onclick="scrollToSection('layer-consent')" class="w-full flex items-center p-3.5 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition-all font-medium">
+            <button onclick="scrollToSection('layer-consent', event)" class="w-full flex items-center p-3.5 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition-all font-medium">
                 <i class="fa-solid fa-shield-halved text-lg mr-4 w-6"></i><span class="text-sm">4. Consent & Privacy</span>
             </button>
-            <button onclick="scrollToSection('layer-security')" class="w-full flex items-center p-3.5 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition-all font-medium">
+            <button onclick="scrollToSection('layer-security', event)" class="w-full flex items-center p-3.5 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition-all font-medium">
                 <i class="fa-solid fa-lock text-lg mr-4 w-6"></i><span class="text-sm">5. Security & Audit</span>
             </button>
         </nav>
@@ -294,7 +294,9 @@
                     const matrix = await res.json();
                     const contact = matrix.layer1.contact || {};
                     document.getElementById('field-name').innerText = matrix.layer1.legalFullName || '-';
-                    document.getElementById('field-dob').innerText = matrix.layer1.dateOfBirth ? new Date(matrix.layer1.dateOfBirth).toLocaleDateString() : '-';
+                    const dobDisplay = matrix.layer1.dateOfBirth ? new Date(matrix.layer1.dateOfBirth).toLocaleDateString() : '-';
+                    document.getElementById('field-dob').innerText = dobDisplay;
+                    document.getElementById('field-dob').setAttribute('data-iso-date', matrix.layer1.dateOfBirth ? matrix.layer1.dateOfBirth.split('T')[0] : '');
                     document.getElementById('field-gender').innerText = matrix.layer1.genderLegal || '-';
                     document.getElementById('field-nhi').innerText = matrix.layer1.gridId || '-';
                     document.getElementById('field-mobile').innerText = contact.primaryMobile || '-';
@@ -325,11 +327,11 @@
             }
         }
 
-        function scrollToSection(id) {
+        function scrollToSection(id, e) {
             document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
             // Update Active Nav State
             document.querySelectorAll('nav button').forEach(btn => btn.className = "w-full flex items-center p-3.5 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition-all font-medium");
-            event.currentTarget.className = "w-full flex items-center p-3.5 rounded-xl bg-blue-600 text-white font-medium shadow-md";
+            if (e && e.currentTarget) e.currentTarget.className = "w-full flex items-center p-3.5 rounded-xl bg-blue-600 text-white font-medium shadow-md";
         }
 
         function showToast(message, type = 'success') {
@@ -344,9 +346,8 @@
 
         function openEditModal() {
             document.getElementById('editLegalFullName').value = document.getElementById('field-name').innerText === '-' ? '' : document.getElementById('field-name').innerText;
-            const dobText = document.getElementById('field-dob').innerText;
-            const dobValue = dobText && dobText !== '-' ? new Date(dobText) : null;
-            document.getElementById('editDateOfBirth').value = dobValue && !isNaN(dobValue) ? dobValue.toISOString().split('T')[0] : '';
+            const isoDate = document.getElementById('field-dob').getAttribute('data-iso-date') || '';
+            document.getElementById('editDateOfBirth').value = isoDate;
             document.getElementById('editGender').value = document.getElementById('field-gender').innerText === '-' ? '' : document.getElementById('field-gender').innerText;
             document.getElementById('editHealthId').value = document.getElementById('field-nhi').innerText === '-' ? '' : document.getElementById('field-nhi').innerText;
             document.getElementById('editMobile').value = document.getElementById('field-mobile').innerText === '-' ? '' : document.getElementById('field-mobile').innerText;
