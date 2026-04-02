@@ -10,7 +10,9 @@ const PersonSchema = new mongoose.Schema({
     legalFullName: { type: String, required: true },
     contact: {
         primaryEmail: { type: String },
-        primaryMobile: { type: String, default: '0000000000' }
+        primaryMobile: { type: String, default: '0000000000' },
+        address: { type: String, default: '' },
+        languagePref: { type: String, default: '' }
     },
     dateOfBirth: { type: Date },
     genderLegal: { type: String, enum: ['Male', 'Female', 'Other'] }
@@ -23,7 +25,10 @@ const PatientSchema = new mongoose.Schema({
     personId: { type: mongoose.Schema.Types.ObjectId, ref: 'Person', required: true },
     nationalHealthId: { type: String, unique: true, sparse: true },
     nationalId: { type: String, unique: true, sparse: true },
-    bloodGroup: { type: String }
+    bloodGroup: { type: String },
+    emergencyContact: { type: String, default: '' },
+    guardian: { type: String, default: '' },
+    insuranceProvider: { type: String, default: '' }
 }, { timestamps: true });
 
 // ==========================================

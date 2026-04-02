@@ -59,7 +59,7 @@
 
         <div class="flex-1 overflow-y-auto custom-scrollbar p-10 space-y-12 bg-slate-50/50 relative">
             <div id="editModal" class="hidden fixed inset-0 z-[100] bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
-                <div class="w-full max-w-2xl bg-white rounded-[32px] border border-slate-200 shadow-2xl p-8 relative">
+                <div class="w-full max-w-2xl bg-white rounded-[32px] border border-slate-200 shadow-2xl p-8 relative max-h-[90vh] overflow-y-auto">
                     <div class="flex items-center justify-between mb-6">
                         <div>
                             <p class="text-xs uppercase tracking-[0.3em] text-slate-500 font-bold">Edit Profile</p>
@@ -68,15 +68,44 @@
                         <button onclick="closeEditModal()" class="text-slate-500 hover:text-slate-900 text-xl"><i class="fa-solid fa-xmark"></i></button>
                     </div>
                     <form id="editProfileForm" class="space-y-6" onsubmit="submitProfileUpdate(event)">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                             <label class="block text-slate-700 font-bold text-xs uppercase tracking-[0.2em]">
                                 Mobile Contact
                                 <input id="editMobile" type="text" class="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-blue-500 outline-none" placeholder="+880 1XXXXXXXXX">
                             </label>
                             <label class="block text-slate-700 font-bold text-xs uppercase tracking-[0.2em]">
+                                Grid Email
+                                <input id="editEmail" type="email" class="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-blue-500 outline-none" placeholder="name@holmesgrid.ai">
+                            </label>
+                            <label class="block text-slate-700 font-bold text-xs uppercase tracking-[0.2em]">
                                 Registered Address
                                 <input id="editAddress" type="text" class="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-blue-500 outline-none" placeholder="123 Holmes Avenue, Sector 1">
                             </label>
+                            <label class="block text-slate-700 font-bold text-xs uppercase tracking-[0.2em]">
+                                Language Pref
+                                <input id="editLanguagePref" type="text" class="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-blue-500 outline-none" placeholder="English, বাংলা, العربية">
+                            </label>
+                        </div>
+                        <div id="patientEditFields" class="hidden space-y-4">
+                            <p class="text-sm font-bold uppercase tracking-[0.2em] text-slate-500">Patient-only details</p>
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <label class="block text-slate-700 font-bold text-xs uppercase tracking-[0.2em]">
+                                    Blood Group
+                                    <input id="editBloodGroup" type="text" class="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-blue-500 outline-none" placeholder="A+ / B- / O+">
+                                </label>
+                                <label class="block text-slate-700 font-bold text-xs uppercase tracking-[0.2em]">
+                                    Emergency Contact
+                                    <input id="editEmergencyContact" type="text" class="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-blue-500 outline-none" placeholder="Name, Relation, Phone">
+                                </label>
+                                <label class="block text-slate-700 font-bold text-xs uppercase tracking-[0.2em]">
+                                    Guardian / Next of Kin
+                                    <input id="editGuardian" type="text" class="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-blue-500 outline-none" placeholder="Guardian or NOK">
+                                </label>
+                                <label class="block text-slate-700 font-bold text-xs uppercase tracking-[0.2em]">
+                                    Insurance Provider
+                                    <input id="editInsurance" type="text" class="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-blue-500 outline-none" placeholder="Insurance Company Name">
+                                </label>
+                            </div>
                         </div>
                         <div class="flex flex-col sm:flex-row items-center justify-end gap-3 pt-3 border-t border-slate-200">
                             <button type="button" onclick="closeEditModal()" class="w-full sm:w-auto bg-slate-100 hover:bg-slate-200 text-slate-700 px-6 py-3 rounded-2xl text-xs font-bold uppercase tracking-wide transition-all">Cancel</button>
@@ -102,15 +131,14 @@
                         <div class="field-box"><label>National Health ID / MRN</label><p id="field-nhi" class="font-mono text-blue-600">-</p></div>
                         <div class="field-box"><label>Mobile Contact</label><p id="field-mobile">-</p></div>
                         <div class="field-box"><label>Grid Email</label><p id="field-email">-</p></div>
+                        <div class="field-box"><label>Language Preference</label><p id="field-lang">-</p></div>
                         <div class="field-box md:col-span-3"><label>Registered Address</label><p id="field-address">-</p></div>
                         
-                        <div id="patient-identity-extra" class="hidden md:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div id="patient-identity-extra" class="hidden md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div class="field-box"><label>Blood Group</label><p id="field-blood">-</p></div>
                             <div class="field-box"><label>Emergency Contact</label><p id="field-emergency">-</p></div>
                             <div class="field-box"><label>Guardian / Next of Kin</label><p id="field-nok">-</p></div>
-                            <div class="field-box"><label>Language Pref</label><p id="field-lang">-</p></div>
                             <div class="field-box"><label>Insurance / Payer</label><p id="field-insurance">-</p></div>
-                            <div class="field-box"><label>Deceased Status</label><p class="text-slate-300">Active</p></div>
                         </div>
                     </div>
                 </div>
@@ -260,6 +288,7 @@
                     document.getElementById('field-nhi').innerText = matrix.layer1.gridId || '-';
                     document.getElementById('field-mobile').innerText = contact.primaryMobile || '-';
                     document.getElementById('field-email').innerText = contact.primaryEmail || matrix.layer5.security?.email || '-';
+                    document.getElementById('field-lang').innerText = contact.languagePref || 'Not Available';
                     document.getElementById('field-address').innerText = contact.address || 'Not Available';
 
                     document.getElementById('field-mfa').innerText = matrix.layer5.security?.mfaEnabled ? 'Enabled (Biometric)' : 'Enabled (Token)';
@@ -270,7 +299,7 @@
                     if (role === 'patient') {
                         document.getElementById('field-blood').innerText = matrix.layer4?.bloodGroup || 'Not Available';
                         document.getElementById('field-emergency').innerText = matrix.layer4?.emergencyContact || 'Not Available';
-                        document.getElementById('field-nok').innerText = matrix.layer4?.nextOfKin || 'Not Available';
+                        document.getElementById('field-nok').innerText = matrix.layer4?.guardian || 'Not Available';
                         document.getElementById('field-insurance').innerText = matrix.layer4?.insuranceProvider || 'Not Available';
                     }
 
@@ -305,6 +334,20 @@
         function openEditModal() {
             document.getElementById('editMobile').value = document.getElementById('field-mobile').innerText === '-' ? '' : document.getElementById('field-mobile').innerText;
             document.getElementById('editAddress').value = document.getElementById('field-address').innerText === 'Not Available' ? '' : document.getElementById('field-address').innerText;
+            document.getElementById('editEmail').value = document.getElementById('field-email').innerText === '-' ? '' : document.getElementById('field-email').innerText;
+            document.getElementById('editLanguagePref').value = document.getElementById('field-lang').innerText === 'Not Available' ? '' : document.getElementById('field-lang').innerText;
+
+            const patientSection = document.getElementById('patientEditFields');
+            if (role === 'patient') {
+                patientSection.classList.remove('hidden');
+                document.getElementById('editBloodGroup').value = document.getElementById('field-blood').innerText === 'Not Available' ? '' : document.getElementById('field-blood').innerText;
+                document.getElementById('editEmergencyContact').value = document.getElementById('field-emergency').innerText === 'Not Available' ? '' : document.getElementById('field-emergency').innerText;
+                document.getElementById('editGuardian').value = document.getElementById('field-nok').innerText === 'Not Available' ? '' : document.getElementById('field-nok').innerText;
+                document.getElementById('editInsurance').value = document.getElementById('field-insurance').innerText === 'Not Available' ? '' : document.getElementById('field-insurance').innerText;
+            } else {
+                patientSection.classList.add('hidden');
+            }
+
             document.getElementById('editModal').classList.remove('hidden');
         }
 
@@ -316,6 +359,16 @@
             event.preventDefault();
             const mobile = document.getElementById('editMobile').value.trim();
             const address = document.getElementById('editAddress').value.trim();
+            const email = document.getElementById('editEmail').value.trim();
+            const languagePref = document.getElementById('editLanguagePref').value.trim();
+
+            const payload = { mobile, address, email, languagePref };
+            if (role === 'patient') {
+                payload.bloodGroup = document.getElementById('editBloodGroup').value.trim();
+                payload.emergencyContact = document.getElementById('editEmergencyContact').value.trim();
+                payload.guardian = document.getElementById('editGuardian').value.trim();
+                payload.insurance = document.getElementById('editInsurance').value.trim();
+            }
 
             try {
                 const res = await fetch(`${API_BASE_URL}/api/profile/update`, {
@@ -324,7 +377,7 @@
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
                     },
-                    body: JSON.stringify({ mobile, address })
+                    body: JSON.stringify(payload)
                 });
 
                 const data = await res.json();

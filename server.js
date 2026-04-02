@@ -1,6 +1,8 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 const orgRoutes = require('./routes/organizations');
 const credentialRoutes = require('./routes/credentials');
@@ -12,7 +14,14 @@ const insuranceRoutes = require('./routes/insurance');
 
 const app = express();
 
-app.use(cors());
+app.use(helmet());
+app.use(cors({ origin: '*' }));
+const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    message: 'Too many requests from this IP, please try again later.'
+});
+app.use('/api/', apiLimiter);
 app.use(express.json());
 
 // DATABASE CONNECTION

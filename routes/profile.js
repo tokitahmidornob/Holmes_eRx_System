@@ -41,21 +41,63 @@ router.get('/', verifyToken, async (req, res) => {
 // ==========================================
 router.put('/update', verifyToken, async (req, res) => {
     try {
-        const { mobile, address } = req.body;
-        const updateFields = {};
+        const { email, mobile, address, languagePref, bloodGroup, emergencyContact, guardian, insurance } = req.body;
 
+        const person = await Person.findById(req.user.id);
+        if (!person) return res.status(404).json({ msg: "Person record not found." });
+
+        person.contact = person.contact || {};
+        let personModified = false;
+
+        if (typeof email === 'string' && email.trim() !== '') {
+            person.contact.primaryEmail = email.trim();
+            personModified = true;
+        }
         if (typeof mobile === 'string' && mobile.trim() !== '') {
-            updateFields['contact.primaryMobile'] = mobile.trim();
+            person.contact.primaryMobile = mobile.trim();
+            personModified = true;
         }
         if (typeof address === 'string' && address.trim() !== '') {
-            updateFields['contact.address'] = address.trim();
+            person.contact.address = address.trim();
+            personModified = true;
+        }
+        if (typeof languagePref === 'string' && languagePref.trim() !== '') {
+            person.contact.languagePref = languagePref.trim();
+            personModified = true;
         }
 
-        if (Object.keys(updateFields).length === 0) {
+        let patientModified = false;
+        let patient = null;
+
+        if (req.user.role === 'patient') {
+            patient = await Patient.findOne({ personId: req.user.id });
+            if (!patient) return res.status(404).json({ msg: "Patient profile not found." });
+
+            if (typeof bloodGroup === 'string' && bloodGroup.trim() !== '') {
+                patient.bloodGroup = bloodGroup.trim();
+                patientModified = true;
+            }
+            if (typeof emergencyContact === 'string' && emergencyContact.trim() !== '') {
+                patient.emergencyContact = emergencyContact.trim();
+                patientModified = true;
+            }
+            if (typeof guardian === 'string' && guardian.trim() !== '') {
+                patient.guardian = guardian.trim();
+                patientModified = true;
+            }
+            if (typeof insurance === 'string' && insurance.trim() !== '') {
+                patient.insuranceProvider = insurance.trim();
+                patientModified = true;
+            }
+        }
+
+        if (!personModified && !patientModified) {
             return res.status(400).json({ msg: "No mutable fields provided for update." });
         }
 
-        await Person.findByIdAndUpdate(req.user.id, updateFields, { new: true });
+        if (personModified) await person.save();
+        if (patientModified) await patient.save();
+
         res.json({ msg: "Identity Matrix updated successfully." });
     } catch (err) {
         console.error(err);
