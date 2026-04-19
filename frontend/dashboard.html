@@ -269,6 +269,40 @@
 
     <div id="toast-container" class="fixed bottom-6 right-6 lg:bottom-10 lg:right-10 z-[150] flex flex-col gap-3 pointer-events-none w-full max-w-[320px] px-4 lg:px-0"></div>
 
+    <!-- ==========================================
+         🛡️ SENTINEL OVERRIDE MODAL
+         High-visibility alert when AI blocks a prescription.
+    ========================================== -->
+    <div id="sentinelModal" class="fixed inset-0 z-[130] flex items-center justify-center bg-slate-900/70 backdrop-blur-md p-4 opacity-0 pointer-events-none transition-all duration-300">
+        <div class="bg-white rounded-2xl w-full max-w-xl shadow-2xl transform scale-95 translate-y-4 transition-all duration-400 border-2 border-rose-500 overflow-hidden" id="sentinelModalContent">
+            <!-- Red header bar -->
+            <div class="bg-gradient-to-r from-rose-600 to-red-700 p-6 text-white text-center relative overflow-hidden">
+                <div class="absolute inset-0 opacity-10" style="background-image: repeating-linear-gradient(45deg, transparent, transparent 20px, rgba(255,255,255,0.1) 20px, rgba(255,255,255,0.1) 40px);"></div>
+                <div class="relative z-10">
+                    <div class="w-16 h-16 mx-auto mb-4 bg-white/20 rounded-full flex items-center justify-center text-3xl backdrop-blur-sm border border-white/30">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <h3 class="text-2xl font-black tracking-tight">SENTINEL OVERRIDE</h3>
+                    <p class="text-rose-200 text-xs font-bold uppercase tracking-widest mt-2">Prescription Blocked — Critical Alerts Detected</p>
+                </div>
+            </div>
+            <!-- Alert list body -->
+            <div class="p-6 lg:p-8 max-h-[400px] overflow-y-auto custom-scrollbar">
+                <div class="flex items-center gap-3 mb-5">
+                    <div class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse"></div>
+                    <p class="text-[10px] font-bold text-rose-600 uppercase tracking-widest">AI Toxicology Analysis</p>
+                </div>
+                <div id="sentinelAlertsList" class="space-y-3"></div>
+            </div>
+            <!-- Action footer -->
+            <div class="p-6 bg-slate-50 border-t border-slate-200">
+                <button onclick="closeSentinelModal()" class="w-full bg-slate-800 hover:bg-rose-600 text-white py-4 rounded-xl font-bold text-sm uppercase tracking-wide transition-colors shadow-sm flex items-center justify-center gap-3">
+                    <i class="fa-solid fa-pen-to-square"></i> Dismiss & Modify Prescription
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
         const token = sessionStorage.getItem('eRx_Token');
@@ -490,7 +524,65 @@
         async function generatePrescription() {
             if(!currentPatientId || medications.length === 0) return showToast("Target Patient and Therapy Payload Required.");
             const btn = document.getElementById('generateBtn'); const originalHtml = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Encrypting Payload...'; btn.disabled = true;
+
+            // ==========================================
+            // 🛡️ PHASE 1: SENTINEL AI SAFETY SCAN
+            // ==========================================
+            btn.innerHTML = '<i class="fa-solid fa-shield-halved fa-beat-fade"></i> Sentinel Scanning...'; btn.disabled = true;
+            btn.classList.add('bg-amber-500', 'hover:bg-amber-600'); btn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+
+            try {
+                // Gather the patient's clinical dossier for the Sentinel
+                const dossierAllergies = currentPatientAllergies.map(a => ({ substance: a.substance, criticality: a.criticality }));
+                
+                // Collect active conditions from the dossier panel
+                const activeConditionsElements = document.querySelectorAll('#activeConditionsList .font-bold.text-xs');
+                const dossierActiveConditions = Array.from(activeConditionsElements).map(el => el.innerText);
+
+                // Collect current medications from the dossier panel
+                const currentMedsElements = document.querySelectorAll('#dossierActiveMeds .font-bold.text-xs');
+                const dossierCurrentMeds = Array.from(currentMedsElements).map(el => el.innerText);
+
+                const sentinelPayload = {
+                    stagedMedications: medications,
+                    allergies: dossierAllergies,
+                    activeConditions: dossierActiveConditions.concat(stagedConditions.map(c => c.conditionName)),
+                    currentMedications: dossierCurrentMeds
+                };
+
+                const sentinelRes = await fetch(`${API_BASE_URL}/api/sentinel/check`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(sentinelPayload)
+                });
+
+                const sentinelData = await sentinelRes.json();
+
+                // If the Sentinel was bypassed (API key missing, AI down, etc.), warn but proceed
+                if (sentinelData.sentinelBypassed) {
+                    showToast(`Sentinel AI bypassed: ${sentinelData.reason || 'Service unavailable'}. Proceeding with manual authority.`, 'error');
+                }
+
+                // 🚨 SENTINEL GATE: If unsafe, HALT and show the override modal
+                if (sentinelData.safe === false) {
+                    showSentinelOverride(sentinelData.criticalAlerts);
+                    btn.innerHTML = originalHtml; btn.disabled = false;
+                    btn.classList.remove('bg-amber-500', 'hover:bg-amber-600'); btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                    return; // HALT — do NOT proceed to prescription submission
+                }
+
+            } catch (sentinelErr) {
+                // Sentinel network failure — warn but allow bypass for emergency prescribing
+                console.error('Sentinel scan failed:', sentinelErr);
+                showToast('Sentinel AI unreachable. Proceeding with manual clinical authority.', 'error');
+            }
+
+            // ==========================================
+            // ✅ PHASE 2: STANDARD PRESCRIPTION SUBMISSION
+            // (Only reached if Sentinel clears or is bypassed)
+            // ==========================================
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Encrypting Payload...';
+            btn.classList.remove('bg-amber-500', 'hover:bg-amber-600'); btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
 
             try {
                 const res = await fetch(`${API_BASE_URL}/api/prescriptions`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ patientId: currentPatientId, medications, investigations, conditions: stagedConditions }) });
@@ -504,6 +596,29 @@
                     document.getElementById('successModalContent').classList.remove('scale-95');
                 } else showToast(data.msg, "error");
             } catch(e) { showToast("Grid Network Failure", "error"); } finally { btn.innerHTML = originalHtml; btn.disabled = false; }
+        }
+
+        // ==========================================
+        // 🛡️ SENTINEL UI FUNCTIONS
+        // ==========================================
+        function showSentinelOverride(alerts) {
+            const alertsList = document.getElementById('sentinelAlertsList');
+            alertsList.innerHTML = alerts.map((alert, i) => `
+                <div class="bg-rose-50 border border-rose-200 border-l-4 border-l-rose-500 p-4 rounded-xl flex gap-3 items-start fade-in-up" style="animation-delay: ${i * 0.1}s">
+                    <div class="w-8 h-8 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center shrink-0 mt-0.5">
+                        <i class="fa-solid fa-radiation text-sm"></i>
+                    </div>
+                    <p class="text-sm font-medium text-rose-800 leading-relaxed">${alert}</p>
+                </div>
+            `).join('');
+
+            document.getElementById('sentinelModal').classList.remove('opacity-0', 'pointer-events-none');
+            document.getElementById('sentinelModalContent').classList.remove('scale-95', 'translate-y-4');
+        }
+
+        function closeSentinelModal() {
+            document.getElementById('sentinelModalContent').classList.add('scale-95', 'translate-y-4');
+            setTimeout(() => document.getElementById('sentinelModal').classList.add('opacity-0', 'pointer-events-none'), 300);
         }
 
         function closeSuccessAndRefresh() {
