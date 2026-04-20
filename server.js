@@ -60,6 +60,7 @@ app.use('/api/insurance', insuranceRoutes);
 app.use('/api/analytics', require('./routes/analytics'));
 app.use('/api/patient', require('./routes/patient'));
 app.use('/api/sentinel', require('./routes/sentinel'));
+app.use('/api/optimizer', require('./routes/optimizer'));
 
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, '0.0.0.0', () => {
