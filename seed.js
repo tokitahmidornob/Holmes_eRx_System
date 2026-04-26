@@ -4,18 +4,18 @@ const bcrypt = require('bcryptjs');
 const { Person, Patient, PractitionerRole } = require('./models/GridModels');
 const User = require('./models/User');
 
-const DEMO_PASSWORD = 'HolmesDemo2026!';
+const DEMO_PASSWORD = '12345678';
 const SALT_ROUNDS = 10;
 
 const actors = [
     {
-        role: 'admin',
-        email: 'admin@holmesgrid.ai',
-        fullName: 'IntelliScript BD Admin',
-        loginIdentity: 'admin@holmesgrid.ai',
-        gridId: 'GRID-ADMIN-0001',
+        role: 'ministry',
+        email: 'director@intelliscript.bd',
+        fullName: 'Ministry Director',
+        loginIdentity: 'director@intelliscript.bd',
+        gridId: 'GRID-MIN-0001',
         contact: {
-            primaryEmail: 'admin@holmesgrid.ai',
+            primaryEmail: 'director@intelliscript.bd',
             primaryMobile: '+8801700000001',
             address: 'Ministry of Health HQ',
             languagePref: 'English'
@@ -26,12 +26,12 @@ const actors = [
     },
     {
         role: 'doctor',
-        email: 'doctor@holmesgrid.ai',
+        email: 'doctor@intelliscript.bd',
         fullName: 'Dr. Ayesha Rahman',
-        loginIdentity: 'doctor@holmesgrid.ai',
+        loginIdentity: 'doctor@intelliscript.bd',
         gridId: 'GRID-DR-0001',
         contact: {
-            primaryEmail: 'doctor@holmesgrid.ai',
+            primaryEmail: 'doctor@intelliscript.bd',
             primaryMobile: '+8801700000002',
             address: 'Central Hospital, Dhaka',
             languagePref: 'English'
@@ -46,13 +46,34 @@ const actors = [
         }
     },
     {
+        role: 'nurse',
+        email: 'nurse@intelliscript.bd',
+        fullName: 'Nurse Fatima',
+        loginIdentity: 'nurse@intelliscript.bd',
+        gridId: 'GRID-NR-0001',
+        contact: {
+            primaryEmail: 'nurse@intelliscript.bd',
+            primaryMobile: '+8801700000006',
+            address: 'Central Hospital, Dhaka',
+            languagePref: 'English'
+        },
+        dateOfBirth: new Date('1985-02-14'),
+        genderLegal: 'Female',
+        practitioner: true,
+        practitionerData: {
+            roleType: 'Nurse',
+            licenseNumber: 'NUR-2026-0001',
+            specialty: ['Triage']
+        }
+    },
+    {
         role: 'patient',
-        email: 'patient@holmesgrid.ai',
+        email: 'patient@intelliscript.bd',
         fullName: 'Rafiq Hasan',
-        loginIdentity: 'patient@holmesgrid.ai',
+        loginIdentity: 'patient@intelliscript.bd',
         gridId: 'GRID-PT-0001',
         contact: {
-            primaryEmail: 'patient@holmesgrid.ai',
+            primaryEmail: 'patient@intelliscript.bd',
             primaryMobile: '+8801700000003',
             address: 'House 12, Road 8, Mirpur',
             languagePref: 'বাংলা'
@@ -70,34 +91,13 @@ const actors = [
         }
     },
     {
-        role: 'pharmacist',
-        email: 'pharmacist@holmesgrid.ai',
-        fullName: 'Nazmul Karim',
-        loginIdentity: 'pharmacist@holmesgrid.ai',
-        gridId: 'GRID-PH-0001',
-        contact: {
-            primaryEmail: 'pharmacist@holmesgrid.ai',
-            primaryMobile: '+8801700000004',
-            address: 'Pharmacy District, Chittagong',
-            languagePref: 'English'
-        },
-        dateOfBirth: new Date('1985-03-04'),
-        genderLegal: 'Male',
-        practitioner: true,
-        practitionerData: {
-            roleType: 'Pharmacist',
-            licenseNumber: 'PHARM-2026-0001',
-            specialty: ['Clinical Pharmacy']
-        }
-    },
-    {
         role: 'pathologist',
-        email: 'pathologist@holmesgrid.ai',
+        email: 'lab@intelliscript.bd',
         fullName: 'Dr. Sayeeda Khan',
-        loginIdentity: 'pathologist@holmesgrid.ai',
+        loginIdentity: 'lab@intelliscript.bd',
         gridId: 'GRID-PA-0001',
         contact: {
-            primaryEmail: 'pathologist@holmesgrid.ai',
+            primaryEmail: 'lab@intelliscript.bd',
             primaryMobile: '+8801700000005',
             address: 'Diagnostic Center, Sylhet',
             languagePref: 'English'
@@ -109,27 +109,6 @@ const actors = [
             roleType: 'Pathologist',
             licenseNumber: 'PATH-2026-0001',
             specialty: ['Clinical Pathology']
-        }
-    },
-    {
-        role: 'insurance',
-        email: 'insurance@holmesgrid.ai',
-        fullName: 'Holmes Insurance Officer',
-        loginIdentity: 'insurance@holmesgrid.ai',
-        gridId: 'GRID-INS-0001',
-        contact: {
-            primaryEmail: 'insurance@holmesgrid.ai',
-            primaryMobile: '+8801700000006',
-            address: 'Insurance Hub, Khulna',
-            languagePref: 'English'
-        },
-        dateOfBirth: new Date('1987-02-28'),
-        genderLegal: 'Other',
-        practitioner: true,
-        practitionerData: {
-            roleType: 'Insurance',
-            licenseNumber: 'INS-2026-0001',
-            specialty: ['Claims Management']
         }
     }
 ];
@@ -144,14 +123,10 @@ const connect = async () => {
 };
 
 const cleanExisting = async () => {
-    const emails = actors.map(actor => actor.email);
-    const existingPersons = await Person.find({ 'contact.primaryEmail': { $in: emails } }, '_id');
-    const existingPersonIds = existingPersons.map(person => person._id);
-
-    await PractitionerRole.deleteMany({ personId: { $in: existingPersonIds } });
-    await Patient.deleteMany({ personId: { $in: existingPersonIds } });
-    await User.deleteMany({ email: { $in: emails } });
-    await Person.deleteMany({ _id: { $in: existingPersonIds } });
+    await PractitionerRole.deleteMany({});
+    await Patient.deleteMany({});
+    await User.deleteMany({});
+    await Person.deleteMany({});
 };
 
 const run = async () => {

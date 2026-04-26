@@ -43,7 +43,7 @@ const PatientSchema = new mongoose.Schema({
 // ==========================================
 const PractitionerRoleSchema = new mongoose.Schema({
     personId: { type: mongoose.Schema.Types.ObjectId, ref: 'Person', required: true },
-    roleType: { type: String, enum: ['Doctor', 'Pharmacist', 'Pathologist', 'Admin', 'Insurance'], required: true },
+    roleType: { type: String, enum: ['Doctor', 'Pharmacist', 'Pathologist', 'Admin', 'Insurance', 'Nurse'], required: true },
     licenseNumber: { type: String },
     specialty: [{ type: String }]
 }, { timestamps: true });

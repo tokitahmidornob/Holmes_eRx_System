@@ -16,7 +16,7 @@ const UserSchema = new mongoose.Schema({
     },
     role: { 
         type: String, 
-        enum: ['doctor', 'patient', 'pharmacist', 'pathologist', 'admin', 'insurance'],
+        enum: ['doctor', 'patient', 'pharmacist', 'pathologist', 'admin', 'insurance', 'ministry', 'nurse'],
         required: true 
     },
     gridId: { 
