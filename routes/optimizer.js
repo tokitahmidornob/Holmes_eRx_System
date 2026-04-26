@@ -28,6 +28,7 @@ const OPTIMIZER_SYSTEM_PROMPT = `You are the IntelliScript BD Physiological Opti
 // POST /analyze — The Optimization Analysis Endpoint
 // ==========================================
 router.post('/analyze', verifyToken, async (req, res) => {
+    console.log("Diagnostic: GEMINI_API_KEY exists?", !!process.env.GEMINI_API_KEY);
     try {
         const { patientProfile, activeConditions, currentMedications } = req.body;
 
@@ -43,8 +44,8 @@ router.post('/analyze', verifyToken, async (req, res) => {
             });
         }
 
-        // Check for API key availability
-        if (!process.env.GEMINI_API_KEY) {
+        // Check for API key availability (loosened for Vercel edge cases)
+        if (process.env.GEMINI_API_KEY === undefined || process.env.GEMINI_API_KEY === 'undefined') {
             console.warn('⚠️ OPTIMIZER: GEMINI_API_KEY not configured. Cannot run optimization.');
             return res.json({
                 optimizationPossible: false,

@@ -28,6 +28,7 @@ const SENTINEL_SYSTEM_PROMPT = `You are the IntelliScript BD Interaction Sentine
 // POST /check — The Sentinel Scan Endpoint
 // ==========================================
 router.post('/check', verifyToken, async (req, res) => {
+    console.log("Diagnostic: GEMINI_API_KEY exists?", !!process.env.GEMINI_API_KEY);
     try {
         const { stagedMedications, allergies, activeConditions, currentMedications } = req.body;
 
@@ -36,8 +37,8 @@ router.post('/check', verifyToken, async (req, res) => {
             return res.json({ safe: true, criticalAlerts: [], sentinelBypassed: true, reason: 'No staged medications to analyze.' });
         }
 
-        // Check for API key availability
-        if (!process.env.GEMINI_API_KEY) {
+        // Check for API key availability (loosened for Vercel edge cases)
+        if (process.env.GEMINI_API_KEY === undefined || process.env.GEMINI_API_KEY === 'undefined') {
             console.warn('⚠️ SENTINEL: GEMINI_API_KEY not configured. Bypassing safety scan.');
             return res.json({
                 safe: true,
