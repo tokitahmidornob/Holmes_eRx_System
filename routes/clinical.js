@@ -18,14 +18,14 @@ const verifyToken = (req, res, next) => {
 // ==========================================
 router.get('/formulary', verifyToken, async (req, res) => {
     try {
-        const drugs = await Medicine.find({}).lean().limit(5000); 
-        
+        const drugs = await Medicine.find({}).lean().limit(5000);
+
         const formularyArray = drugs.map(d => {
             const brand = d.brandName || d.BrandName || d.brand || d.Brand || '';
             const strength = d.strength || d.Strength || '';
             const form = d.form || d.Form || '';
             const generic = d.genericName || d.GenericName || d.generic || d.Generic || '';
-            
+
             let fullName = `${brand} ${strength} ${form}`.trim();
             if (generic) fullName += ` (${generic})`;
             fullName = fullName.replace(/\s+/g, ' ') || "Unknown Drug";
@@ -45,7 +45,7 @@ router.get('/formulary', verifyToken, async (req, res) => {
         const uniqueDrugs = [];
         const map = new Map();
         for (const item of formularyArray) {
-            if(!map.has(item.display)) {
+            if (!map.has(item.display)) {
                 map.set(item.display, true);
                 uniqueDrugs.push(item);
             }
@@ -124,7 +124,7 @@ router.get('/dossier/:id', verifyToken, async (req, res) => {
         console.log(`[DOSSIER] Active medication entries assembled: ${activeMedications.length}`);
 
         // Auto-expire time-bound conditions
-        const patient = await Patient.findById(patientId);
+        const patient = await Patient.findById(patientId).populate('personId');
         let conditionsModified = false;
         if (patient && Array.isArray(patient.conditions)) {
             const now = new Date();
@@ -143,8 +143,10 @@ router.get('/dossier/:id', verifyToken, async (req, res) => {
         console.log(`[DOSSIER] Conditions: ${conditions.length} | Patient record found: ${!!patient}`);
 
         const responsePayload = {
+            name: patient && patient.personId ? patient.personId.legalFullName : 'Unknown',
             allergies: allergies || [],
             activeMedications: activeMedications || [],
+            currentMedications: activeMedications || [],
             conditions: conditions
         };
 

@@ -99,6 +99,20 @@
                     </div>
                 </div>
 
+                <!-- ✅ FIX: Patient name header for the dossier panel -->
+                <div id="dossierPatientHeader" class="hidden bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-5 lg:p-6 shadow-sm border border-blue-500 flex items-center gap-4 fade-in-up transition-all duration-500 opacity-0 transform translate-y-8">
+                    <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center shrink-0 border border-white/30">
+                        <i class="fa-solid fa-user-injured text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-1">Active Clinical Session</p>
+                        <p id="dossierPatientName" class="text-lg font-black text-white tracking-tight">—</p>
+                    </div>
+                    <div class="ml-auto">
+                        <span class="bg-white/20 border border-white/30 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg uppercase tracking-widest">NHI: <span id="dossierPatientNhi">—</span></span>
+                    </div>
+                </div>
+
                 <div id="clinicalDossierPanel" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 transition-all duration-500 opacity-0 transform translate-y-8">
                     <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm border-t-4 border-t-rose-500">
                         <h3 class="text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-4 flex justify-between items-center"><span><i class="fa-solid fa-triangle-exclamation mr-1.5 text-rose-500"></i> Verified Allergies</span> <span id="allergyCount" class="bg-slate-100 px-2.5 py-1 rounded-md text-slate-600">0</span></h3>
@@ -409,12 +423,26 @@
                     if(res.ok) {
                         const results = await res.json();
                         if(results.length === 0) return dropdown.innerHTML = '<div class="p-8 flex flex-col items-center"><i class="fa-solid fa-ghost text-3xl text-slate-200 mb-2"></i><span class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">No Citizen Found</span></div>';
+                        // ✅ FIX: Use data-attributes to safely pass patient data — prevents apostrophe/quote injection
+                        // that would break selectPatient() for names like "O'Brien" or names with double quotes.
                         dropdown.innerHTML = results.map(p => `
-                            <div onclick="selectPatient('${p.patientId}', '${p.name}', '${p.nhi}')" class="p-4 hover:bg-blue-50 cursor-pointer transition-colors flex justify-between items-center group">
+                            <div
+                                class="p-4 hover:bg-blue-50 cursor-pointer transition-colors flex justify-between items-center group patient-result-item"
+                                data-patient-id="${p.patientId}"
+                                data-patient-name="${p.name.replace(/"/g, '&quot;')}"
+                                data-patient-nhi="${p.nhi || p.mrn || 'NHI-PENDING'}">
                                 <div><p class="font-bold text-sm text-slate-800 group-hover:text-blue-700 transition-colors">${p.name}</p><p class="text-[10px] font-semibold text-slate-500 uppercase tracking-widest mt-1"><i class="fa-solid fa-cake-candles mr-1 opacity-50"></i> Age: ${p.age || 'N/A'} | ${p.gender || 'Unknown'}</p></div>
                                 <span class="text-[10px] font-bold bg-white text-blue-600 px-3 py-1.5 rounded-lg border border-blue-100 shadow-sm group-hover:border-blue-200">${p.nhi || p.mrn}</span>
                             </div>
                         `).join('');
+                        // Attach click handlers safely via event listeners (no inline JS string injection)
+                        dropdown.querySelectorAll('.patient-result-item').forEach(el => {
+                            el.addEventListener('click', () => selectPatient(
+                                el.dataset.patientId,
+                                el.dataset.patientName,
+                                el.dataset.patientNhi
+                            ));
+                        });
                     } else { dropdown.innerHTML = '<div class="p-6 text-xs text-rose-500 font-bold text-center uppercase tracking-wider">Clearance Required</div>'; }
                 } catch(e) { dropdown.innerHTML = '<div class="p-6 text-xs text-rose-500 font-bold text-center uppercase tracking-wider">Grid Network Failure</div>'; }
             }, 500);
@@ -429,6 +457,13 @@
             document.getElementById('bannerPatientName').innerText = `${name}`;
             document.getElementById('activePatientBanner').classList.remove('hidden');
 
+            // ✅ FIX: Show patient name & NHI in the dossier header panel
+            const dossierHeader = document.getElementById('dossierPatientHeader');
+            document.getElementById('dossierPatientName').innerText = name;
+            document.getElementById('dossierPatientNhi').innerText = nhi || 'N/A';
+            dossierHeader.classList.remove('hidden');
+            requestAnimationFrame(() => { dossierHeader.classList.remove('opacity-0', 'translate-y-8'); });
+
             const dossierPanel = document.getElementById('clinicalDossierPanel');
             dossierPanel.classList.remove('hidden');
             requestAnimationFrame(() => { dossierPanel.classList.remove('opacity-0', 'translate-y-8'); });
@@ -442,6 +477,8 @@
                 const res = await fetch(`${API_BASE_URL}/api/clinical/dossier/${patientId}`, { headers: { 'Authorization': `Bearer ${token}` } });
                 if(res.ok) {
                     const dossier = await res.json();
+                    // ✅ FIX (Task 3): Debug log — verify exact payload from backend
+                    console.log('Fetched Patient Data:', dossier);
                     
                     currentPatientAllergies = dossier.allergies || [];
                     document.getElementById('allergyCount').innerText = currentPatientAllergies.length;
@@ -469,8 +506,11 @@
                     const meds = dossier.activeMedications || [];
                     document.getElementById('medCount').innerText = meds.length;
                     if(meds.length > 0) {
-                        document.getElementById('dossierActiveMeds').innerHTML = meds.map(m => `<div class="bg-white p-3 rounded-lg border border-emerald-100 shadow-sm"><p class="font-bold text-xs text-slate-800">${m.brandName}</p><p class="text-[9px] font-bold text-emerald-600 uppercase tracking-wider mt-1"><i class="fa-solid fa-capsules mr-1"></i>Active Therapy</p></div>`).join('');
-                    } else { document.getElementById('dossierActiveMeds').innerHTML = '<div class="py-4 text-center"><i class="fa-solid fa-box-open text-slate-300 text-2xl mb-2 block"></i><span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">No Active Meds</span></div>'; }
+                        document.getElementById('dossierActiveMeds').innerHTML = meds.map(m => `<div class="bg-white p-3 rounded-lg border border-emerald-100 shadow-sm"><p class="font-bold text-xs text-slate-800">${m.brandName || 'Unknown Drug'}</p><p class="text-[9px] font-bold text-emerald-600 uppercase tracking-wider mt-1"><i class="fa-solid fa-capsules mr-1"></i>${m.dosage || ''} ${m.dosage ? '&bull;' : ''} Active Therapy</p></div>`).join('');
+                    } else {
+                        // ✅ FIX: Gracefully display 'No active medications' instead of crashing on empty array
+                        document.getElementById('dossierActiveMeds').innerHTML = '<div class="py-4 text-center"><i class="fa-solid fa-box-open text-slate-300 text-2xl mb-2 block"></i><span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">No active medications</span></div>';
+                    }
                 }
             } catch(e) { showToast("Failed to retrieve Clinical Dossier", "error"); }
         }
@@ -480,6 +520,11 @@
             renderStagedConditions();
             document.getElementById('patientSearchInput').value = '';
             document.getElementById('activePatientBanner').classList.add('hidden');
+
+            // ✅ FIX: Also hide the dossier patient name header
+            const dossierHeader = document.getElementById('dossierPatientHeader');
+            dossierHeader.classList.add('opacity-0', 'translate-y-8');
+            setTimeout(() => dossierHeader.classList.add('hidden'), 500);
             
             const dossier = document.getElementById('clinicalDossierPanel');
             dossier.classList.add('opacity-0', 'translate-y-8');

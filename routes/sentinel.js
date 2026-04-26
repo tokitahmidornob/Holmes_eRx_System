@@ -86,14 +86,12 @@ Respond with ONLY the JSON object. No markdown, no explanation.`;
         const rawText = response.text.trim();
 
         // Parse the JSON response — strip any accidental markdown fences
-        let cleanedText = rawText;
-        if (cleanedText.startsWith('```json')) {
-            cleanedText = cleanedText.slice(7);
-        } else if (cleanedText.startsWith('```')) {
-            cleanedText = cleanedText.slice(3);
-        }
-        if (cleanedText.endsWith('```')) {
-            cleanedText = cleanedText.slice(0, -3);
+        let cleanedText = rawText.trim();
+        const jsonMatch = cleanedText.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+        if (jsonMatch) {
+            cleanedText = jsonMatch[1];
+        } else {
+            cleanedText = cleanedText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
         }
         cleanedText = cleanedText.trim();
 
