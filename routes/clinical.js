@@ -113,9 +113,9 @@ router.get('/dossier/:id', verifyToken, async (req, res) => {
         const activeMedications = prescriptions.reduce((acc, rx) => {
             if (Array.isArray(rx.medications)) {
                 return acc.concat(rx.medications.map(m => ({
-                    brandName: m.brandName || 'Unknown Drug',
+                    drugName: m.drugName || m.drug || m.brandName || 'Unknown Drug',
                     dosage: m.dosage || '',
-                    timing: m.timing || '',
+                    frequency: m.frequency || m.timing || '',
                     duration: m.duration || ''
                 })));
             }

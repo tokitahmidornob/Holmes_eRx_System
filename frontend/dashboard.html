@@ -546,7 +546,7 @@
                     const meds = dossier.activeMedications || [];
                     document.getElementById('medCount').innerText = meds.length;
                     if(meds.length > 0) {
-                        document.getElementById('dossierActiveMeds').innerHTML = meds.map(m => `<div class="bg-white p-3 rounded-lg border border-emerald-100 shadow-sm"><p class="font-bold text-xs text-slate-800">${m.brandName || 'Unknown Drug'}</p><p class="text-[9px] font-bold text-emerald-600 uppercase tracking-wider mt-1"><i class="fa-solid fa-capsules mr-1"></i>${m.dosage || ''} ${m.dosage ? '&bull;' : ''} Active Therapy</p></div>`).join('');
+                        document.getElementById('dossierActiveMeds').innerHTML = meds.map(m => `<div class="bg-white p-3 rounded-lg border border-emerald-100 shadow-sm"><p class="font-bold text-xs text-slate-800"><strong>${m.drugName || m.brandName || 'Unknown Drug'}</strong> <span class="text-xs font-normal text-slate-500 ml-1">${m.dosage || ''}</span></p><p class="text-[9px] font-bold text-emerald-600 uppercase tracking-wider mt-1"><i class="fa-solid fa-capsules mr-1"></i>${m.frequency || m.timing || ''} ${(m.frequency || m.timing) ? '&bull;' : ''} Active Therapy</p></div>`).join('');
                     } else {
                         // ✅ FIX: Gracefully display 'No active medications' instead of crashing on empty array
                         document.getElementById('dossierActiveMeds').innerHTML = '<div class="py-4 text-center"><i class="fa-solid fa-box-open text-slate-300 text-2xl mb-2 block"></i><span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">No active medications</span></div>';
