@@ -53,7 +53,7 @@
             <div class="flex items-center gap-4">
                 <span class="px-3 py-1 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-full text-[10px] font-bold uppercase tracking-widest"><i class="fa-solid fa-circle-check mr-1.5"></i> Verified Identity</span>
                 <button onclick="openEditModal()" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 px-6 py-2 rounded-lg text-xs font-bold uppercase tracking-wide transition-all shadow-sm mr-3"><i class="fa-solid fa-pen-to-square mr-2"></i> Edit Profile</button>
-                <button class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg text-xs font-bold uppercase tracking-wide transition-all shadow-md">Sync to Grid</button>
+                <button id="btnSyncGrid" onclick="syncToGrid()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg text-xs font-bold uppercase tracking-wide transition-all shadow-md flex items-center justify-center min-w-[140px]">Sync to Grid</button>
             </div>
         </header>
 
@@ -484,6 +484,35 @@
             else if (role === 'pharmacist') window.location.href = 'pharmacist_home.html';
             else if (role === 'pathologist') window.location.href = 'pathologist_home.html';
             else window.location.href = 'patient_home.html';
+        }
+
+        function syncToGrid() {
+            const btn = document.getElementById('btnSyncGrid');
+            const originalContent = btn.innerHTML;
+            
+            // Loading State
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Syncing...';
+            btn.disabled = true;
+            btn.classList.replace('bg-blue-600', 'bg-blue-400');
+            btn.classList.replace('hover:bg-blue-700', 'hover:bg-blue-400');
+            
+            setTimeout(() => {
+                // Restore Button State
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
+                btn.classList.replace('bg-blue-400', 'bg-blue-600');
+                btn.classList.replace('hover:bg-blue-400', 'hover:bg-blue-700');
+                
+                // Show Success Toast
+                showToast('Data successfully synchronized with the H.O.L.M.E.S. National Grid.', 'success');
+                
+                // Subtle pulse animation on tags
+                const tags = document.querySelectorAll('#allergyTags span, #conditionTags span');
+                tags.forEach(tag => {
+                    tag.classList.add('ring-2', 'ring-emerald-400', 'ring-offset-1', 'transition-all', 'duration-300');
+                    setTimeout(() => tag.classList.remove('ring-2', 'ring-emerald-400', 'ring-offset-1'), 1000);
+                });
+            }, 1500);
         }
     </script>
 </body>
