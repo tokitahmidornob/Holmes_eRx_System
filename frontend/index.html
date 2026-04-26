@@ -3,380 +3,348 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>H.O.L.M.E.S. Sovereign Health Grid</title>
+    <title>H.O.L.M.E.S. Sovereign Health Grid | IntelliScript BD</title>
+    <meta name="description" content="The AI-guarded neural network for national healthcare. Real-time prescription surveillance, epidemiological radar, and sovereign patient identity.">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         * { font-family: 'Inter', sans-serif; }
+        html { scroll-behavior: smooth; }
+        body { background: #060d1a; color: #e2e8f0; overflow-x: hidden; }
 
-        body {
-            background: #060d1a;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        /* ── GRID PATTERN OVERLAY ── */
+        /* Grid overlay */
         body::before {
             content: '';
-            position: fixed;
-            inset: 0;
+            position: fixed; inset: 0;
             background-image:
-                linear-gradient(rgba(59, 130, 246, 0.04) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(59, 130, 246, 0.04) 1px, transparent 1px);
-            background-size: 48px 48px;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        /* ── AMBIENT GLOWS ── */
-        .glow-orb-blue {
-            position: fixed; top: -15%; left: -10%;
-            width: 700px; height: 700px;
-            background: radial-gradient(circle, rgba(37, 99, 235, 0.12) 0%, transparent 70%);
-            pointer-events: none; z-index: 0;
-        }
-        .glow-orb-purple {
-            position: fixed; bottom: -20%; right: -10%;
-            width: 600px; height: 600px;
-            background: radial-gradient(circle, rgba(124, 58, 237, 0.1) 0%, transparent 70%);
-            pointer-events: none; z-index: 0;
-        }
-        .glow-orb-teal {
-            position: fixed; top: 40%; left: 50%;
-            width: 500px; height: 500px; transform: translateX(-50%);
-            background: radial-gradient(circle, rgba(20, 184, 166, 0.06) 0%, transparent 70%);
+                linear-gradient(rgba(59,130,246,0.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(59,130,246,0.035) 1px, transparent 1px);
+            background-size: 52px 52px;
             pointer-events: none; z-index: 0;
         }
 
-        /* ── APP CARDS ── */
-        .app-card {
-            position: relative;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.07);
-            border-radius: 24px;
-            padding: 2rem;
-            text-decoration: none;
-            display: flex;
-            flex-direction: column;
-            gap: 1.25rem;
-            transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
-            overflow: hidden;
-            backdrop-filter: blur(8px);
-        }
-        .app-card::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: 24px;
-            opacity: 0;
-            transition: opacity 0.35s ease;
-        }
-        .app-card:hover {
-            transform: translateY(-6px);
-            border-color: rgba(255, 255, 255, 0.15);
-            background: rgba(255, 255, 255, 0.055);
-        }
-        .app-card:hover::before { opacity: 1; }
+        /* Orbs */
+        .orb { position: absolute; border-radius: 50%; filter: blur(80px); pointer-events: none; }
+        .orb-blue  { width: 700px; height: 700px; top: -200px; left: -150px; background: radial-gradient(circle, rgba(37,99,235,0.14), transparent 70%); }
+        .orb-teal  { width: 500px; height: 500px; top: 30%; right: -100px; background: radial-gradient(circle, rgba(20,184,166,0.1), transparent 70%); }
+        .orb-purple{ width: 600px; height: 600px; bottom: -100px; left: 30%; background: radial-gradient(circle, rgba(124,58,237,0.08), transparent 70%); }
 
-        /* Blue — Doctor */
-        .card-blue::before { box-shadow: inset 0 0 60px -10px rgba(59, 130, 246, 0.15), 0 0 0 1px rgba(59, 130, 246, 0.3); }
-        .card-blue:hover { box-shadow: 0 20px 60px -10px rgba(59, 130, 246, 0.25); }
+        /* Animations */
+        .fade-up { animation: fadeUp 0.8s cubic-bezier(0.16,1,0.3,1) forwards; opacity: 0; }
+        @keyframes fadeUp { from { opacity:0; transform:translateY(28px); } to { opacity:1; transform:translateY(0); } }
+        .s1{animation-delay:.05s} .s2{animation-delay:.15s} .s3{animation-delay:.25s} .s4{animation-delay:.35s} .s5{animation-delay:.45s}
 
-        /* Teal — Kiosk */
-        .card-teal::before { box-shadow: inset 0 0 60px -10px rgba(20, 184, 166, 0.15), 0 0 0 1px rgba(20, 184, 166, 0.3); }
-        .card-teal:hover { box-shadow: 0 20px 60px -10px rgba(20, 184, 166, 0.25); }
+        .pulse-ring { animation: pulseRing 2s infinite; }
+        @keyframes pulseRing { 0%{box-shadow:0 0 0 0 rgba(52,211,153,.5)} 70%{box-shadow:0 0 0 8px rgba(52,211,153,0)} 100%{box-shadow:0 0 0 0 rgba(52,211,153,0)} }
 
-        /* Purple/Red — Ministry */
-        .card-purple::before { box-shadow: inset 0 0 60px -10px rgba(139, 92, 246, 0.15), 0 0 0 1px rgba(139, 92, 246, 0.3); }
-        .card-purple:hover { box-shadow: 0 20px 60px -10px rgba(139, 92, 246, 0.25); }
+        /* Glass card */
+        .glass { background: rgba(255,255,255,0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.07); }
 
-        /* Emerald — Patient */
-        .card-emerald::before { box-shadow: inset 0 0 60px -10px rgba(16, 185, 129, 0.15), 0 0 0 1px rgba(16, 185, 129, 0.3); }
-        .card-emerald:hover { box-shadow: 0 20px 60px -10px rgba(16, 185, 129, 0.25); }
-
-        /* Amber — Pathology */
-        .card-amber::before { box-shadow: inset 0 0 60px -10px rgba(245, 158, 11, 0.15), 0 0 0 1px rgba(245, 158, 11, 0.3); }
-        .card-amber:hover { box-shadow: 0 20px 60px -10px rgba(245, 158, 11, 0.25); }
-
-        /* ── ICON CONTAINERS ── */
-        .icon-wrap {
-            width: 56px; height: 56px;
-            border-radius: 16px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.4rem;
-            flex-shrink: 0;
-            transition: transform 0.3s ease;
-        }
-        .app-card:hover .icon-wrap { transform: scale(1.1) rotate(-3deg); }
-
-        /* ── SCAN LINE ── */
-        .scan-line {
-            position: absolute; top: 0; left: 0; right: 0; height: 2px;
-            background: linear-gradient(90deg, transparent, currentColor, transparent);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        .app-card:hover .scan-line { opacity: 0.4; }
-
-        /* ── ANIMATIONS ── */
-        .fade-up { animation: fadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
-        @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
-
-        .stagger-1 { animation-delay: 0.1s; }
-        .stagger-2 { animation-delay: 0.2s; }
-        .stagger-3 { animation-delay: 0.3s; }
-        .stagger-4 { animation-delay: 0.35s; }
-        .stagger-5 { animation-delay: 0.4s; }
-        .stagger-6 { animation-delay: 0.45s; }
-        .stagger-7 { animation-delay: 0.5s; }
-        .stagger-8 { animation-delay: 0.55s; }
-
-        /* ── HORIZONTAL RULE ── */
-        .divider {
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+        /* Gradient text */
+        .grad-text {
+            background: linear-gradient(135deg, #60a5fa 0%, #34d399 50%, #a78bfa 100%);
+            -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
         }
 
-        /* ── PULSE RING ── */
-        .pulse-ring {
-            animation: pulseRing 2s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
+        /* CTA button */
+        .btn-primary {
+            background: linear-gradient(135deg, #2563eb, #0d9488);
+            transition: all 0.3s ease;
+            box-shadow: 0 0 30px rgba(37,99,235,0.3);
         }
-        @keyframes pulseRing {
-            0% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.5); }
-            70% { box-shadow: 0 0 0 7px rgba(52, 211, 153, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }
-        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 45px rgba(37,99,235,0.5); }
 
-        /* ── ARROW ICON ── */
-        .arrow-icon { transition: transform 0.25s ease; }
-        .app-card:hover .arrow-icon { transform: translate(3px, -3px); }
+        .btn-secondary { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); transition: all 0.3s ease; }
+        .btn-secondary:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); transform: translateY(-1px); }
+
+        /* Stat cards */
+        .stat-card { transition: all 0.3s ease; }
+        .stat-card:hover { transform: translateY(-3px); }
+
+        /* Chart section */
+        .chart-glow { box-shadow: 0 0 60px rgba(239,68,68,0.1); }
+
+        /* Divider */
+        .divider { height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent); }
+
+        /* Feature icons */
+        .feat-icon { transition: transform 0.3s ease; }
+        .feat-card:hover .feat-icon { transform: scale(1.12) rotate(-5deg); }
+
+        /* Scroll indicator */
+        .scroll-bounce { animation: bounce 2s ease-in-out infinite; }
+        @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(6px)} }
     </style>
 </head>
-<body class="antialiased text-slate-200 relative">
+<body class="antialiased">
 
-    <!-- AMBIENT BACKGROUND GLOWS -->
-    <div class="glow-orb-blue"></div>
-    <div class="glow-orb-purple"></div>
-    <div class="glow-orb-teal"></div>
+<!-- ═══════════════════════════════════════
+     NAV
+═══════════════════════════════════════ -->
+<nav class="fixed top-0 inset-x-0 z-50 h-16 glass border-b border-white/5 flex items-center justify-between px-6 lg:px-12 fade-up">
+    <div class="flex items-center gap-3">
+        <div class="w-8 h-8 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-900/50 shrink-0">
+            <i class="fa-solid fa-network-wired text-white text-xs"></i>
+        </div>
+        <span class="font-black text-white text-sm tracking-tight">IntelliScript <span class="text-blue-400">BD</span></span>
+    </div>
+    <div class="flex items-center gap-3">
+        <div class="hidden sm:flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-ring"></span>
+            <span class="text-[10px] font-black text-emerald-400 uppercase tracking-widest">All Systems Online</span>
+        </div>
+        <a href="auth.html" class="btn-secondary px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest text-slate-300 hover:text-white">
+            <i class="fa-solid fa-arrow-right-to-bracket mr-1.5"></i>Login
+        </a>
+    </div>
+</nav>
 
-    <div class="relative z-10 min-h-screen flex flex-col">
+<!-- ═══════════════════════════════════════
+     HERO SECTION
+═══════════════════════════════════════ -->
+<section class="relative min-h-screen flex flex-col items-center justify-center px-6 pt-16 pb-24 overflow-hidden">
+    <div class="orb orb-blue"></div>
+    <div class="orb orb-teal"></div>
 
-        <!-- ── TOP NAV ── -->
-        <nav class="flex items-center justify-between px-6 lg:px-12 h-16 border-b border-white/5 bg-white/[0.02] backdrop-blur-sm fade-up">
-            <div class="flex items-center gap-3">
-                <div class="w-8 h-8 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-900/50">
-                    <i class="fa-solid fa-network-wired text-white text-sm"></i>
-                </div>
-                <span class="text-sm font-black text-white tracking-tight">IntelliScript <span class="text-blue-400">BD</span></span>
-            </div>
-            <div class="flex items-center gap-3">
-                <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-ring"></span>
-                <span class="text-[10px] font-black text-emerald-400 uppercase tracking-widest hidden sm:block">All Systems Operational</span>
-            </div>
-        </nav>
+    <!-- Badge -->
+    <div class="relative z-10 fade-up s1 flex items-center gap-2 glass px-4 py-2 rounded-full mb-8 border-blue-500/20">
+        <i class="fa-solid fa-shield-halved text-blue-400 text-xs"></i>
+        <span class="text-[10px] font-black text-blue-300 uppercase tracking-widest">FHIR-Compliant · Cryptographically Secured · Bangladesh</span>
+    </div>
 
-        <!-- ── HERO ── -->
-        <div class="flex-1 flex flex-col items-center justify-start px-6 pt-16 pb-20">
+    <!-- Headline -->
+    <h1 class="relative z-10 text-center font-black tracking-tighter leading-none mb-6 max-w-4xl fade-up s2">
+        <span class="block text-5xl md:text-7xl lg:text-8xl text-white drop-shadow-2xl">H.O.L.M.E.S.</span>
+        <span class="block text-xl md:text-3xl lg:text-4xl mt-4 grad-text">Sovereign Health Grid</span>
+    </h1>
 
-            <!-- Badge -->
-            <div class="fade-up stagger-1 inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 px-4 py-2 rounded-full mb-8">
-                <i class="fa-solid fa-shield-halved text-blue-400 text-xs"></i>
-                <span class="text-[10px] font-black text-blue-300 uppercase tracking-widest">Sovereign Health Architecture · Bangladesh</span>
-            </div>
+    <!-- Subheadline -->
+    <p class="relative z-10 text-center text-base md:text-lg font-medium text-slate-400 max-w-2xl mb-10 leading-relaxed fade-up s3">
+        The <span class="text-white font-bold">AI-Guarded Neural Network</span> for National Healthcare.
+        Real-time epidemiological surveillance, cryptographic prescription chains, and sovereign patient identity.
+    </p>
 
-            <!-- Title -->
-            <h1 class="fade-up stagger-2 text-center font-black tracking-tighter leading-none mb-4">
-                <span class="block text-5xl md:text-7xl lg:text-8xl text-white">H.O.L.M.E.S.</span>
-                <span class="block text-lg md:text-2xl lg:text-3xl mt-3 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-teal-400 to-emerald-400">
-                    Sovereign Health Grid
-                </span>
-            </h1>
+    <!-- CTA Buttons -->
+    <div class="relative z-10 flex flex-col sm:flex-row gap-4 mb-16 fade-up s4">
+        <a href="auth.html" class="btn-primary px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-widest text-white flex items-center justify-center gap-3">
+            <i class="fa-solid fa-fingerprint text-lg"></i>
+            Access Unified Portal (Login)
+        </a>
+        <a href="#radar" class="btn-secondary px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-widest text-slate-300 hover:text-white flex items-center justify-center gap-3">
+            <i class="fa-solid fa-chart-line"></i>
+            View Live Radar
+        </a>
+    </div>
 
-            <!-- Subtitle -->
-            <p class="fade-up stagger-3 text-sm md:text-base font-medium text-slate-500 text-center max-w-xl mt-4 mb-6 leading-relaxed">
-                Unified Healthcare Architecture — Select your operational node to proceed.
-            </p>
-
-            <!-- Stats Row -->
-            <div class="fade-up stagger-3 flex items-center gap-6 mb-12">
-                <div class="text-center">
-                    <p class="text-2xl font-black text-white">42</p>
-                    <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Nodes</p>
-                </div>
-                <div class="h-8 w-px bg-white/10"></div>
-                <div class="text-center">
-                    <p class="text-2xl font-black text-white">1,284</p>
-                    <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">24hr Rx</p>
-                </div>
-                <div class="h-8 w-px bg-white/10"></div>
-                <div class="text-center">
-                    <p class="text-2xl font-black text-rose-400">1 <span class="text-xs">⚠</span></p>
-                    <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Alert</p>
-                </div>
-            </div>
-
-            <div class="divider w-full max-w-4xl mb-12"></div>
-
-            <!-- ── APP LAUNCHER GRID ── -->
-            <div class="w-full max-w-5xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5">
-
-                <!-- CARD 1: Clinical Pad (Doctor) -->
-                <a href="dashboard.html" class="app-card card-blue fade-up stagger-4">
-                    <div class="scan-line text-blue-400"></div>
-                    <div class="flex items-start justify-between">
-                        <div class="icon-wrap bg-blue-500/15 border border-blue-500/25 text-blue-400">
-                            <i class="fa-solid fa-pen-nib"></i>
-                        </div>
-                        <i class="fa-solid fa-arrow-up-right arrow-icon text-slate-600 text-sm"></i>
-                    </div>
-                    <div>
-                        <p class="text-[9px] font-black text-blue-400/70 uppercase tracking-widest mb-1.5">Doctor Terminal</p>
-                        <h2 class="text-lg font-black text-white tracking-tight mb-1">Clinical Pad</h2>
-                        <p class="text-xs font-medium text-slate-500 leading-relaxed">Secure E-Prescription & AI Sentinel</p>
-                    </div>
-                    <div class="mt-auto pt-4 border-t border-white/5 flex items-center justify-between">
-                        <span class="text-[9px] font-black text-blue-400/60 uppercase tracking-widest">AI-Guarded</span>
-                        <div class="flex items-center gap-1">
-                            <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span>
-                            <span class="text-[9px] font-bold text-slate-500">Active</span>
-                        </div>
-                    </div>
-                </a>
-
-                <!-- CARD 2: Pre-Triage Kiosk -->
-                <a href="triage_kiosk.html" class="app-card card-teal fade-up stagger-5">
-                    <div class="scan-line text-teal-400"></div>
-                    <div class="flex items-start justify-between">
-                        <div class="icon-wrap bg-teal-500/15 border border-teal-500/25 text-teal-400">
-                            <i class="fa-solid fa-clipboard-user"></i>
-                        </div>
-                        <i class="fa-solid fa-arrow-up-right arrow-icon text-slate-600 text-sm"></i>
-                    </div>
-                    <div>
-                        <p class="text-[9px] font-black text-teal-400/70 uppercase tracking-widest mb-1.5">Intake Station</p>
-                        <h2 class="text-lg font-black text-white tracking-tight mb-1">Pre-Triage Kiosk</h2>
-                        <p class="text-xs font-medium text-slate-500 leading-relaxed">Rapid patient intake & vitals staging</p>
-                    </div>
-                    <div class="mt-auto pt-4 border-t border-white/5 flex items-center justify-between">
-                        <span class="text-[9px] font-black text-teal-400/60 uppercase tracking-widest">iPad-Ready</span>
-                        <div class="flex items-center gap-1">
-                            <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span>
-                            <span class="text-[9px] font-bold text-slate-500">Active</span>
-                        </div>
-                    </div>
-                </a>
-
-                <!-- CARD 3: Ministry Radar -->
-                <a href="ministry_dashboard.html" class="app-card card-purple fade-up stagger-6">
-                    <div class="scan-line text-violet-400"></div>
-                    <div class="flex items-start justify-between">
-                        <div class="icon-wrap bg-violet-500/15 border border-violet-500/25 text-violet-400">
-                            <i class="fa-solid fa-earth-asia"></i>
-                        </div>
-                        <div class="flex flex-col items-end gap-1">
-                            <span class="text-[8px] font-black text-rose-400 bg-rose-400/10 border border-rose-500/20 px-2 py-0.5 rounded-full uppercase tracking-widest flex items-center gap-1">
-                                <span class="w-1 h-1 bg-rose-500 rounded-full animate-pulse"></span>Alert
-                            </span>
-                            <i class="fa-solid fa-arrow-up-right arrow-icon text-slate-600 text-sm"></i>
-                        </div>
-                    </div>
-                    <div>
-                        <p class="text-[9px] font-black text-violet-400/70 uppercase tracking-widest mb-1.5">Government</p>
-                        <h2 class="text-lg font-black text-white tracking-tight mb-1">Ministry Radar</h2>
-                        <p class="text-xs font-medium text-slate-500 leading-relaxed">Live epidemiological surveillance</p>
-                    </div>
-                    <div class="mt-auto pt-4 border-t border-white/5 flex items-center justify-between">
-                        <span class="text-[9px] font-black text-violet-400/60 uppercase tracking-widest">Chart.js Live</span>
-                        <div class="flex items-center gap-1">
-                            <span class="w-1.5 h-1.5 bg-rose-500 rounded-full animate-pulse"></span>
-                            <span class="text-[9px] font-bold text-rose-400">1 Alert</span>
-                        </div>
-                    </div>
-                </a>
-
-                <!-- CARD 4: Patient Vault -->
-                <a href="patient_app.html" class="app-card card-emerald fade-up stagger-7">
-                    <div class="scan-line text-emerald-400"></div>
-                    <div class="flex items-start justify-between">
-                        <div class="icon-wrap bg-emerald-500/15 border border-emerald-500/25 text-emerald-400">
-                            <i class="fa-solid fa-vault"></i>
-                        </div>
-                        <i class="fa-solid fa-arrow-up-right arrow-icon text-slate-600 text-sm"></i>
-                    </div>
-                    <div>
-                        <p class="text-[9px] font-black text-emerald-400/70 uppercase tracking-widest mb-1.5">Citizen Access</p>
-                        <h2 class="text-lg font-black text-white tracking-tight mb-1">Patient Vault</h2>
-                        <p class="text-xs font-medium text-slate-500 leading-relaxed">Secure sovereign health records</p>
-                    </div>
-                    <div class="mt-auto pt-4 border-t border-white/5 flex items-center justify-between">
-                        <span class="text-[9px] font-black text-emerald-400/60 uppercase tracking-widest">E2E Encrypted</span>
-                        <div class="flex items-center gap-1">
-                            <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span>
-                            <span class="text-[9px] font-bold text-slate-500">Active</span>
-                        </div>
-                    </div>
-                </a>
-
-                <!-- CARD 5: Pathology Node -->
-                <a href="pathology_portal.html" class="app-card card-amber fade-up stagger-8">
-                    <div class="scan-line text-amber-400"></div>
-                    <div class="flex items-start justify-between">
-                        <div class="icon-wrap bg-amber-500/15 border border-amber-500/25 text-amber-400">
-                            <i class="fa-solid fa-microscope"></i>
-                        </div>
-                        <i class="fa-solid fa-arrow-up-right arrow-icon text-slate-600 text-sm"></i>
-                    </div>
-                    <div>
-                        <p class="text-[9px] font-black text-amber-400/70 uppercase tracking-widest mb-1.5">Lab Terminal</p>
-                        <h2 class="text-lg font-black text-white tracking-tight mb-1">Pathology Node</h2>
-                        <p class="text-xs font-medium text-slate-500 leading-relaxed">Pending investigations queue</p>
-                    </div>
-                    <div class="mt-auto pt-4 border-t border-white/5 flex items-center justify-between">
-                        <span class="text-[9px] font-black text-amber-400/60 uppercase tracking-widest">LOINC-Ready</span>
-                        <div class="flex items-center gap-1">
-                            <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span>
-                            <span class="text-[9px] font-bold text-slate-500">Active</span>
-                        </div>
-                    </div>
-                </a>
-
-                <!-- AUTH CARD (secondary) -->
-                <a href="auth.html" class="app-card fade-up stagger-8" style="border-color: rgba(255,255,255,0.05);">
-                    <div class="flex items-start justify-between">
-                        <div class="icon-wrap bg-slate-700/50 border border-slate-600/30 text-slate-400">
-                            <i class="fa-solid fa-fingerprint"></i>
-                        </div>
-                        <i class="fa-solid fa-arrow-up-right arrow-icon text-slate-600 text-sm"></i>
-                    </div>
-                    <div>
-                        <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Access Control</p>
-                        <h2 class="text-lg font-black text-slate-300 tracking-tight mb-1">Authenticate</h2>
-                        <p class="text-xs font-medium text-slate-600 leading-relaxed">Doctor & staff login portal</p>
-                    </div>
-                    <div class="mt-auto pt-4 border-t border-white/5 flex items-center justify-between">
-                        <span class="text-[9px] font-black text-slate-600 uppercase tracking-widest">JWT Auth</span>
-                        <div class="flex items-center gap-1">
-                            <span class="w-1.5 h-1.5 bg-slate-500 rounded-full"></span>
-                            <span class="text-[9px] font-bold text-slate-600">Secured</span>
-                        </div>
-                    </div>
-                </a>
-
-            </div>
-
-            <!-- FOOTER -->
-            <div class="divider w-full max-w-5xl mt-16 mb-8"></div>
-            <div class="flex flex-col sm:flex-row items-center justify-between w-full max-w-5xl gap-4 text-[10px] font-bold text-slate-700 uppercase tracking-widest">
-                <span>H.O.L.M.E.S. v2.0 · IntelliScript BD · National Health Grid</span>
-                <div class="flex items-center gap-2">
-                    <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full pulse-ring"></span>
-                    <span class="text-emerald-600">FHIR-Compliant · End-to-End Encrypted</span>
-                </div>
-            </div>
-
+    <!-- Stat Row -->
+    <div class="relative z-10 flex flex-wrap items-center justify-center gap-6 lg:gap-10 fade-up s5">
+        <div class="stat-card text-center glass px-6 py-4 rounded-2xl">
+            <p class="text-3xl font-black text-white">42</p>
+            <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-1">Surveillance Nodes</p>
+        </div>
+        <div class="h-10 w-px bg-white/10 hidden lg:block"></div>
+        <div class="stat-card text-center glass px-6 py-4 rounded-2xl">
+            <p class="text-3xl font-black text-white">1,284</p>
+            <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-1">24hr Rx Volume</p>
+        </div>
+        <div class="h-10 w-px bg-white/10 hidden lg:block"></div>
+        <div class="stat-card text-center glass px-6 py-4 rounded-2xl">
+            <p class="text-3xl font-black text-rose-400">1 <i class="fa-solid fa-triangle-exclamation text-lg"></i></p>
+            <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-1">Active Alert</p>
+        </div>
+        <div class="h-10 w-px bg-white/10 hidden lg:block"></div>
+        <div class="stat-card text-center glass px-6 py-4 rounded-2xl">
+            <p class="text-3xl font-black text-emerald-400">99.9%</p>
+            <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-1">Grid Uptime</p>
         </div>
     </div>
 
+    <!-- Scroll indicator -->
+    <a href="#features" class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-slate-600 hover:text-slate-400 transition-colors scroll-bounce">
+        <span class="text-[9px] font-bold uppercase tracking-widest">Explore</span>
+        <i class="fa-solid fa-chevron-down text-sm"></i>
+    </a>
+</section>
+
+<!-- ═══════════════════════════════════════
+     FEATURES ROW
+═══════════════════════════════════════ -->
+<section id="features" class="relative z-10 py-20 px-6">
+    <div class="divider mb-16"></div>
+    <div class="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-5">
+
+        <div class="feat-card glass rounded-2xl p-6 hover:border-blue-500/30 transition-all duration-300 hover:-translate-y-1">
+            <div class="feat-icon w-12 h-12 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-center justify-center text-blue-400 text-xl mb-4">
+                <i class="fa-solid fa-pen-nib"></i>
+            </div>
+            <h3 class="font-black text-white text-base mb-2">AI Sentinel Prescriptions</h3>
+            <p class="text-xs font-medium text-slate-500 leading-relaxed">Gemini-powered drug interaction screening blocks lethal errors before they reach the patient.</p>
+        </div>
+
+        <div class="feat-card glass rounded-2xl p-6 hover:border-teal-500/30 transition-all duration-300 hover:-translate-y-1">
+            <div class="feat-icon w-12 h-12 bg-teal-500/10 border border-teal-500/20 rounded-xl flex items-center justify-center text-teal-400 text-xl mb-4">
+                <i class="fa-solid fa-vault"></i>
+            </div>
+            <h3 class="font-black text-white text-base mb-2">Sovereign Patient Vault</h3>
+            <p class="text-xs font-medium text-slate-500 leading-relaxed">Citizens own their encrypted health records. QR-verified dispensing eliminates prescription fraud.</p>
+        </div>
+
+        <div class="feat-card glass rounded-2xl p-6 hover:border-violet-500/30 transition-all duration-300 hover:-translate-y-1">
+            <div class="feat-icon w-12 h-12 bg-violet-500/10 border border-violet-500/20 rounded-xl flex items-center justify-center text-violet-400 text-xl mb-4">
+                <i class="fa-solid fa-earth-asia"></i>
+            </div>
+            <h3 class="font-black text-white text-base mb-2">Epidemiological Radar</h3>
+            <p class="text-xs font-medium text-slate-500 leading-relaxed">Live outbreak detection from aggregated prescription indications, surfaced to the Ministry of Health.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     LIVE NATIONAL HEALTH RADAR
+═══════════════════════════════════════ -->
+<section id="radar" class="relative z-10 py-20 px-6">
+    <div class="divider mb-16"></div>
+    <div class="max-w-4xl mx-auto">
+
+        <!-- Section Header -->
+        <div class="text-center mb-12">
+            <div class="inline-flex items-center gap-2 glass border-rose-500/20 px-4 py-2 rounded-full mb-6">
+                <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+                <span class="text-[10px] font-black text-rose-400 uppercase tracking-widest">Live Feed · Updated Every 6hrs</span>
+            </div>
+            <h2 class="text-3xl md:text-5xl font-black text-white tracking-tight mb-4">Live National Health Radar</h2>
+            <p class="text-sm font-medium text-slate-500 max-w-xl mx-auto leading-relaxed">
+                Prescription indication data aggregated across all 42 active surveillance nodes.
+                <span class="text-rose-400 font-bold">Dengue Fever</span> spike detected in Dhaka South — 340% above baseline.
+            </p>
+        </div>
+
+        <!-- CHART CARD -->
+        <div class="glass rounded-3xl p-8 chart-glow mb-6">
+            <div class="flex items-center justify-between mb-6 flex-wrap gap-4">
+                <div>
+                    <h3 class="text-sm font-black text-white">Vector-Borne Outbreak Trend</h3>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">7-Day National Surveillance Window</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span class="flex items-center gap-1.5 text-[10px] font-bold text-blue-400">
+                        <span class="w-3 h-1 bg-blue-500 rounded-full inline-block"></span>Malaria
+                    </span>
+                    <span class="flex items-center gap-1.5 text-[10px] font-bold text-rose-400">
+                        <span class="w-3 h-1 bg-rose-500 rounded-full inline-block"></span>Dengue Fever
+                    </span>
+                </div>
+            </div>
+            <div class="relative h-64">
+                <canvas id="radarChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Alert Banner -->
+        <div class="glass border border-rose-800/50 rounded-2xl px-6 py-4 mb-8 flex items-start gap-4" style="background:rgba(159,18,57,0.08)">
+            <div class="w-10 h-10 bg-rose-500/15 rounded-xl flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-triangle-exclamation text-rose-400"></i>
+            </div>
+            <div>
+                <p class="text-[9px] font-black text-rose-400 uppercase tracking-widest mb-1">CRITICAL SENTINEL ALERT</p>
+                <p class="text-xs font-bold text-rose-200 leading-relaxed">340% increase in Dengue-indicated prescriptions in Dhaka South over 48 hours. Recommend immediate vector control dispatch.</p>
+            </div>
+            <span class="text-[8px] font-black text-rose-500 bg-rose-500/10 border border-rose-700/30 px-2 py-1 rounded-full uppercase shrink-0 self-start">2hr ago</span>
+        </div>
+
+        <!-- CTA -->
+        <div class="text-center">
+            <a href="ministry_dashboard.html" class="btn-primary inline-flex items-center gap-3 px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-widest text-white">
+                <i class="fa-solid fa-earth-asia"></i>
+                Enter Ministry Dashboard
+            </a>
+            <p class="text-[10px] font-bold text-slate-600 uppercase tracking-widest mt-4">Restricted to authorized Ministry personnel</p>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     FOOTER
+═══════════════════════════════════════ -->
+<footer class="relative z-10 py-10 px-6">
+    <div class="divider mb-10"></div>
+    <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 bg-blue-600 rounded-xl flex items-center justify-center">
+                <i class="fa-solid fa-network-wired text-white text-xs"></i>
+            </div>
+            <span class="text-xs font-black text-slate-500">H.O.L.M.E.S. v2.0 · IntelliScript BD</span>
+        </div>
+        <div class="flex items-center gap-5">
+            <a href="auth.html" class="text-[10px] font-bold text-slate-600 hover:text-slate-400 uppercase tracking-widest transition-colors">Login</a>
+            <a href="ministry_dashboard.html" class="text-[10px] font-bold text-slate-600 hover:text-slate-400 uppercase tracking-widest transition-colors">Ministry</a>
+            <a href="patient_app.html" class="text-[10px] font-bold text-slate-600 hover:text-slate-400 uppercase tracking-widest transition-colors">Patient Vault</a>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+            <span class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">FHIR · E2E Encrypted</span>
+        </div>
+    </div>
+</footer>
+
+<script>
+    // ── RADAR CHART ──
+    const ctx = document.getElementById('radarChart').getContext('2d');
+
+    const dengueGrad = ctx.createLinearGradient(0, 0, 0, 260);
+    dengueGrad.addColorStop(0, 'rgba(239,68,68,0.35)');
+    dengueGrad.addColorStop(1, 'rgba(239,68,68,0)');
+
+    const malariaGrad = ctx.createLinearGradient(0, 0, 0, 260);
+    malariaGrad.addColorStop(0, 'rgba(59,130,246,0.2)');
+    malariaGrad.addColorStop(1, 'rgba(59,130,246,0)');
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Apr 20','Apr 21','Apr 22','Apr 23','Apr 24','Apr 25','Apr 26'],
+            datasets: [
+                {
+                    label: 'Dengue Fever',
+                    data: [18, 22, 19, 25, 41, 138, 384],
+                    borderColor: '#ef4444',
+                    backgroundColor: dengueGrad,
+                    borderWidth: 2.5, fill: true, tension: 0.4,
+                    pointRadius: 4, pointBackgroundColor: '#ef4444',
+                    pointBorderColor: '#060d1a', pointBorderWidth: 2
+                },
+                {
+                    label: 'Malaria',
+                    data: [12, 14, 11, 13, 15, 14, 16],
+                    borderColor: '#3b82f6',
+                    backgroundColor: malariaGrad,
+                    borderWidth: 2, fill: true, tension: 0.4,
+                    pointRadius: 3, pointBackgroundColor: '#3b82f6',
+                    pointBorderColor: '#060d1a', pointBorderWidth: 2
+                }
+            ]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#0f1729', borderColor: '#1e293b', borderWidth: 1,
+                    titleColor: '#94a3b8', bodyColor: '#e2e8f0', padding: 12,
+                    titleFont: { size: 10, weight: 'bold' },
+                    bodyFont: { size: 12, weight: 'bold' },
+                    callbacks: { label: c => ` ${c.dataset.label}: ${c.parsed.y} cases` }
+                }
+            },
+            scales: {
+                x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#475569', font: { size: 10, weight: '700' } } },
+                y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#475569', font: { size: 10, weight: '700' } }, beginAtZero: true }
+            }
+        }
+    });
+</script>
 </body>
 </html>
