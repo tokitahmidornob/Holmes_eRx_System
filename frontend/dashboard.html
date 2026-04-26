@@ -544,10 +544,17 @@
                     } else { document.getElementById('pastConditionsList').innerHTML = '<div class="py-4 text-center"><i class="fa-solid fa-box-archive text-slate-300 text-2xl mb-2 block"></i><span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">No Past Conditions</span></div>'; }
 
                     const meds = dossier.activeMedications || [];
-                    document.getElementById('medCount').innerText = meds.length;
-                    if(meds.length > 0) {
-                        document.getElementById('dossierActiveMeds').innerHTML = meds.map(m => {
-                            console.log("Inspect Medication Object:", m);
+                    
+                    const cleanMeds = meds.filter(m => {
+                        const name = m.drugName || m.drug || m.name || m.brandName || '';
+                        return name.length > 0 && name.length < 40;
+                    });
+                    
+                    document.getElementById('medCount').innerText = cleanMeds.length;
+                    
+                    if(cleanMeds.length > 0) {
+                        document.getElementById('dossierActiveMeds').innerHTML = cleanMeds.map(m => {
+                            console.log("Inspect Cleaned Medication Object:", m);
                             return `<div class="bg-white p-3 rounded-lg border border-emerald-100 shadow-sm"><p class="font-bold text-xs text-slate-800"><strong>${m.drugName || m.drug || m.name || m.brandName || 'Unknown Name'}</strong> <span class="text-xs font-normal text-slate-500 ml-1">${m.dosage || m.dose || ''}</span></p><p class="text-[9px] font-bold text-emerald-600 uppercase tracking-wider mt-1"><i class="fa-solid fa-capsules mr-1"></i>${m.frequency || m.timing || ''} ${(m.frequency || m.timing) ? '&bull;' : ''} Active Therapy</p></div>`;
                         }).join('');
                     } else {
