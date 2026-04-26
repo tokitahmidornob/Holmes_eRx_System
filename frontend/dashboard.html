@@ -899,29 +899,23 @@
                 document.getElementById('patientSearchInput').value = triage.patientId;
             }
 
-            // 2. Pre-fill Primary Clinical Indication
-            if (triage.indication) {
-                document.getElementById('primaryIndication').value = triage.indication;
-            }
-
-            // 3. Show the Vitals Attached badge with Temp/BP data
+            // 2. Build the Vitals Attached badge — includes Temp, BP, and Chief Complaint
+            //    NOTE: #primaryIndication is intentionally NOT auto-filled.
+            //    The doctor must assign the formal clinical indication manually.
             const parts = [];
-            if (triage.temperature) parts.push(`Temp: ${triage.temperature}°F`);
+            if (triage.temperature)   parts.push(`Temp: ${triage.temperature}°F`);
             if (triage.bloodPressure) parts.push(`BP: ${triage.bloodPressure}`);
+            if (triage.chiefComplaint) parts.push(`Complaint: ${triage.chiefComplaint}`);
+
             const badgeEl = document.getElementById('vitalsAttachedBadge');
             const vitalsTextEl = document.getElementById('vitalsText');
-            if (parts.length > 0) {
-                vitalsTextEl.innerText = parts.join(' · ');
-                badgeEl.classList.remove('hidden');
-            } else {
-                vitalsTextEl.innerText = 'Vitals Attached';
-                badgeEl.classList.remove('hidden');
-            }
+            vitalsTextEl.innerText = parts.length > 0 ? parts.join(' · ') : 'Triage Loaded';
+            badgeEl.classList.remove('hidden');
 
-            // 4. Clear localStorage so it doesn't auto-load twice
+            // 3. Clear localStorage so it doesn't auto-load twice
             localStorage.removeItem('pendingTriage');
 
-            showToast(`Triage data loaded for ${triage.patientId || 'patient'}. Indication & vitals pre-filled.`, 'success');
+            showToast(`Triage loaded for ${triage.patientId || 'patient'}. Vitals & complaint attached — please assign the clinical indication.`, 'success');
         }
 
         // Wire button via EventListener on DOMContentLoaded

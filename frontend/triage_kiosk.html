@@ -82,17 +82,16 @@
                 </div>
             </div>
 
-            <!-- Primary Clinical Indication (same pattern as doctor's pad) -->
+            <!-- Chief Complaint -->
             <div>
                 <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">
-                    <i class="fa-solid fa-stethoscope mr-1 text-indigo-400"></i> Primary Clinical Indication
+                    <i class="fa-solid fa-comment-medical mr-1 text-indigo-400"></i> Chief Complaint
                 </label>
-                <input type="text" id="primaryIndication" list="indications-list"
-                    placeholder="Search and select your chief complaint..."
-                    class="input-field w-full p-4 rounded-2xl border-2 border-slate-200 bg-white text-slate-800 font-bold text-sm outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 transition-all placeholder:font-normal placeholder:text-slate-400">
-                <datalist id="indications-list"></datalist>
+                <textarea id="chiefComplaint" rows="3"
+                    placeholder="e.g., High fever and body ache for 3 days"
+                    class="input-field w-full p-4 rounded-2xl border-2 border-slate-200 bg-white text-slate-800 font-bold text-sm outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 transition-all placeholder:font-normal placeholder:text-slate-400 resize-none"></textarea>
                 <p class="text-[10px] font-semibold text-slate-400 mt-2 ml-1">
-                    <i class="fa-solid fa-circle-info mr-1"></i> Start typing to search from the national indication registry.
+                    <i class="fa-solid fa-circle-info mr-1"></i> Describe your main symptom(s). Your doctor will assign the formal clinical indication.
                 </p>
             </div>
 
@@ -134,50 +133,21 @@
     </div>
 
     <script>
-        // ==========================================
-        // INDICATIONS CSV LOADER (identical pattern to dashboard.html)
-        // ==========================================
-        async function loadIndications() {
-            try {
-                const res = await fetch('indications.csv');
-                if (!res.ok) return;
-                const text = await res.text();
-                const list = document.getElementById('indications-list');
-                const lines = text.split('\n');
-                let optionsHtml = '';
-                for (let i = 1; i < lines.length; i++) {
-                    const line = lines[i].trim();
-                    if (!line) continue;
-                    const cols = line.split(',');
-                    if (cols.length >= 2) {
-                        const indication = cols.slice(1).join(',').replace(/^"|"$/g, '').trim();
-                        if (indication) optionsHtml += `<option value="${indication}"></option>`;
-                    }
-                }
-                list.innerHTML = optionsHtml;
-            } catch (e) {
-                console.warn('Could not load indications.csv. Datalist will be empty.', e);
-            }
-        }
-
-        // ==========================================
-        // TRIAGE SUBMISSION
-        // ==========================================
         function submitTriage() {
-            const patientId    = document.getElementById('patientId').value.trim();
-            const temperature  = document.getElementById('temperature').value.trim();
+            const patientId     = document.getElementById('patientId').value.trim();
+            const temperature   = document.getElementById('temperature').value.trim();
             const bloodPressure = document.getElementById('bloodPressure').value.trim();
-            const indication   = document.getElementById('primaryIndication').value.trim();
+            const chiefComplaint = document.getElementById('chiefComplaint').value.trim();
 
             // Basic validation
             if (!patientId) return alert('Please enter your Patient ID.');
-            if (!indication) return alert('Please select a Primary Clinical Indication.');
+            if (!chiefComplaint) return alert('Please describe your Chief Complaint.');
 
             const data = {
                 patientId,
-                temperature:   temperature  || null,
-                bloodPressure: bloodPressure || null,
-                indication,
+                temperature:    temperature   || null,
+                bloodPressure:  bloodPressure || null,
+                chiefComplaint,
                 timestamp: new Date().toISOString()
             };
 
@@ -202,8 +172,8 @@
                     <div><p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Blood Pressure</p><p class="text-sm font-black text-slate-800">${data.bloodPressure} mmHg</p></div>
                 </div>` : ''}
                 <div class="flex items-center gap-3 pt-2 border-t border-slate-100">
-                    <i class="fa-solid fa-stethoscope text-indigo-500 w-5 text-center"></i>
-                    <div><p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Indication</p><p class="text-sm font-black text-slate-800">${data.indication}</p></div>
+                    <i class="fa-solid fa-comment-medical text-indigo-500 w-5 text-center"></i>
+                    <div><p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Chief Complaint</p><p class="text-sm font-black text-slate-800">${data.chiefComplaint}</p></div>
                 </div>
             `;
 
@@ -217,13 +187,12 @@
             document.getElementById('patientId').value = '';
             document.getElementById('temperature').value = '';
             document.getElementById('bloodPressure').value = '';
-            document.getElementById('primaryIndication').value = '';
+            document.getElementById('chiefComplaint').value = '';
             document.getElementById('successOverlay').classList.add('hidden');
             document.getElementById('formCard').style.display = '';
         }
 
-        // Auto-load on ready
-        document.addEventListener('DOMContentLoaded', loadIndications);
+        // No CSV loader needed — Chief Complaint is free text
     </script>
 </body>
 </html>
