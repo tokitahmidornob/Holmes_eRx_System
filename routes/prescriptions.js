@@ -103,9 +103,9 @@ const sendPrescriptionNotification = async ({ patientEmail, patientName, doctorN
 
     const transporter = await createEmailTransporter();
     const mailOptions = {
-        from: `"Holmes eRx Grid" <${process.env.SMTP_USER || 'no-reply@holmeserx.test'}>`,
+        from: `"IntelliScript BD Grid" <${process.env.SMTP_USER || 'no-reply@holmeserx.test'}>`,
         to: patientEmail,
-        subject: 'Holmes eRx Broadcast ID and OTP',
+        subject: 'IntelliScript BD Broadcast ID and OTP',
         html: `
             <div style="font-family:Arial,Helvetica,sans-serif;color:#0f172a;line-height:1.7;padding:24px;">
                 <h2 style="margin-bottom:12px;color:#0f172a;">Citizen Broadcast Confirmation</h2>
@@ -116,7 +116,7 @@ const sendPrescriptionNotification = async ({ patientEmail, patientName, doctorN
                     <p style="margin:0;font-size:0.95rem;"><strong>One-Time PIN:</strong> <span style="color:#0f172a;">${otp}</span></p>
                 </div>
                 <p>Please keep this information confidential and present it only to the authorized dispensary when collecting your medication.</p>
-                <p style="margin-top:24px;font-size:0.92rem;color:#475569;">Thank you for using the Holmes National Health Grid.</p>
+                <p style="margin-top:24px;font-size:0.92rem;color:#475569;">Thank you for using the IntelliScript BD.</p>
             </div>
         `
     };

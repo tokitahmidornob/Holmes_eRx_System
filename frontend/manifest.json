@@ -1,6 +1,6 @@
 {
-  "name": "Holmes eRx System",
-  "short_name": "Holmes eRx",
+  "name": "IntelliScript BD",
+  "short_name": "IntelliScript BD",
   "description": "National Health Grid Clinical Terminal",
   "start_url": "/",
   "display": "standalone",

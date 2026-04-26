@@ -64,5 +64,5 @@ app.use('/api/optimizer', require('./routes/optimizer'));
 
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Master Engine is LIVE on port: ${PORT}`);
+    console.log(`🚀 IntelliScript BD Server Online on port: ${PORT}`);
 });
