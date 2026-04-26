@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unified Login | IntelliScript BD</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        body { background: #060d1a; color: #e2e8f0; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+        }
+        .input-field {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            transition: all 0.3s ease;
+        }
+        .input-field:focus {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #3b82f6;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+        .input-field option {
+            background: #0f172a;
+            color: #fff;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #2563eb, #0d9488);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -10px rgba(37, 99, 235, 0.5);
+        }
+    </style>
+</head>
+<body class="antialiased p-6">
+    
+    <!-- Ambient Glows -->
+    <div class="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[100px] pointer-events-none"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-teal-600/10 rounded-full blur-[100px] pointer-events-none"></div>
+
+    <div class="w-full max-w-md glass-panel rounded-3xl shadow-2xl p-8 relative z-10">
+        
+        <div class="text-center mb-8">
+            <div class="w-14 h-14 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <i class="fa-solid fa-network-wired text-white text-xl"></i>
+            </div>
+            <h1 class="text-2xl font-black text-white tracking-tight">IntelliScript BD</h1>
+            <p class="text-sm font-semibold text-slate-400 mt-1 uppercase tracking-widest">Unified Authentication Gateway</p>
+        </div>
+
+        <form id="loginForm" class="space-y-5" onsubmit="handleLogin(event)">
+            
+            <!-- Role Selection -->
+            <div>
+                <label class="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">
+                    <i class="fa-solid fa-id-badge mr-1 text-blue-400"></i> Select Role
+                </label>
+                <select id="userRole" required class="input-field w-full p-4 rounded-xl text-sm font-semibold appearance-none">
+                    <option value="" disabled selected>-- Choose your authorization level --</option>
+                    <option value="Doctor">Doctor</option>
+                    <option value="Nurse (Triage)">Nurse (Triage)</option>
+                    <option value="Pathologist">Pathologist</option>
+                    <option value="Patient">Patient</option>
+                    <option value="Ministry">Ministry</option>
+                </select>
+            </div>
+
+            <!-- Email -->
+            <div>
+                <label class="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">
+                    <i class="fa-solid fa-envelope mr-1 text-slate-400"></i> Email Address
+                </label>
+                <input type="email" id="email" required placeholder="name@domain.com"
+                    class="input-field w-full p-4 rounded-xl text-sm placeholder:text-slate-500">
+            </div>
+
+            <!-- Password -->
+            <div>
+                <label class="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">
+                    <i class="fa-solid fa-lock mr-1 text-slate-400"></i> Security Key
+                </label>
+                <input type="password" id="password" required placeholder="••••••••"
+                    class="input-field w-full p-4 rounded-xl text-sm placeholder:text-slate-500">
+            </div>
+
+            <button type="submit" class="w-full btn-primary text-white py-4 rounded-xl font-black text-sm uppercase tracking-widest mt-4 flex items-center justify-center gap-3">
+                <i class="fa-solid fa-fingerprint text-lg"></i>
+                Authenticate Node
+            </button>
+        </form>
+
+        <p class="text-center text-[10px] font-semibold text-slate-500 uppercase tracking-widest mt-8">
+            <i class="fa-solid fa-shield-halved mr-1"></i> End-to-End Encrypted Session
+        </p>
+
+    </div>
+
+    <script>
+        function handleLogin(e) {
+            e.preventDefault();
+            
+            const role = document.getElementById('userRole').value;
+
+            let destination = '';
+            switch (role) {
+                case 'Doctor':
+                    destination = 'dashboard.html';
+                    break;
+                case 'Nurse (Triage)':
+                    destination = 'triage_kiosk.html';
+                    break;
+                case 'Pathologist':
+                    destination = 'pathology_portal.html';
+                    break;
+                case 'Patient':
+                    destination = 'patient_app.html';
+                    break;
+                case 'Ministry':
+                    destination = 'ministry_dashboard.html';
+                    break;
+                default:
+                    alert('Please select a valid role.');
+                    return;
+            }
+
+            // Simulate slight network delay for effect
+            const btn = document.querySelector('button[type="submit"]');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-lg"></i> Authenticating...';
+            btn.disabled = true;
+
+            setTimeout(() => {
+                window.location.href = destination;
+            }, 800);
+        }
+    </script>
+</body>
+</html>
