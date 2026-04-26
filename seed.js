@@ -110,6 +110,27 @@ const actors = [
             licenseNumber: 'PATH-2026-0001',
             specialty: ['Clinical Pathology']
         }
+    },
+    {
+        role: 'pharmacist',
+        email: 'pharmacy@intelliscript.bd',
+        fullName: 'Inspector Lestrade',
+        loginIdentity: 'pharmacy@intelliscript.bd',
+        gridId: 'GRID-PH-0001',
+        contact: {
+            primaryEmail: 'pharmacy@intelliscript.bd',
+            primaryMobile: '+8801700000007',
+            address: 'Central Pharmacy, Dhaka',
+            languagePref: 'English'
+        },
+        dateOfBirth: new Date('1975-04-12'),
+        genderLegal: 'Male',
+        practitioner: true,
+        practitionerData: {
+            roleType: 'Pharmacist',
+            licenseNumber: 'PHARM-2026-0001',
+            specialty: ['Clinical Pharmacy']
+        }
     }
 ];
 
