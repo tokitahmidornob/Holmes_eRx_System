@@ -115,6 +115,8 @@
             switch (role) {
                 case 'Doctor':
                     destination = 'dashboard.html';
+                    localStorage.setItem('demo_doctor_dept', 'Internal Medicine');
+                    localStorage.setItem('demo_doctor_cred', 'MBBS, FCPS');
                     break;
                 case 'Nurse (Triage)':
                     destination = 'triage_kiosk.html';
@@ -127,6 +129,8 @@
                     break;
                 case 'Patient':
                     destination = 'patient_app.html';
+                    localStorage.setItem('demo_allergies', JSON.stringify(['Penicillin']));
+                    localStorage.setItem('demo_conditions', JSON.stringify(['Viral Fever']));
                     break;
                 case 'Ministry':
                     destination = 'ministry_dashboard.html';
