@@ -3,139 +3,380 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IntelliScript BD</title>
+    <title>H.O.L.M.E.S. Sovereign Health Grid</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        
-        /* High-Tech Grid Background */
-        .bg-grid-pattern {
-            background-image: radial-gradient(rgba(15, 23, 42, 0.08) 1px, transparent 1px);
-            background-size: 24px 24px;
-        }
-        
-        /* Premium Gradient Text */
-        .text-gradient {
-            background: linear-gradient(135deg, #0284c7 0%, #0d9488 100%);
-            -webkit-background-clip: text;
-            background-clip: text; /* 🚨 ADD THIS LINE */
-            -webkit-text-fill-color: transparent;
-        }
-        
-        /* Frosted Glass Navigation */
-        .glass-nav {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.5);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
+        * { font-family: 'Inter', sans-serif; }
+
+        body {
+            background: #060d1a;
+            min-height: 100vh;
+            overflow-x: hidden;
         }
 
-        /* Smooth Entry Animations */
-        .fade-in-up { animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
-        @keyframes fadeInUp { 
-            from { opacity: 0; transform: translateY(20px); } 
-            to { opacity: 1; transform: translateY(0); } 
+        /* ── GRID PATTERN OVERLAY ── */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(59, 130, 246, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(59, 130, 246, 0.04) 1px, transparent 1px);
+            background-size: 48px 48px;
+            pointer-events: none;
+            z-index: 0;
         }
+
+        /* ── AMBIENT GLOWS ── */
+        .glow-orb-blue {
+            position: fixed; top: -15%; left: -10%;
+            width: 700px; height: 700px;
+            background: radial-gradient(circle, rgba(37, 99, 235, 0.12) 0%, transparent 70%);
+            pointer-events: none; z-index: 0;
+        }
+        .glow-orb-purple {
+            position: fixed; bottom: -20%; right: -10%;
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(124, 58, 237, 0.1) 0%, transparent 70%);
+            pointer-events: none; z-index: 0;
+        }
+        .glow-orb-teal {
+            position: fixed; top: 40%; left: 50%;
+            width: 500px; height: 500px; transform: translateX(-50%);
+            background: radial-gradient(circle, rgba(20, 184, 166, 0.06) 0%, transparent 70%);
+            pointer-events: none; z-index: 0;
+        }
+
+        /* ── APP CARDS ── */
+        .app-card {
+            position: relative;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 24px;
+            padding: 2rem;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+            overflow: hidden;
+            backdrop-filter: blur(8px);
+        }
+        .app-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 24px;
+            opacity: 0;
+            transition: opacity 0.35s ease;
+        }
+        .app-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.055);
+        }
+        .app-card:hover::before { opacity: 1; }
+
+        /* Blue — Doctor */
+        .card-blue::before { box-shadow: inset 0 0 60px -10px rgba(59, 130, 246, 0.15), 0 0 0 1px rgba(59, 130, 246, 0.3); }
+        .card-blue:hover { box-shadow: 0 20px 60px -10px rgba(59, 130, 246, 0.25); }
+
+        /* Teal — Kiosk */
+        .card-teal::before { box-shadow: inset 0 0 60px -10px rgba(20, 184, 166, 0.15), 0 0 0 1px rgba(20, 184, 166, 0.3); }
+        .card-teal:hover { box-shadow: 0 20px 60px -10px rgba(20, 184, 166, 0.25); }
+
+        /* Purple/Red — Ministry */
+        .card-purple::before { box-shadow: inset 0 0 60px -10px rgba(139, 92, 246, 0.15), 0 0 0 1px rgba(139, 92, 246, 0.3); }
+        .card-purple:hover { box-shadow: 0 20px 60px -10px rgba(139, 92, 246, 0.25); }
+
+        /* Emerald — Patient */
+        .card-emerald::before { box-shadow: inset 0 0 60px -10px rgba(16, 185, 129, 0.15), 0 0 0 1px rgba(16, 185, 129, 0.3); }
+        .card-emerald:hover { box-shadow: 0 20px 60px -10px rgba(16, 185, 129, 0.25); }
+
+        /* Amber — Pathology */
+        .card-amber::before { box-shadow: inset 0 0 60px -10px rgba(245, 158, 11, 0.15), 0 0 0 1px rgba(245, 158, 11, 0.3); }
+        .card-amber:hover { box-shadow: 0 20px 60px -10px rgba(245, 158, 11, 0.25); }
+
+        /* ── ICON CONTAINERS ── */
+        .icon-wrap {
+            width: 56px; height: 56px;
+            border-radius: 16px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem;
+            flex-shrink: 0;
+            transition: transform 0.3s ease;
+        }
+        .app-card:hover .icon-wrap { transform: scale(1.1) rotate(-3deg); }
+
+        /* ── SCAN LINE ── */
+        .scan-line {
+            position: absolute; top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, transparent, currentColor, transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .app-card:hover .scan-line { opacity: 0.4; }
+
+        /* ── ANIMATIONS ── */
+        .fade-up { animation: fadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+
+        .stagger-1 { animation-delay: 0.1s; }
+        .stagger-2 { animation-delay: 0.2s; }
+        .stagger-3 { animation-delay: 0.3s; }
+        .stagger-4 { animation-delay: 0.35s; }
+        .stagger-5 { animation-delay: 0.4s; }
+        .stagger-6 { animation-delay: 0.45s; }
+        .stagger-7 { animation-delay: 0.5s; }
+        .stagger-8 { animation-delay: 0.55s; }
+
+        /* ── HORIZONTAL RULE ── */
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+        }
+
+        /* ── PULSE RING ── */
+        .pulse-ring {
+            animation: pulseRing 2s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
+        }
+        @keyframes pulseRing {
+            0% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.5); }
+            70% { box-shadow: 0 0 0 7px rgba(52, 211, 153, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }
+        }
+
+        /* ── ARROW ICON ── */
+        .arrow-icon { transition: transform 0.25s ease; }
+        .app-card:hover .arrow-icon { transform: translate(3px, -3px); }
     </style>
 </head>
-<body class="bg-gradient-to-br from-slate-50 via-sky-50 to-teal-50 antialiased text-slate-800 relative overflow-x-hidden selection:bg-blue-200 selection:text-blue-900 min-h-screen">
-    
-    <div class="fixed inset-0 w-full h-full bg-grid-pattern z-0 pointer-events-none opacity-60"></div>
-    <div class="absolute top-[-10%] right-[-5%] w-[40rem] h-[40rem] bg-teal-300/40 rounded-full blur-3xl z-0 pointer-events-none"></div>
-    <div class="absolute top-[20%] left-[-10%] w-[35rem] h-[35rem] bg-blue-400/30 rounded-full blur-3xl z-0 pointer-events-none"></div>
-    <div class="absolute bottom-[-10%] right-[10%] w-[45rem] h-[45rem] bg-indigo-300/30 rounded-full blur-3xl z-0 pointer-events-none"></div>
+<body class="antialiased text-slate-200 relative">
 
-    <nav class="fixed w-full top-0 z-50 glass-nav transition-all duration-300">
-        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+    <!-- AMBIENT BACKGROUND GLOWS -->
+    <div class="glow-orb-blue"></div>
+    <div class="glow-orb-purple"></div>
+    <div class="glow-orb-teal"></div>
+
+    <div class="relative z-10 min-h-screen flex flex-col">
+
+        <!-- ── TOP NAV ── -->
+        <nav class="flex items-center justify-between px-6 lg:px-12 h-16 border-b border-white/5 bg-white/[0.02] backdrop-blur-sm fade-up">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center shadow-lg">
-                    <i class="fa-solid fa-network-wired text-teal-400 text-lg"></i>
+                <div class="w-8 h-8 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-900/50">
+                    <i class="fa-solid fa-network-wired text-white text-sm"></i>
                 </div>
-                <span class="text-xl font-extrabold tracking-tight text-slate-900">IntelliScript <span class="text-blue-600">BD</span></span>
+                <span class="text-sm font-black text-white tracking-tight">IntelliScript <span class="text-blue-400">BD</span></span>
             </div>
-            
-            <a href="auth.html" class="hidden md:flex items-center gap-2 px-6 py-2.5 rounded-full border border-white/60 bg-white/80 text-sm font-bold text-slate-700 hover:text-blue-600 hover:bg-white hover:shadow-lg transition-all backdrop-blur-md">
-                <i class="fa-solid fa-terminal"></i> Enter Terminal
-            </a>
-        </div>
-    </nav>
+            <div class="flex items-center gap-3">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-ring"></span>
+                <span class="text-[10px] font-black text-emerald-400 uppercase tracking-widest hidden sm:block">All Systems Operational</span>
+            </div>
+        </nav>
 
-    <main class="relative z-10 flex flex-col items-center justify-center min-h-screen px-6 pt-24 text-center">
-        
-        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-md border border-white/60 shadow-sm mb-8 fade-in-up" style="animation-delay: 0.1s;">
-            <span class="relative flex h-2.5 w-2.5">
-              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-            </span>
-            <span class="text-[11px] font-extrabold text-slate-700 uppercase tracking-widest">National Systems Online</span>
-        </div>
+        <!-- ── HERO ── -->
+        <div class="flex-1 flex flex-col items-center justify-start px-6 pt-16 pb-20">
 
-        <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight text-slate-900 mb-6 max-w-4xl mx-auto leading-tight fade-in-up" style="animation-delay: 0.2s;">
-            The Sovereign <br/> <span class="text-gradient">Health Identity</span>
-        </h1>
+            <!-- Badge -->
+            <div class="fade-up stagger-1 inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 px-4 py-2 rounded-full mb-8">
+                <i class="fa-solid fa-shield-halved text-blue-400 text-xs"></i>
+                <span class="text-[10px] font-black text-blue-300 uppercase tracking-widest">Sovereign Health Architecture · Bangladesh</span>
+            </div>
 
-        <p class="text-base md:text-lg font-medium text-slate-600 mb-10 max-w-2xl mx-auto leading-relaxed fade-in-up" style="animation-delay: 0.3s;">
-            The IntelliScript BD is a military-grade, FHIR-compliant cryptographic network designed to eliminate prescription fraud, prevent fatal medical interactions, and return data sovereignty to the citizens of Bangladesh.
-        </p>
+            <!-- Title -->
+            <h1 class="fade-up stagger-2 text-center font-black tracking-tighter leading-none mb-4">
+                <span class="block text-5xl md:text-7xl lg:text-8xl text-white">H.O.L.M.E.S.</span>
+                <span class="block text-lg md:text-2xl lg:text-3xl mt-3 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-teal-400 to-emerald-400">
+                    Sovereign Health Grid
+                </span>
+            </h1>
 
-        <div class="flex flex-col sm:flex-row flex-wrap justify-center gap-4 fade-in-up" style="animation-delay: 0.4s;">
-            <a href="auth.html" class="flex items-center justify-center gap-3 px-8 py-4 rounded-xl bg-slate-900 hover:bg-blue-600 text-white font-bold text-sm uppercase tracking-wide transition-all shadow-xl shadow-slate-900/20 hover:-translate-y-1">
-                <i class="fa-solid fa-fingerprint text-lg"></i> Authenticate Identity
-            </a>
-            <a href="pitch_deck.html" class="flex items-center justify-center gap-3 px-8 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm uppercase tracking-wide transition-all shadow-xl shadow-indigo-900/20 hover:-translate-y-1">
-                <i class="fa-solid fa-presentation-screen text-lg"></i> View Pitch Deck
-            </a>
-            <a href="#features" class="flex items-center justify-center gap-3 px-8 py-4 rounded-xl bg-white/80 backdrop-blur-md border border-white/60 hover:border-blue-200 text-slate-700 font-bold text-sm uppercase tracking-wide transition-all hover:bg-white hover:shadow-lg">
-                <i class="fa-solid fa-book-medical text-lg"></i> Read Manifesto
-            </a>
-        </div>
+            <!-- Subtitle -->
+            <p class="fade-up stagger-3 text-sm md:text-base font-medium text-slate-500 text-center max-w-xl mt-4 mb-6 leading-relaxed">
+                Unified Healthcare Architecture — Select your operational node to proceed.
+            </p>
 
-        <div class="mt-16 w-full max-w-5xl relative fade-in-up" style="animation-delay: 0.6s;">
-            <div class="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-teal-50 to-transparent z-20"></div>
-            
-            <div class="bg-white/90 backdrop-blur-xl p-2 rounded-t-3xl border border-white/60 shadow-2xl mx-4 relative z-10 translate-y-4">
-                <div class="bg-slate-50/90 rounded-t-2xl h-48 md:h-72 border border-slate-100 overflow-hidden relative flex flex-col">
-                    
-                    <div class="h-12 border-b border-slate-200/60 bg-white/80 flex items-center px-4 gap-2 shrink-0">
-                        <div class="w-3 h-3 rounded-full bg-rose-400"></div>
-                        <div class="w-3 h-3 rounded-full bg-amber-400"></div>
-                        <div class="w-3 h-3 rounded-full bg-emerald-400"></div>
-                        <div class="mx-auto bg-slate-100 text-slate-500 text-[10px] font-bold px-4 py-1 rounded-md font-mono tracking-widest hidden sm:block shadow-inner">holmes-erx-system.onrender.com</div>
-                    </div>
-                    
-                    <div class="flex-1 p-6 flex gap-6">
-                        <div class="w-48 hidden md:block border-r border-slate-200/60 pr-6 space-y-4">
-                            <div class="h-4 w-full bg-slate-200 rounded animate-pulse mb-8"></div>
-                            <div class="h-3 w-3/4 bg-slate-200 rounded animate-pulse"></div>
-                            <div class="h-3 w-2/3 bg-slate-200 rounded animate-pulse"></div>
-                        </div>
-                        <div class="flex-1 space-y-4">
-                            <div class="h-6 w-1/3 bg-blue-100 rounded animate-pulse mb-6"></div>
-                            <div class="h-24 w-full bg-white border border-slate-200/60 shadow-sm rounded-xl animate-pulse"></div>
-                            <div class="grid grid-cols-3 gap-4">
-                                <div class="h-20 w-full bg-rose-50 border border-rose-100 rounded-xl animate-pulse"></div>
-                                <div class="h-20 w-full bg-amber-50 border border-amber-100 rounded-xl animate-pulse"></div>
-                                <div class="h-20 w-full bg-emerald-50 border border-emerald-100 rounded-xl animate-pulse"></div>
-                            </div>
-                        </div>
-                    </div>
-
+            <!-- Stats Row -->
+            <div class="fade-up stagger-3 flex items-center gap-6 mb-12">
+                <div class="text-center">
+                    <p class="text-2xl font-black text-white">42</p>
+                    <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Nodes</p>
+                </div>
+                <div class="h-8 w-px bg-white/10"></div>
+                <div class="text-center">
+                    <p class="text-2xl font-black text-white">1,284</p>
+                    <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">24hr Rx</p>
+                </div>
+                <div class="h-8 w-px bg-white/10"></div>
+                <div class="text-center">
+                    <p class="text-2xl font-black text-rose-400">1 <span class="text-xs">⚠</span></p>
+                    <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Alert</p>
                 </div>
             </div>
-        </div>
-    </main>
 
-    <script>
-        const token = sessionStorage.getItem('eRx_Token');
-        if (token) {
-            document.querySelectorAll('a[href="auth.html"]').forEach(link => {
-                link.href = "dashboard.html";
-                link.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket text-lg"></i> Return to Terminal';
-            });
-        }
-    </script>
+            <div class="divider w-full max-w-4xl mb-12"></div>
+
+            <!-- ── APP LAUNCHER GRID ── -->
+            <div class="w-full max-w-5xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5">
+
+                <!-- CARD 1: Clinical Pad (Doctor) -->
+                <a href="dashboard.html" class="app-card card-blue fade-up stagger-4">
+                    <div class="scan-line text-blue-400"></div>
+                    <div class="flex items-start justify-between">
+                        <div class="icon-wrap bg-blue-500/15 border border-blue-500/25 text-blue-400">
+                            <i class="fa-solid fa-pen-nib"></i>
+                        </div>
+                        <i class="fa-solid fa-arrow-up-right arrow-icon text-slate-600 text-sm"></i>
+                    </div>
+                    <div>
+                        <p class="text-[9px] font-black text-blue-400/70 uppercase tracking-widest mb-1.5">Doctor Terminal</p>
+                        <h2 class="text-lg font-black text-white tracking-tight mb-1">Clinical Pad</h2>
+                        <p class="text-xs font-medium text-slate-500 leading-relaxed">Secure E-Prescription & AI Sentinel</p>
+                    </div>
+                    <div class="mt-auto pt-4 border-t border-white/5 flex items-center justify-between">
+                        <span class="text-[9px] font-black text-blue-400/60 uppercase tracking-widest">AI-Guarded</span>
+                        <div class="flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span>
+                            <span class="text-[9px] font-bold text-slate-500">Active</span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- CARD 2: Pre-Triage Kiosk -->
+                <a href="triage_kiosk.html" class="app-card card-teal fade-up stagger-5">
+                    <div class="scan-line text-teal-400"></div>
+                    <div class="flex items-start justify-between">
+                        <div class="icon-wrap bg-teal-500/15 border border-teal-500/25 text-teal-400">
+                            <i class="fa-solid fa-clipboard-user"></i>
+                        </div>
+                        <i class="fa-solid fa-arrow-up-right arrow-icon text-slate-600 text-sm"></i>
+                    </div>
+                    <div>
+                        <p class="text-[9px] font-black text-teal-400/70 uppercase tracking-widest mb-1.5">Intake Station</p>
+                        <h2 class="text-lg font-black text-white tracking-tight mb-1">Pre-Triage Kiosk</h2>
+                        <p class="text-xs font-medium text-slate-500 leading-relaxed">Rapid patient intake & vitals staging</p>
+                    </div>
+                    <div class="mt-auto pt-4 border-t border-white/5 flex items-center justify-between">
+                        <span class="text-[9px] font-black text-teal-400/60 uppercase tracking-widest">iPad-Ready</span>
+                        <div class="flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span>
+                            <span class="text-[9px] font-bold text-slate-500">Active</span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- CARD 3: Ministry Radar -->
+                <a href="ministry_dashboard.html" class="app-card card-purple fade-up stagger-6">
+                    <div class="scan-line text-violet-400"></div>
+                    <div class="flex items-start justify-between">
+                        <div class="icon-wrap bg-violet-500/15 border border-violet-500/25 text-violet-400">
+                            <i class="fa-solid fa-earth-asia"></i>
+                        </div>
+                        <div class="flex flex-col items-end gap-1">
+                            <span class="text-[8px] font-black text-rose-400 bg-rose-400/10 border border-rose-500/20 px-2 py-0.5 rounded-full uppercase tracking-widest flex items-center gap-1">
+                                <span class="w-1 h-1 bg-rose-500 rounded-full animate-pulse"></span>Alert
+                            </span>
+                            <i class="fa-solid fa-arrow-up-right arrow-icon text-slate-600 text-sm"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-[9px] font-black text-violet-400/70 uppercase tracking-widest mb-1.5">Government</p>
+                        <h2 class="text-lg font-black text-white tracking-tight mb-1">Ministry Radar</h2>
+                        <p class="text-xs font-medium text-slate-500 leading-relaxed">Live epidemiological surveillance</p>
+                    </div>
+                    <div class="mt-auto pt-4 border-t border-white/5 flex items-center justify-between">
+                        <span class="text-[9px] font-black text-violet-400/60 uppercase tracking-widest">Chart.js Live</span>
+                        <div class="flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 bg-rose-500 rounded-full animate-pulse"></span>
+                            <span class="text-[9px] font-bold text-rose-400">1 Alert</span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- CARD 4: Patient Vault -->
+                <a href="patient_app.html" class="app-card card-emerald fade-up stagger-7">
+                    <div class="scan-line text-emerald-400"></div>
+                    <div class="flex items-start justify-between">
+                        <div class="icon-wrap bg-emerald-500/15 border border-emerald-500/25 text-emerald-400">
+                            <i class="fa-solid fa-vault"></i>
+                        </div>
+                        <i class="fa-solid fa-arrow-up-right arrow-icon text-slate-600 text-sm"></i>
+                    </div>
+                    <div>
+                        <p class="text-[9px] font-black text-emerald-400/70 uppercase tracking-widest mb-1.5">Citizen Access</p>
+                        <h2 class="text-lg font-black text-white tracking-tight mb-1">Patient Vault</h2>
+                        <p class="text-xs font-medium text-slate-500 leading-relaxed">Secure sovereign health records</p>
+                    </div>
+                    <div class="mt-auto pt-4 border-t border-white/5 flex items-center justify-between">
+                        <span class="text-[9px] font-black text-emerald-400/60 uppercase tracking-widest">E2E Encrypted</span>
+                        <div class="flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span>
+                            <span class="text-[9px] font-bold text-slate-500">Active</span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- CARD 5: Pathology Node -->
+                <a href="pathology_portal.html" class="app-card card-amber fade-up stagger-8">
+                    <div class="scan-line text-amber-400"></div>
+                    <div class="flex items-start justify-between">
+                        <div class="icon-wrap bg-amber-500/15 border border-amber-500/25 text-amber-400">
+                            <i class="fa-solid fa-microscope"></i>
+                        </div>
+                        <i class="fa-solid fa-arrow-up-right arrow-icon text-slate-600 text-sm"></i>
+                    </div>
+                    <div>
+                        <p class="text-[9px] font-black text-amber-400/70 uppercase tracking-widest mb-1.5">Lab Terminal</p>
+                        <h2 class="text-lg font-black text-white tracking-tight mb-1">Pathology Node</h2>
+                        <p class="text-xs font-medium text-slate-500 leading-relaxed">Pending investigations queue</p>
+                    </div>
+                    <div class="mt-auto pt-4 border-t border-white/5 flex items-center justify-between">
+                        <span class="text-[9px] font-black text-amber-400/60 uppercase tracking-widest">LOINC-Ready</span>
+                        <div class="flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span>
+                            <span class="text-[9px] font-bold text-slate-500">Active</span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- AUTH CARD (secondary) -->
+                <a href="auth.html" class="app-card fade-up stagger-8" style="border-color: rgba(255,255,255,0.05);">
+                    <div class="flex items-start justify-between">
+                        <div class="icon-wrap bg-slate-700/50 border border-slate-600/30 text-slate-400">
+                            <i class="fa-solid fa-fingerprint"></i>
+                        </div>
+                        <i class="fa-solid fa-arrow-up-right arrow-icon text-slate-600 text-sm"></i>
+                    </div>
+                    <div>
+                        <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Access Control</p>
+                        <h2 class="text-lg font-black text-slate-300 tracking-tight mb-1">Authenticate</h2>
+                        <p class="text-xs font-medium text-slate-600 leading-relaxed">Doctor & staff login portal</p>
+                    </div>
+                    <div class="mt-auto pt-4 border-t border-white/5 flex items-center justify-between">
+                        <span class="text-[9px] font-black text-slate-600 uppercase tracking-widest">JWT Auth</span>
+                        <div class="flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 bg-slate-500 rounded-full"></span>
+                            <span class="text-[9px] font-bold text-slate-600">Secured</span>
+                        </div>
+                    </div>
+                </a>
+
+            </div>
+
+            <!-- FOOTER -->
+            <div class="divider w-full max-w-5xl mt-16 mb-8"></div>
+            <div class="flex flex-col sm:flex-row items-center justify-between w-full max-w-5xl gap-4 text-[10px] font-bold text-slate-700 uppercase tracking-widest">
+                <span>H.O.L.M.E.S. v2.0 · IntelliScript BD · National Health Grid</span>
+                <div class="flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full pulse-ring"></span>
+                    <span class="text-emerald-600">FHIR-Compliant · End-to-End Encrypted</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
 </body>
 </html>
