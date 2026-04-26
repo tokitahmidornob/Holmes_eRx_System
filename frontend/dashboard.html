@@ -87,6 +87,10 @@
                 <button id="btnLoadTriage" class="flex items-center gap-2 bg-amber-50 hover:bg-amber-100 border border-amber-300 hover:border-amber-400 text-amber-700 px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all shadow-sm hover:-translate-y-0.5">
                     <i class="fa-solid fa-bolt text-amber-500"></i> Load Triage Data
                 </button>
+                <!-- Network Status Badge -->
+                <span id="networkStatus" class="bg-emerald-500/20 text-emerald-700 px-3 py-1.5 rounded-full text-[10px] font-black border border-emerald-400/40 flex items-center gap-1.5 shrink-0 transition-all duration-300">
+                    <i class="fa-solid fa-wifi text-emerald-500"></i> Online
+                </span>
                 <div id="activePatientBanner" class="hidden bg-blue-50 border border-blue-200 px-4 py-2 lg:px-6 rounded-full flex items-center gap-2 lg:gap-3 shadow-sm transform transition-all-spring">
                     <i class="fa-solid fa-user-check text-blue-600"></i>
                     <span class="text-[11px] lg:text-xs font-bold text-blue-800 uppercase tracking-wider truncate max-w-[120px] lg:max-w-xs" id="bannerPatientName">Active Session</span>
@@ -638,7 +642,22 @@
             btn.classList.remove('bg-amber-500', 'hover:bg-amber-600'); btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
 
             try {
-                const res = await fetch(`${API_BASE_URL}/api/prescriptions`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ patientId: currentPatientId, indication: primaryInd, medications, investigations }) });
+                // ==========================================
+                // 📡 OFFLINE-FIRST RESILIENCE GATE
+                // ==========================================
+                const rxPayload = { patientId: currentPatientId, indication: primaryInd, medications, investigations };
+
+                if (!navigator.onLine) {
+                    // Save to Offline Vault instead of hitting the network
+                    const vault = JSON.parse(localStorage.getItem('offlineRxVault') || '[]');
+                    vault.push({ payload: rxPayload, token, savedAt: new Date().toISOString() });
+                    localStorage.setItem('offlineRxVault', JSON.stringify(vault));
+                    showToast(`Saved to Offline Vault. Will sync when reconnected. (${vault.length} queued)`, 'success');
+                    btn.innerHTML = originalHtml; btn.disabled = false;
+                    return;
+                }
+
+                const res = await fetch(`${API_BASE_URL}/api/prescriptions`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(rxPayload) });
                 const data = await res.json();
                 
                 if(res.ok) {
@@ -910,6 +929,80 @@
             const triageBtn = document.getElementById('btnLoadTriage');
             if (triageBtn) triageBtn.addEventListener('click', loadTriageData);
         });
+
+        // ==========================================
+        // 📡 OFFLINE-FIRST RESILIENCE ENGINE
+        // ==========================================
+        function setNetworkStatus(online) {
+            const badge = document.getElementById('networkStatus');
+            if (!badge) return;
+            if (online) {
+                badge.className = 'bg-emerald-500/20 text-emerald-700 px-3 py-1.5 rounded-full text-[10px] font-black border border-emerald-400/40 flex items-center gap-1.5 shrink-0 transition-all duration-300';
+                badge.innerHTML = '<i class="fa-solid fa-wifi text-emerald-500"></i> Online';
+            } else {
+                badge.className = 'bg-rose-500/20 text-rose-700 px-3 py-1.5 rounded-full text-[10px] font-black border border-rose-400/40 flex items-center gap-1.5 shrink-0 transition-all duration-300';
+                badge.innerHTML = '<i class="fa-solid fa-wifi-slash text-rose-500"></i> Offline Vault Active';
+            }
+        }
+
+        window.addEventListener('offline', () => {
+            setNetworkStatus(false);
+            showToast('Network disconnected. Prescriptions will be queued in Offline Vault.', 'error');
+        });
+
+        window.addEventListener('online', () => {
+            setNetworkStatus(true);
+            showToast('Network restored. Syncing Offline Vault...', 'success');
+            syncOfflineVault();
+        });
+
+        async function syncOfflineVault() {
+            const vaultRaw = localStorage.getItem('offlineRxVault');
+            if (!vaultRaw) return;
+
+            let vault;
+            try { vault = JSON.parse(vaultRaw); } catch(e) {
+                localStorage.removeItem('offlineRxVault');
+                return;
+            }
+
+            if (!Array.isArray(vault) || vault.length === 0) return;
+
+            showToast(`Syncing ${vault.length} offline prescription(s)...`, 'success');
+
+            const failed = [];
+            for (const entry of vault) {
+                try {
+                    const res = await fetch(`${API_BASE_URL}/api/prescriptions`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${entry.token || token}`
+                        },
+                        body: JSON.stringify(entry.payload)
+                    });
+                    if (!res.ok) {
+                        // Server-side failure — keep in vault for retry
+                        failed.push(entry);
+                        console.warn('Vault sync failed for entry:', entry.payload, await res.text());
+                    }
+                } catch(netErr) {
+                    // Network failed mid-sync — stop and keep remaining
+                    failed.push(entry);
+                    console.error('Network error during vault sync:', netErr);
+                    break;
+                }
+            }
+
+            if (failed.length === 0) {
+                localStorage.removeItem('offlineRxVault');
+                showToast('Offline Vault Synced Successfully. All queued prescriptions transmitted.', 'success');
+                fetchHistory(); // Refresh history list
+            } else {
+                localStorage.setItem('offlineRxVault', JSON.stringify(failed));
+                showToast(`Partial sync: ${vault.length - failed.length} synced, ${failed.length} still queued.`, 'error');
+            }
+        }
     </script>
 
     <script>
