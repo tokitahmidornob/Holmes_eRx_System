@@ -189,29 +189,7 @@
                             <div class="p-8 text-center border-2 border-dashed border-slate-200 rounded-xl bg-slate-50"><i class="fa-solid fa-mortar-pestle text-3xl text-slate-300 mb-3 block"></i><p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">No therapies added to payload.</p></div>
                         </div>
 
-                        <div class="mt-8 pt-6 border-t border-slate-200">
-                            <h3 class="font-bold text-slate-800 uppercase tracking-wider text-[11px] mb-5 flex items-center"><i class="fa-solid fa-heart-pulse text-amber-500 mr-2 text-lg"></i> Record Condition</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
-                                <div class="md:col-span-6">
-                                    <input type="text" id="conditionName" placeholder="Diagnosis / Condition..." class="w-full p-3.5 rounded-xl border border-slate-300 text-sm font-medium text-slate-800 outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all bg-slate-50 hover:bg-white focus:bg-white">
-                                </div>
-                                <div class="md:col-span-4">
-                                    <select id="conditionDuration" class="w-full p-3.5 rounded-xl border border-slate-300 text-sm font-medium text-slate-800 outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all appearance-none cursor-pointer bg-slate-50 hover:bg-white focus:bg-white">
-                                        <option value="1_week">1 Week</option>
-                                        <option value="1_month" selected>1 Month</option>
-                                        <option value="3_months">3 Months</option>
-                                        <option value="6_months">6 Months</option>
-                                        <option value="chronic">Chronic / Indefinite</option>
-                                    </select>
-                                </div>
-                                <div class="md:col-span-2 flex">
-                                    <button id="addConditionBtn" onclick="addCondition()" class="w-full bg-amber-500 hover:bg-amber-600 text-white p-3.5 rounded-xl font-bold transition-colors shadow-sm flex items-center justify-center gap-2">
-                                        <i class="fa-solid fa-plus"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            <div id="stagedConditionsDisplay" class="flex flex-wrap gap-2 mt-4"></div>
-                        </div>
+                        <!-- Removed legacy Record Condition UI -->
                     </div>
 
                     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 lg:p-8">
@@ -361,7 +339,6 @@
         const drName = sessionStorage.getItem('eRx_UserName');
         let medications = []; let investigations = []; let doctorPrescriptions = [];
         let currentPatientAllergies = []; let currentPatientId = null;
-        let stagedConditions = [];
 
         function parseJwt(t) { try { return JSON.parse(atob(t.split('.')[1])); } catch(e) { return {}; } }
         const decoded = parseJwt(token);
@@ -523,8 +500,7 @@
         }
 
         function clearActivePatient() {
-            currentPatientId = null; currentPatientAllergies = []; medications = []; investigations = []; stagedConditions = [];
-            renderStagedConditions();
+            currentPatientId = null; currentPatientAllergies = []; medications = []; investigations = [];
             document.getElementById('patientSearchInput').value = '';
             document.getElementById('activePatientBanner').classList.add('hidden');
 
@@ -584,25 +560,6 @@
         function addTest() { const t = document.getElementById('testName').value; if(t) { investigations.push(t); renderTests(); document.getElementById('testName').value=''; document.getElementById('testName').focus(); } }
         function renderTests() { document.getElementById('testListDisplay').innerHTML = investigations.map((t, i) => `<span class="bg-indigo-50 border border-indigo-100 text-indigo-700 px-4 py-2 rounded-lg text-[11px] font-bold uppercase shadow-sm flex items-center fade-in-up"><i class="fa-solid fa-vial mr-2 text-indigo-400"></i>${t} <button onclick="investigations.splice(${i},1);renderTests()" class="hover:text-rose-500 text-slate-400 transition-colors ml-2"><i class="fa-solid fa-xmark"></i></button></span>`).join(''); }
 
-        const durationLabels = { '1_week': '1 Week', '1_month': '1 Month', '3_months': '3 Months', '6_months': '6 Months', 'chronic': 'Chronic / Indefinite' };
-
-        function addCondition() {
-            if(!currentPatientId) return showToast('Select a patient from the Master Index first.');
-            const name = document.getElementById('conditionName').value.trim();
-            const duration = document.getElementById('conditionDuration').value;
-            if(!name) return showToast('Please enter a condition / diagnosis name.');
-            stagedConditions.push({ conditionName: name, duration: duration, durationText: durationLabels[duration] || duration });
-            renderStagedConditions();
-            document.getElementById('conditionName').value = '';
-            document.getElementById('conditionName').focus();
-        }
-
-        function renderStagedConditions() {
-            const container = document.getElementById('stagedConditionsDisplay');
-            if(!container) return;
-            if(stagedConditions.length === 0) { container.innerHTML = ''; return; }
-            container.innerHTML = stagedConditions.map((c, i) => `<span class="bg-amber-50 border border-amber-200 text-amber-700 px-4 py-2 rounded-lg text-[11px] font-bold uppercase shadow-sm flex items-center fade-in-up"><i class="fa-solid fa-heart-pulse mr-2 text-amber-400"></i>${c.conditionName} <span class="ml-1 text-amber-500 font-normal">(${c.durationText})</span> <button onclick="stagedConditions.splice(${i},1);renderStagedConditions()" class="hover:text-rose-500 text-slate-400 transition-colors ml-2"><i class="fa-solid fa-xmark"></i></button></span>`).join('');
-        }
 
         async function generatePrescription() {
             if(!currentPatientId || medications.length === 0) return showToast("Target Patient and Therapy Payload Required.");
@@ -631,7 +588,7 @@
                 const sentinelPayload = {
                     stagedMedications: medications,
                     allergies: dossierAllergies,
-                    activeConditions: dossierActiveConditions.concat(stagedConditions.map(c => c.conditionName)),
+                    activeConditions: dossierActiveConditions.concat(primaryInd ? [primaryInd] : []),
                     currentMedications: dossierCurrentMeds
                 };
 
@@ -670,7 +627,7 @@
             btn.classList.remove('bg-amber-500', 'hover:bg-amber-600'); btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
 
             try {
-                const res = await fetch(`${API_BASE_URL}/api/prescriptions`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ patientId: currentPatientId, medications, investigations, conditions: stagedConditions }) });
+                const res = await fetch(`${API_BASE_URL}/api/prescriptions`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ patientId: currentPatientId, indication: primaryInd, medications, investigations }) });
                 const data = await res.json();
                 
                 if(res.ok) {
