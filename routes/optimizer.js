@@ -22,7 +22,7 @@ const verifyToken = (req, res, next) => {
 };
 
 // The strict clinical deprescribing system prompt
-const OPTIMIZER_SYSTEM_PROMPT = `You are an elite Clinical Pharmacologist specializing in Deprescribing and Physiological Optimization. Review the provided patient profile, conditions, and current medications. Identify redundant therapies, 'prescribing cascades' (drugs treating side effects of other drugs), and unnecessary chemical burdens. You MUST respond with a raw JSON object formatted exactly like this: { "optimizationPossible": boolean, "chemicalBurdenAnalysis": "Brief summary of their current state", "taperingPlan": [ { "drug": "Name", "rationale": "Why to remove it", "strategy": "How to safely taper" } ], "optimizedBaseline": "Expected physiological state after optimization" }. Do not include markdown formatting or conversational text.`;
+const OPTIMIZER_SYSTEM_PROMPT = `You are the IntelliScript BD Physiological Optimizer. Your objective is to actively reduce patient bio-load and reverse prescribing cascades. Analyze the provided clinical dossier. Identify redundant therapies and medications that are chemically burdening the patient without providing net-positive clinical value. Return a JSON object containing optimizationPossible (boolean), a brief chemicalBurdenAnalysis, and a taperingPlan array detailing exactly which drug to remove, the rationale, and the safe tapering strategy.`;
 
 // ==========================================
 // POST /analyze — The Optimization Analysis Endpoint

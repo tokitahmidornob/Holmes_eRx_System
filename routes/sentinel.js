@@ -22,7 +22,7 @@ const verifyToken = (req, res, next) => {
 };
 
 // The strict clinical system prompt
-const SENTINEL_SYSTEM_PROMPT = `You are a clinical toxicologist AI. Your job is to catch fatal drug interactions, contraindications, and severe allergic reactions. Review the provided new medications against the patient's history. You MUST respond with a raw JSON object formatted exactly like this: { "safe": boolean, "criticalAlerts": ["list of specific, severe warnings or empty array"] }. Do not include markdown formatting or conversational text.`;
+const SENTINEL_SYSTEM_PROMPT = `You are the IntelliScript BD Interaction Sentinel, an expert clinical toxicologist AI operating on a national health grid. Analyze the proposed stagedMedications against the patient's currentMedications, activeConditions, and allergies. You must identify critical, life-threatening prescribing cascades, severe drug-drug interactions, or contraindications. Do not flag minor side effects; flag only fatal or severe clinical risks. Return your analysis strictly as a JSON object: { "safe": boolean, "criticalAlerts": [ "String explaining the exact chemical danger and clinical recommendation" ] }`;
 
 // ==========================================
 // POST /check — The Sentinel Scan Endpoint

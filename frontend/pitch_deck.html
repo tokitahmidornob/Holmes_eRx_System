@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pitch Deck | IntelliScript BD</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .slide { display: none; }
+        .slide.active { display: flex; animation: slideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes slideIn { from { opacity: 0; transform: scale(0.98) translateY(15px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        .bg-grid-pattern {
+            background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+        .text-gradient {
+            background: linear-gradient(135deg, #38bdf8 0%, #34d399 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-white min-h-screen overflow-hidden flex flex-col relative selection:bg-blue-500/30">
+
+    <!-- Decorative Atmosphere -->
+    <div class="fixed inset-0 w-full h-full bg-grid-pattern z-0 pointer-events-none opacity-100"></div>
+    <div class="absolute top-[-20%] right-[-10%] w-[50rem] h-[50rem] bg-indigo-600/20 rounded-full blur-[120px] z-0 pointer-events-none"></div>
+    <div class="absolute bottom-[-20%] left-[-10%] w-[40rem] h-[40rem] bg-emerald-600/10 rounded-full blur-[100px] z-0 pointer-events-none"></div>
+
+    <!-- Header -->
+    <nav class="absolute top-0 w-full p-6 z-50 flex justify-between items-center text-slate-400">
+        <a href="index.html" class="flex items-center gap-2 hover:text-white transition group">
+            <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center group-hover:bg-blue-600 transition"><i class="fa-solid fa-arrow-left text-sm"></i></div>
+            <span class="text-sm font-bold tracking-wide">Exit Pitch</span>
+        </a>
+        <div class="flex items-center gap-4">
+            <span class="hidden md:inline text-xs font-bold tracking-widest uppercase bg-slate-800/50 px-3 py-1 rounded border border-slate-700">GRIC Startup League</span>
+            <span class="hidden md:inline text-xs font-bold tracking-widest uppercase bg-slate-800/50 px-3 py-1 rounded border border-slate-700">WICE Project Display</span>
+        </div>
+    </nav>
+
+    <!-- SLIDES CONTAINER -->
+    <main id="slides-container" class="flex-1 relative z-10 w-full h-full flex items-center justify-center px-12 md:px-24">
+        
+        <!-- SLIDE 1: Title -->
+        <div class="slide active flex-col items-center text-center max-w-4xl">
+            <div class="w-20 h-20 bg-slate-900 rounded-2xl flex items-center justify-center shadow-2xl border border-slate-800 mb-8 mx-auto">
+                <i class="fa-solid fa-network-wired text-4xl text-gradient"></i>
+            </div>
+            <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight mb-6">IntelliScript <span class="text-blue-500">BD</span></h1>
+            <p class="text-2xl md:text-3xl font-medium text-slate-400 mb-10 leading-tight">The AI-Powered National <br/><span class="text-white">eRx Grid</span></p>
+            <p class="text-sm font-bold text-emerald-400 tracking-widest uppercase">Engineered for Sovereign Data Health</p>
+        </div>
+
+        <!-- SLIDE 2: The Problem -->
+        <div class="slide flex-col items-start w-full max-w-5xl">
+            <p class="text-sm font-bold tracking-widest uppercase text-rose-400 mb-4"><i class="fa-solid fa-triangle-exclamation mr-2"></i>The Problem</p>
+            <h2 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-12">The "Polythene Bag" Medical Record.</h2>
+            <div class="grid md:grid-cols-2 gap-10 w-full">
+                <div class="bg-slate-900/50 p-8 border border-slate-800 rounded-2xl">
+                    <div class="w-12 h-12 bg-rose-500/20 text-rose-400 rounded-lg flex items-center justify-center text-xl mb-6"><i class="fa-solid fa-file-prescription"></i></div>
+                    <h3 class="text-xl font-bold mb-3">Lethal Handwriting</h3>
+                    <p class="text-slate-400 leading-relaxed text-sm">Illegible handwritten scripts cause thousands of dispensing errors, leading to severe adverse drug events that go undocumented.</p>
+                </div>
+                <div class="bg-slate-900/50 p-8 border border-slate-800 rounded-2xl">
+                    <div class="w-12 h-12 bg-rose-500/20 text-rose-400 rounded-lg flex items-center justify-center text-xl mb-6"><i class="fa-solid fa-briefcase-medical"></i></div>
+                    <h3 class="text-xl font-bold mb-3">Siloed Health Data</h3>
+                    <p class="text-slate-400 leading-relaxed text-sm">Patients carry their entire clinical history in loose plastic folders. Doctors prescribe blindly without knowing active conditions or allergies.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 3: Our Solution -->
+        <div class="slide flex-col items-start w-full max-w-5xl">
+            <p class="text-sm font-bold tracking-widest uppercase text-emerald-400 mb-4"><i class="fa-solid fa-lightbulb mr-2"></i>Our Solution</p>
+            <h2 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-8">The Edge-Cloud Digital Payload.</h2>
+            <p class="text-xl text-slate-400 mb-12 max-w-3xl">A unified ecosystem where clinical dossiers are instantly available across any authorized terminal nationwide.</p>
+            <div class="flex flex-col md:flex-row gap-6 w-full">
+                <div class="flex-1 border-l-2 border-emerald-500 pl-6 py-2">
+                    <h4 class="text-lg font-bold text-white mb-2">1. Doctor's Console</h4>
+                    <p class="text-sm text-slate-500">Access full history, allergies, and AI-assisted formulary autocomplete.</p>
+                </div>
+                <div class="flex-1 border-l-2 border-blue-500 pl-6 py-2">
+                    <h4 class="text-lg font-bold text-white mb-2">2. Patient Wallet</h4>
+                    <p class="text-sm text-slate-500">Receive an SMS with a secure Broadcast ID + OTP for their digital script.</p>
+                </div>
+                <div class="flex-1 border-l-2 border-indigo-500 pl-6 py-2">
+                    <h4 class="text-lg font-bold text-white mb-2">3. Pharmacy Terminal</h4>
+                    <p class="text-sm text-slate-500">Dispense accurately through cryptographic unlocking. No more guessing.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 4: AI Interaction Sentinel -->
+        <div class="slide flex-col items-start w-full max-w-5xl">
+            <div class="flex items-center gap-4 mb-4">
+                <span class="px-3 py-1 bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded text-xs font-bold tracking-widest uppercase"><i class="fa-solid fa-shield-virus mr-2"></i>Layered Intelligence</span>
+            </div>
+            <h2 class="text-4xl lg:text-6xl font-extrabold tracking-tight mb-8 text-white">The AI Interaction <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-orange-400">Sentinel</span></h2>
+            <p class="text-xl text-slate-400 mb-10 max-w-2xl leading-relaxed">Powered by Google Gemini Flash natively integrated into our Express router. It blocks fatal prescribing errors before the database is even touched.</p>
+            <div class="bg-slate-900 border border-slate-700 rounded-2xl p-8 w-full shadow-2xl relative overflow-hidden">
+                <div class="absolute right-0 top-0 h-full w-1 bg-rose-500"></div>
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="w-10 h-10 bg-slate-800 rounded flex items-center justify-center text-slate-400"><i class="fa-solid fa-bolt"></i></div>
+                    <div>
+                        <p class="font-bold text-white">Real-Time Payload Interception</p>
+                        <p class="text-xs text-slate-500 uppercase tracking-widest">Cross-references new meds against allergies & active conditions.</p>
+                    </div>
+                </div>
+                <p class="text-sm text-slate-300 bg-slate-950 p-4 rounded-xl border border-slate-800 font-mono">"ALERT: Co-administration of Clopidogrel and Omeprazole significantly reduces antiplatelet efficacy. Highly contraindicated."</p>
+            </div>
+        </div>
+
+        <!-- SLIDE 5: Physiological Optimizer -->
+        <div class="slide flex-col items-start w-full max-w-5xl">
+            <div class="flex items-center gap-4 mb-4">
+                <span class="px-3 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded text-xs font-bold tracking-widest uppercase"><i class="fa-solid fa-leaf mr-2"></i>Layered Intelligence</span>
+            </div>
+            <h2 class="text-4xl lg:text-6xl font-extrabold tracking-tight mb-8 text-white">The Physiological <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">Optimizer</span></h2>
+            <p class="text-xl text-slate-400 mb-8 max-w-3xl leading-relaxed">An AI Deprescribing Engine designed to reduce bio-load. It scans the patient's existing dossier for redundant therapies and prescribing cascades.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+                <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800">
+                    <h3 class="text-emerald-400 font-bold mb-2 uppercase tracking-wide text-xs">Identifies Chemical Burden</h3>
+                    <p class="text-slate-300 text-sm">Flags drugs treating side effects of other drugs rather than the core condition.</p>
+                </div>
+                <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800">
+                    <h3 class="text-blue-400 font-bold mb-2 uppercase tracking-wide text-xs">Generates Tapering Plans</h3>
+                    <p class="text-slate-300 text-sm">Provides step-by-step reduction strategies to safely offboard patients from unnecessary medications.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 6: Target Market -->
+        <div class="slide flex-col items-start w-full max-w-5xl">
+            <p class="text-sm font-bold tracking-widest uppercase text-blue-400 mb-4"><i class="fa-solid fa-crosshairs mr-2"></i>Market Opportunity</p>
+            <h2 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-8">Targeting the Fragmented Core.</h2>
+            <div class="w-full h-[300px] bg-slate-900 rounded-3xl border border-slate-800 flex items-center justify-center mb-8 relative overflow-hidden group">
+                <div class="absolute inset-0 bg-blue-600/10 opacity-0 group-hover:opacity-100 transition duration-500"></div>
+                <div class="text-center z-10">
+                    <p class="text-6xl font-extrabold text-white mb-2">15,000+</p>
+                    <p class="text-blue-400 font-bold tracking-widest uppercase">Private Clinics & District Hospitals in BD</p>
+                </div>
+            </div>
+            <p class="text-slate-400 text-lg leading-relaxed max-w-3xl">We are bypassing massive bureaucratic hospital networks and starting with independent practitioners clinics where adoption friction is drastically lower.</p>
+        </div>
+
+        <!-- SLIDE 7: Business Model -->
+        <div class="slide flex-col items-start w-full max-w-5xl">
+            <p class="text-sm font-bold tracking-widest uppercase text-amber-400 mb-4"><i class="fa-solid fa-coins mr-2"></i>Economics</p>
+            <h2 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-12">B2B SaaS Licensing.</h2>
+            <div class="grid md:grid-cols-3 gap-6 w-full">
+                <div class="bg-slate-900 p-8 rounded-2xl border border-slate-800 flex flex-col items-center text-center">
+                    <div class="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center text-2xl text-white mb-4"><i class="fa-solid fa-user-doctor"></i></div>
+                    <h3 class="font-bold text-lg mb-2">Physician Terminals</h3>
+                    <p class="text-slate-500 text-sm">Monthly subscription per licensed doctor generating e-prescriptions.</p>
+                </div>
+                <div class="bg-slate-900 p-8 rounded-2xl border border-slate-800 flex flex-col items-center text-center scale-105 border-blue-500/50 shadow-[0_0_30px_rgba(59,130,246,0.15)] relative">
+                    <div class="absolute top-0 right-0 bg-blue-500 text-white text-[9px] font-bold px-3 py-1 rounded-bl-lg uppercase tracking-wider">Primary Revenue</div>
+                    <div class="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center text-2xl text-blue-400 mb-4"><i class="fa-solid fa-shop"></i></div>
+                    <h3 class="font-bold text-lg mb-2">Pharmacy Nodes</h3>
+                    <p class="text-slate-400 text-sm">Tiered subscriptions for pharmacies to access and verify cryptographic OTP payloads.</p>
+                </div>
+                <div class="bg-slate-900 p-8 rounded-2xl border border-slate-800 flex flex-col items-center text-center">
+                    <div class="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center text-2xl text-white mb-4"><i class="fa-solid fa-mobile-screen"></i></div>
+                    <h3 class="font-bold text-lg mb-2">Patient App</h3>
+                    <p class="text-slate-500 text-sm">Free access to their data, enforcing a high-demand pull mechanism.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 8: Competition -->
+        <div class="slide flex-col items-start w-full max-w-5xl">
+            <p class="text-sm font-bold tracking-widest uppercase text-indigo-400 mb-4"><i class="fa-solid fa-chess-knight mr-2"></i>Competitive Edge</p>
+            <h2 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-12">The Unified Grid vs. Isolated Silos.</h2>
+            <div class="bg-slate-900 rounded-3xl border border-slate-800 overflow-hidden w-full">
+                <div class="grid grid-cols-2 divide-x divide-slate-800">
+                    <div class="p-10 bg-slate-950">
+                        <h3 class="text-rose-400 font-bold mb-4 uppercase tracking-widest text-sm text-center">Legacy EMRs</h3>
+                        <ul class="space-y-4">
+                            <li class="flex items-start gap-3"><i class="fa-solid fa-xmark text-rose-500 mt-1 mt-1"></i> <span class="text-slate-400 text-sm">Siloed databases for individual hospitals.</span></li>
+                            <li class="flex items-start gap-3"><i class="fa-solid fa-xmark text-rose-500 mt-1 mt-1"></i> <span class="text-slate-400 text-sm">Zero interconnectivity with local pharmacies.</span></li>
+                            <li class="flex items-start gap-3"><i class="fa-solid fa-xmark text-rose-500 mt-1 mt-1"></i> <span class="text-slate-400 text-sm">Dumb data storage without clinical AI intervention.</span></li>
+                        </ul>
+                    </div>
+                    <div class="p-10 relative">
+                        <div class="absolute inset-0 bg-gradient-to-br from-indigo-900/20 to-blue-900/20"></div>
+                        <div class="relative z-10">
+                            <h3 class="text-blue-400 font-bold mb-4 uppercase tracking-widest text-sm text-center">IntelliScript BD</h3>
+                            <ul class="space-y-4">
+                                <li class="flex items-start gap-3"><i class="fa-solid fa-check text-emerald-400 mt-1"></i> <span class="text-white font-medium text-sm">Universal Cloud Grid routing payloads securely.</span></li>
+                                <li class="flex items-start gap-3"><i class="fa-solid fa-check text-emerald-400 mt-1"></i> <span class="text-white font-medium text-sm">Cryptographic OTP handshake for dispensing.</span></li>
+                                <li class="flex items-start gap-3"><i class="fa-solid fa-sparkles text-amber-400 mt-1"></i> <span class="text-white font-medium text-sm">Gemini AI actively preventing lethal prescribing overlaps.</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 9: Traction & Validation -->
+        <div class="slide flex-col items-start w-full max-w-5xl">
+            <p class="text-sm font-bold tracking-widest uppercase text-teal-400 mb-4"><i class="fa-solid fa-rocket mr-2"></i>Validation</p>
+            <h2 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-8">Deployed and Live.</h2>
+            <div class="flex items-center gap-4 mb-10 border border-slate-700 bg-slate-800/50 p-4 rounded-xl inline-flex w-max shadow-inner">
+                <i class="fa-brands fa-envira text-2xl text-slate-300"></i>
+                <div>
+                    <p class="text-xs text-slate-500 tracking-widest uppercase mb-1">Production Environment</p>
+                    <p class="font-mono text-emerald-400 font-bold text-sm">https://holmes-erx-system.onrender.com</p>
+                </div>
+            </div>
+            <p class="text-slate-400 text-lg leading-relaxed max-w-3xl border-l-2 border-teal-500 pl-6">
+                Our core architecture is not a concept. The Edge-Cloud payloads, AI Sentinel, and Master DB are fully deployed on Vercel and Render infrastructure. Ready for pilot phasing today.
+            </p>
+        </div>
+
+        <!-- SLIDE 10: Roadmap -->
+        <div class="slide flex-col items-start w-full max-w-5xl">
+            <p class="text-sm font-bold tracking-widest uppercase text-slate-400 mb-4"><i class="fa-solid fa-map mr-2"></i>The Future</p>
+            <h2 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-12">Roadmap to Sovereignty.</h2>
+            <div class="w-full relative">
+                <div class="absolute left-4 top-0 bottom-0 w-0.5 bg-slate-800"></div>
+                
+                <div class="relative pl-12 mb-8 group">
+                    <div class="absolute left-2.5 top-1.5 w-3 h-3 bg-blue-500 rounded-full shadow-[0_0_10px_#3b82f6]"></div>
+                    <h3 class="text-xl font-bold mb-1 group-hover:text-blue-400 transition">Phase 1: Precision eRx</h3>
+                    <p class="text-sm text-slate-500">Core deployment of AI-Sentinel and prescription payloads to 50 local clinics.</p>
+                </div>
+                
+                <div class="relative pl-12 mb-8 group">
+                    <div class="absolute left-2.5 top-1.5 w-3 h-3 bg-slate-700 border-2 border-slate-500 rounded-full"></div>
+                    <h3 class="text-xl font-bold mb-1 text-slate-400 group-hover:text-emerald-400 transition">Phase 2: Diagnostic Integration</h3>
+                    <p class="text-sm text-slate-500">Pathology labs upload test results directly to the patient's cryptographic wallet.</p>
+                </div>
+
+                <div class="relative pl-12 group">
+                    <div class="absolute left-2.5 top-1.5 w-3 h-3 bg-slate-700 border-2 border-slate-500 rounded-full"></div>
+                    <h3 class="text-xl font-bold mb-1 text-slate-400 group-hover:text-indigo-400 transition">Phase 3: The National Health OS</h3>
+                    <p class="text-sm text-slate-500">Complete eradication of paper-based health records across the nation.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 11: The Team -->
+        <div class="slide flex-col items-center text-center w-full max-w-5xl">
+            <p class="text-sm font-bold tracking-widest uppercase text-amber-400 mb-4"><i class="fa-solid fa-users mr-2"></i>The Builders</p>
+            <h2 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-12">Engineered by Experts.</h2>
+            <div class="flex gap-16 justify-center">
+                <div class="flex flex-col items-center">
+                    <div class="w-32 h-32 rounded-full bg-slate-800 border-4 border-slate-700 mb-4 shadow-xl overflow-hidden flex items-center justify-center">
+                        <i class="fa-solid fa-user-astronaut text-4xl text-slate-500"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-1">Toki Tahmid</h3>
+                    <p class="text-blue-400 text-sm font-bold tracking-widest uppercase">System Architect</p>
+                    <p class="text-xs text-slate-500 mt-2 max-w-[200px]">Lead engineer, architecting the cryptographic data models and API layers.</p>
+                </div>
+                <div class="flex flex-col items-center">
+                    <div class="w-32 h-32 rounded-full bg-slate-800 border-4 border-slate-700 mb-4 shadow-xl overflow-hidden flex items-center justify-center">
+                        <i class="fa-solid fa-user-ninja text-4xl text-slate-500"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-1">Tabassum</h3>
+                    <p class="text-teal-400 text-sm font-bold tracking-widest uppercase">Clinical AI Lead</p>
+                    <p class="text-xs text-slate-500 mt-2 max-w-[200px]">Directing Gemini Integration and the Sentinel interaction models.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 12: The Ask -->
+        <div class="slide flex-col items-center text-center w-full max-w-4xl">
+            <div class="w-24 h-24 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center text-4xl text-white shadow-[0_0_40px_rgba(59,130,246,0.4)] mb-8 mx-auto">
+                <i class="fa-solid fa-power-off"></i>
+            </div>
+            <h2 class="text-5xl md:text-7xl font-extrabold tracking-tight mb-8">Join the Grid.</h2>
+            <p class="text-2xl text-slate-400 mb-10">We are raising pre-seed funding to expand our server infrastructure for national pilot testing.</p>
+            <a href="index.html" class="px-8 py-4 bg-white text-slate-900 rounded-full font-bold uppercase tracking-wider hover:bg-blue-50 hover:text-blue-700 transition shadow-xl mt-4">
+                Thank You
+            </a>
+        </div>
+
+    </main>
+
+    <!-- Controls -->
+    <div class="absolute bottom-0 w-full z-50 p-6 md:p-8 flex flex-col items-center gap-4">
+        <div class="flex items-center justify-between w-full max-w-[250px] text-slate-400 bg-slate-900/80 backdrop-blur-md border border-slate-800 rounded-full px-2 py-1 shadow-2xl">
+            <button onclick="prevSlide()" class="w-10 h-10 hover:text-white hover:bg-slate-800 rounded-full transition flex items-center justify-center"><i class="fa-solid fa-chevron-left"></i></button>
+            <span id="slide-counter" class="text-xs font-bold tracking-widest font-mono">1 / 12</span>
+            <button onclick="nextSlide()" class="w-10 h-10 hover:text-white hover:bg-slate-800 rounded-full transition flex items-center justify-center"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+        <div class="w-full max-w-2xl h-1 bg-slate-800 rounded-full overflow-hidden">
+            <div id="progress-bar" class="h-full bg-gradient-to-r from-blue-500 to-emerald-400 transition-all duration-300 w-[8.33%]"></div>
+        </div>
+    </div>
+
+    <!-- Script for Logic -->
+    <script>
+        const slides = document.querySelectorAll('.slide');
+        const counter = document.getElementById('slide-counter');
+        const progress = document.getElementById('progress-bar');
+        const maxSlides = slides.length;
+        let currentSlide = 0;
+
+        function updateSlide() {
+            slides.forEach((slide, i) => {
+                if (i === currentSlide) {
+                    slide.classList.add('active');
+                } else {
+                    slide.classList.remove('active');
+                }
+            });
+            counter.innerText = `${currentSlide + 1} / ${maxSlides}`;
+            progress.style.width = `${((currentSlide + 1) / maxSlides) * 100}%`;
+        }
+
+        function nextSlide() {
+            if (currentSlide < maxSlides - 1) {
+                currentSlide++;
+                updateSlide();
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) {
+                currentSlide--;
+                updateSlide();
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === 'Space') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+        });
+    </script>
+</body>
+</html>
