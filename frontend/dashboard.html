@@ -137,6 +137,13 @@
                     <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 lg:p-8">
                         <h3 class="font-bold text-slate-800 uppercase tracking-wider text-[11px] mb-5 flex items-center"><i class="fa-solid fa-prescription text-blue-600 mr-2 text-lg"></i> Formulate Therapy Payload</h3>
                         
+                        <!-- NEW INDICATION UI -->
+                        <div class="mb-5 w-full">
+                            <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 mb-2 block">Primary Clinical Indication</label>
+                            <input type="text" id="primaryIndication" list="indications-list" placeholder="Search and select primary indication..." class="w-full p-3.5 rounded-xl border border-slate-300 text-sm font-medium text-slate-800 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all bg-slate-50 hover:bg-white focus:bg-white">
+                            <datalist id="indications-list"></datalist>
+                        </div>
+
                         <div class="grid grid-cols-1 md:grid-cols-12 gap-3 mb-6 relative">
                             <div class="md:col-span-5 relative" id="drugDropdownContainer">
                                 <input type="text" id="medName" placeholder="Drug / Substance..." autocomplete="off" class="w-full p-3.5 rounded-xl border border-slate-300 text-sm font-medium text-slate-800 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all bg-slate-50 hover:bg-white focus:bg-white">
@@ -599,6 +606,8 @@
 
         async function generatePrescription() {
             if(!currentPatientId || medications.length === 0) return showToast("Target Patient and Therapy Payload Required.");
+            const primaryInd = document.getElementById('primaryIndication').value.trim();
+            if(!primaryInd) return showToast("Primary Clinical Indication is required to seal the payload.");
             const btn = document.getElementById('generateBtn'); const originalHtml = btn.innerHTML;
 
             // ==========================================
@@ -1019,8 +1028,31 @@
             document.addEventListener("click", function (e) { closeAllLists(e.target); });
         }
 
+        async function loadIndications() {
+            try {
+                const res = await fetch('indications.csv');
+                if (!res.ok) return;
+                const text = await res.text();
+                const list = document.getElementById('indications-list');
+                const lines = text.split('\n');
+                let optionsHtml = '';
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+                    // Support standard simple CSV layout with commas
+                    const cols = line.split(',');
+                    if (cols.length >= 2) {
+                        const indication = cols.slice(1).join(',').replace(/^"|"$/g, '').trim();
+                        if (indication) optionsHtml += `<option value="${indication}"></option>`;
+                    }
+                }
+                list.innerHTML = optionsHtml;
+            } catch (e) { console.error('Failed to load indications', e); }
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
             loadMasterFormulary();
+            loadIndications();
         });
     </script>
 </body>
