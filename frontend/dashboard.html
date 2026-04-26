@@ -112,6 +112,17 @@
                         <input type="hidden" id="selectedPatientId">
                         <div id="patientDropdown" class="hidden absolute w-full mt-2 bg-white border border-slate-200 rounded-xl shadow-xl max-h-80 overflow-y-auto custom-scrollbar z-50 divide-y divide-slate-100 transform origin-top transition-all-spring"></div>
                     </div>
+                    
+                    <!-- CRITICAL CONDITIONS BANNER -->
+                    <div id="criticalConditionsBanner" class="hidden bg-rose-50 border-l-4 border-rose-500 p-4 rounded-r-xl shadow-sm mt-4 fade-in-up">
+                        <div class="flex items-start gap-3">
+                            <i class="fa-solid fa-triangle-exclamation text-rose-600 mt-0.5 text-lg"></i>
+                            <div>
+                                <p class="text-[10px] font-black text-rose-800 uppercase tracking-widest mb-1">Critical Alert</p>
+                                <p id="criticalConditionsText" class="text-xs font-bold text-rose-700"></p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- ✅ FIX: Patient name header for the dossier panel -->
@@ -455,6 +466,19 @@
 
             document.getElementById('bannerPatientName').innerText = `${name}`;
             document.getElementById('activePatientBanner').classList.remove('hidden');
+
+            const demoAllergies = JSON.parse(localStorage.getItem('demo_allergies') || '[]');
+            const demoConditions = JSON.parse(localStorage.getItem('demo_conditions') || '[]');
+            const banner = document.getElementById('criticalConditionsBanner');
+            const bannerText = document.getElementById('criticalConditionsText');
+            const criticals = [...demoAllergies, ...demoConditions];
+            
+            if (criticals.length > 0) {
+                bannerText.innerText = `Patient has active allergies/conditions: [${criticals.join(', ')}]`;
+                banner.classList.remove('hidden');
+            } else {
+                banner.classList.add('hidden');
+            }
 
             // ✅ FIX: Show patient name & NHI in the dossier header panel
             const dossierHeader = document.getElementById('dossierPatientHeader');
