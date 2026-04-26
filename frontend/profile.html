@@ -168,13 +168,31 @@
                     <button class="text-blue-600 font-bold text-xs uppercase tracking-widest hover:underline">View Full Longitudinal Record <i class="fa-solid fa-arrow-up-right-from-square ml-1"></i></button>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center gap-4">
-                        <div class="w-12 h-12 bg-rose-50 text-rose-500 rounded-xl flex items-center justify-center text-xl"><i class="fa-solid fa-hand-dots"></i></div>
-                        <div><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Active Allergies</p><p class="font-bold">Linked to Clinical Layer</p></div>
+                    <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col gap-4">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-rose-50 text-rose-500 rounded-xl flex items-center justify-center text-xl shrink-0"><i class="fa-solid fa-hand-dots"></i></div>
+                            <div class="flex-1">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Active Allergies</p>
+                                <div class="flex gap-2">
+                                    <input type="text" id="allergyInput" class="flex-1 rounded-xl border border-slate-300 px-3 py-2 text-xs focus:border-rose-500 outline-none" placeholder="Enter Allergy...">
+                                    <button onclick="addAllergy()" class="bg-rose-500 hover:bg-rose-600 text-white px-3 py-2 rounded-xl text-xs font-bold uppercase transition-colors"><i class="fa-solid fa-plus"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="allergyTags" class="flex flex-wrap gap-2 mt-1"></div>
                     </div>
-                    <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center gap-4">
-                        <div class="w-12 h-12 bg-blue-50 text-blue-500 rounded-xl flex items-center justify-center text-xl"><i class="fa-solid fa-capsules"></i></div>
-                        <div><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Current Medications</p><p class="font-bold">Linked to Clinical Layer</p></div>
+                    <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col gap-4">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-blue-50 text-blue-500 rounded-xl flex items-center justify-center text-xl shrink-0"><i class="fa-solid fa-capsules"></i></div>
+                            <div class="flex-1">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Current Conditions</p>
+                                <div class="flex gap-2">
+                                    <input type="text" id="conditionInput" class="flex-1 rounded-xl border border-slate-300 px-3 py-2 text-xs focus:border-blue-500 outline-none" placeholder="Enter Condition...">
+                                    <button onclick="addCondition()" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-xl text-xs font-bold uppercase transition-colors"><i class="fa-solid fa-plus"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="conditionTags" class="flex flex-wrap gap-2 mt-1"></div>
                     </div>
                 </div>
             </section>
@@ -233,7 +251,59 @@
         document.addEventListener('DOMContentLoaded', () => {
             renderRoleSpecificFields();
             loadProfileData();
+            loadClinicalData();
         });
+
+        function loadClinicalData() {
+            const allergies = JSON.parse(localStorage.getItem('demo_allergies') || '[]');
+            const conditions = JSON.parse(localStorage.getItem('demo_conditions') || '[]');
+            
+            document.getElementById('allergyTags').innerHTML = allergies.map(a => 
+                `<span class="bg-rose-100 text-rose-700 px-2 py-1.5 rounded-lg text-[10px] font-black uppercase flex items-center gap-1.5">${a} <i class="fa-solid fa-xmark cursor-pointer hover:text-rose-900 ml-1" onclick="removeAllergy('${a}')"></i></span>`
+            ).join('');
+            
+            document.getElementById('conditionTags').innerHTML = conditions.map(c => 
+                `<span class="bg-blue-100 text-blue-700 px-2 py-1.5 rounded-lg text-[10px] font-black uppercase flex items-center gap-1.5">${c} <i class="fa-solid fa-xmark cursor-pointer hover:text-blue-900 ml-1" onclick="removeCondition('${c}')"></i></span>`
+            ).join('');
+        }
+
+        function addAllergy() {
+            const val = document.getElementById('allergyInput').value.trim();
+            if (!val) return;
+            const allergies = JSON.parse(localStorage.getItem('demo_allergies') || '[]');
+            if (!allergies.includes(val)) {
+                allergies.push(val);
+                localStorage.setItem('demo_allergies', JSON.stringify(allergies));
+                loadClinicalData();
+                document.getElementById('allergyInput').value = '';
+            }
+        }
+
+        function removeAllergy(val) {
+            let allergies = JSON.parse(localStorage.getItem('demo_allergies') || '[]');
+            allergies = allergies.filter(a => a !== val);
+            localStorage.setItem('demo_allergies', JSON.stringify(allergies));
+            loadClinicalData();
+        }
+
+        function addCondition() {
+            const val = document.getElementById('conditionInput').value.trim();
+            if (!val) return;
+            const conditions = JSON.parse(localStorage.getItem('demo_conditions') || '[]');
+            if (!conditions.includes(val)) {
+                conditions.push(val);
+                localStorage.setItem('demo_conditions', JSON.stringify(conditions));
+                loadClinicalData();
+                document.getElementById('conditionInput').value = '';
+            }
+        }
+
+        function removeCondition(val) {
+            let conditions = JSON.parse(localStorage.getItem('demo_conditions') || '[]');
+            conditions = conditions.filter(c => c !== val);
+            localStorage.setItem('demo_conditions', JSON.stringify(conditions));
+            loadClinicalData();
+        }
 
         function renderRoleSpecificFields(matrix = null) {
             const container = document.getElementById('professional-fields-container');
