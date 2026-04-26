@@ -479,6 +479,21 @@
             } else {
                 banner.classList.add('hidden');
             }
+            
+            // Populating UI cards with Demo Data
+            if (demoAllergies.length > 0) {
+                document.getElementById('allergyCount').innerText = demoAllergies.length;
+                document.getElementById('dossierAllergies').innerHTML = demoAllergies.map(a => `<span class="inline-block bg-rose-100 text-rose-800 text-[10px] font-black px-2.5 py-1.5 rounded-lg uppercase tracking-wider m-1 border border-rose-200 shadow-sm">${a}</span>`).join('');
+            } else {
+                document.getElementById('dossierAllergies').innerHTML = getDossierSkeleton();
+            }
+
+            if (demoConditions.length > 0) {
+                document.getElementById('conditionCount').innerText = demoConditions.length;
+                document.getElementById('activeConditionsList').innerHTML = demoConditions.map(c => `<span class="inline-block bg-amber-100 text-amber-800 text-[10px] font-black px-2.5 py-1.5 rounded-lg uppercase tracking-wider m-1 border border-amber-200 shadow-sm">${c}</span>`).join('');
+            } else {
+                document.getElementById('activeConditionsList').innerHTML = getDossierSkeleton();
+            }
 
             // ✅ FIX: Show patient name & NHI in the dossier header panel
             const dossierHeader = document.getElementById('dossierPatientHeader');
@@ -491,8 +506,6 @@
             dossierPanel.classList.remove('hidden');
             requestAnimationFrame(() => { dossierPanel.classList.remove('opacity-0', 'translate-y-8'); });
 
-            document.getElementById('dossierAllergies').innerHTML = getDossierSkeleton();
-            document.getElementById('activeConditionsList').innerHTML = getDossierSkeleton();
             document.getElementById('pastConditionsList').innerHTML = getDossierSkeleton();
             document.getElementById('dossierActiveMeds').innerHTML = getDossierSkeleton();
 
@@ -503,20 +516,24 @@
                     // ✅ FIX (Task 3): Debug log — verify exact payload from backend
                     console.log('Fetched Patient Data:', dossier);
                     
-                    currentPatientAllergies = dossier.allergies || [];
-                    document.getElementById('allergyCount').innerText = currentPatientAllergies.length;
-                    if(currentPatientAllergies.length > 0) {
-                        document.getElementById('dossierAllergies').innerHTML = currentPatientAllergies.map(a => `<div class="bg-white p-3 rounded-lg border border-rose-100 shadow-sm"><p class="font-bold text-xs text-slate-800">${a.substance}</p><p class="text-[9px] font-bold text-rose-500 uppercase tracking-wider mt-1"><i class="fa-solid fa-check-circle mr-1"></i>${a.verificationStatus} | ${a.criticality} Risk</p></div>`).join('');
-                    } else { document.getElementById('dossierAllergies').innerHTML = '<div class="py-4 text-center"><i class="fa-solid fa-shield-halved text-slate-300 text-2xl mb-2 block"></i><span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">No Allergies</span></div>'; }
+                    if (demoAllergies.length === 0) {
+                        currentPatientAllergies = dossier.allergies || [];
+                        document.getElementById('allergyCount').innerText = currentPatientAllergies.length;
+                        if(currentPatientAllergies.length > 0) {
+                            document.getElementById('dossierAllergies').innerHTML = currentPatientAllergies.map(a => `<div class="bg-white p-3 rounded-lg border border-rose-100 shadow-sm"><p class="font-bold text-xs text-slate-800">${a.substance}</p><p class="text-[9px] font-bold text-rose-500 uppercase tracking-wider mt-1"><i class="fa-solid fa-check-circle mr-1"></i>${a.verificationStatus} | ${a.criticality} Risk</p></div>`).join('');
+                        } else { document.getElementById('dossierAllergies').innerHTML = '<div class="py-4 text-center"><i class="fa-solid fa-shield-halved text-slate-300 text-2xl mb-2 block"></i><span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">No Allergies</span></div>'; }
+                    }
 
                     const conds = dossier.conditions || [];
                     const activeConds = conds.filter(c => c.status === 'active');
                     const pastConds = conds.filter(c => c.status === 'resolved');
 
-                    document.getElementById('conditionCount').innerText = activeConds.length;
-                    if(activeConds.length > 0) {
-                        document.getElementById('activeConditionsList').innerHTML = activeConds.map(c => `<div class="bg-white p-3 rounded-lg border border-amber-100 shadow-sm"><p class="font-bold text-xs text-slate-800">${c.conditionName}</p><p class="text-[9px] font-bold text-amber-500 uppercase tracking-wider mt-1"><i class="fa-solid fa-heart-pulse mr-1"></i>Active${c.durationText ? ' • ' + c.durationText : ''}</p></div>`).join('');
-                    } else { document.getElementById('activeConditionsList').innerHTML = '<div class="py-4 text-center"><i class="fa-solid fa-heart-circle-check text-slate-300 text-2xl mb-2 block"></i><span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">No Active Conditions</span></div>'; }
+                    if (demoConditions.length === 0) {
+                        document.getElementById('conditionCount').innerText = activeConds.length;
+                        if(activeConds.length > 0) {
+                            document.getElementById('activeConditionsList').innerHTML = activeConds.map(c => `<div class="bg-white p-3 rounded-lg border border-amber-100 shadow-sm"><p class="font-bold text-xs text-slate-800">${c.conditionName}</p><p class="text-[9px] font-bold text-amber-500 uppercase tracking-wider mt-1"><i class="fa-solid fa-heart-pulse mr-1"></i>Active${c.durationText ? ' • ' + c.durationText : ''}</p></div>`).join('');
+                        } else { document.getElementById('activeConditionsList').innerHTML = '<div class="py-4 text-center"><i class="fa-solid fa-heart-circle-check text-slate-300 text-2xl mb-2 block"></i><span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">No Active Conditions</span></div>'; }
+                    }
 
                     document.getElementById('pastConditionCount').innerText = pastConds.length;
                     if(pastConds.length > 0) {
