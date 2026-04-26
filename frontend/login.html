@@ -68,6 +68,7 @@
                     <option value="" disabled selected>-- Choose your authorization level --</option>
                     <option value="Doctor">Doctor</option>
                     <option value="Nurse (Triage)">Nurse (Triage)</option>
+                    <option value="Pharmacist">Pharmacist</option>
                     <option value="Pathologist">Pathologist</option>
                     <option value="Patient">Patient</option>
                     <option value="Ministry">Ministry</option>
@@ -117,6 +118,9 @@
                     break;
                 case 'Nurse (Triage)':
                     destination = 'triage_kiosk.html';
+                    break;
+                case 'Pharmacist':
+                    destination = 'pharmacy_portal.html';
                     break;
                 case 'Pathologist':
                     destination = 'pathology_portal.html';
