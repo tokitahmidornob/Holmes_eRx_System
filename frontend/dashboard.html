@@ -72,15 +72,26 @@
 
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative w-full pt-16 lg:pt-0 bg-slate-50">
         
-        <header class="h-20 lg:h-24 bg-white border-b border-slate-200 flex items-center justify-between px-6 lg:px-10 shrink-0 z-10 shadow-sm">
+        <header class="h-auto lg:h-24 bg-white border-b border-slate-200 flex flex-wrap items-center justify-between px-6 lg:px-10 py-4 shrink-0 z-10 shadow-sm gap-3">
             <div>
                 <h2 id="pageTitle" class="text-xl lg:text-2xl font-bold text-slate-800 tracking-tight">Clinical Pad</h2>
                 <p class="text-[11px] font-semibold text-slate-500 mt-1 flex items-center uppercase tracking-wider"><div class="w-2 h-2 rounded-full bg-emerald-500 mr-2 animate-pulse"></div> Secure Node Active</p>
             </div>
-            <div id="activePatientBanner" class="hidden bg-blue-50 border border-blue-200 px-4 py-2 lg:px-6 rounded-full flex items-center gap-2 lg:gap-3 shadow-sm transform transition-all-spring">
-                <i class="fa-solid fa-user-check text-blue-600"></i>
-                <span class="text-[11px] lg:text-xs font-bold text-blue-800 uppercase tracking-wider truncate max-w-[120px] lg:max-w-xs" id="bannerPatientName">Active Session</span>
-                <button onclick="clearActivePatient()" class="ml-2 text-blue-400 hover:text-rose-500 transition-colors" title="Close Session"><i class="fa-solid fa-times text-lg"></i></button>
+            <div class="flex items-center gap-3 flex-wrap">
+                <!-- Vitals Attached Badge (shown after triage load) -->
+                <div id="vitalsAttachedBadge" class="hidden bg-teal-50 border border-teal-200 px-3 py-1.5 rounded-full flex items-center gap-2 shadow-sm fade-in-up">
+                    <i class="fa-solid fa-heart-pulse text-teal-600 text-xs"></i>
+                    <span id="vitalsText" class="text-[10px] font-black text-teal-700 uppercase tracking-widest">Vitals Attached</span>
+                </div>
+                <!-- Load Triage Button -->
+                <button id="btnLoadTriage" class="flex items-center gap-2 bg-amber-50 hover:bg-amber-100 border border-amber-300 hover:border-amber-400 text-amber-700 px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all shadow-sm hover:-translate-y-0.5">
+                    <i class="fa-solid fa-bolt text-amber-500"></i> Load Triage Data
+                </button>
+                <div id="activePatientBanner" class="hidden bg-blue-50 border border-blue-200 px-4 py-2 lg:px-6 rounded-full flex items-center gap-2 lg:gap-3 shadow-sm transform transition-all-spring">
+                    <i class="fa-solid fa-user-check text-blue-600"></i>
+                    <span class="text-[11px] lg:text-xs font-bold text-blue-800 uppercase tracking-wider truncate max-w-[120px] lg:max-w-xs" id="bannerPatientName">Active Session</span>
+                    <button onclick="clearActivePatient()" class="ml-2 text-blue-400 hover:text-rose-500 transition-colors" title="Close Session"><i class="fa-solid fa-times text-lg"></i></button>
+                </div>
             </div>
         </header>
 
@@ -847,6 +858,58 @@
 
         function closeAllDropdowns(e) { if(!document.getElementById('patientDropdownContainer').contains(e.target)) document.getElementById('patientDropdown').classList.add('hidden'); }
         function logout() { sessionStorage.clear(); window.location.href = 'index.html'; }
+
+        // ==========================================
+        // ⚡ TRIAGE AUTO-LOADER
+        // ==========================================
+        function loadTriageData() {
+            const raw = localStorage.getItem('pendingTriage');
+            if (!raw) {
+                showToast('No staged triage data found. Have the patient check in at the kiosk first.', 'error');
+                return;
+            }
+
+            let triage;
+            try { triage = JSON.parse(raw); } catch(e) {
+                showToast('Triage data is corrupted. Please re-submit at the kiosk.', 'error');
+                return;
+            }
+
+            // 1. Pre-fill Patient ID search field
+            if (triage.patientId) {
+                document.getElementById('patientSearchInput').value = triage.patientId;
+            }
+
+            // 2. Pre-fill Primary Clinical Indication
+            if (triage.indication) {
+                document.getElementById('primaryIndication').value = triage.indication;
+            }
+
+            // 3. Show the Vitals Attached badge with Temp/BP data
+            const parts = [];
+            if (triage.temperature) parts.push(`Temp: ${triage.temperature}°F`);
+            if (triage.bloodPressure) parts.push(`BP: ${triage.bloodPressure}`);
+            const badgeEl = document.getElementById('vitalsAttachedBadge');
+            const vitalsTextEl = document.getElementById('vitalsText');
+            if (parts.length > 0) {
+                vitalsTextEl.innerText = parts.join(' · ');
+                badgeEl.classList.remove('hidden');
+            } else {
+                vitalsTextEl.innerText = 'Vitals Attached';
+                badgeEl.classList.remove('hidden');
+            }
+
+            // 4. Clear localStorage so it doesn't auto-load twice
+            localStorage.removeItem('pendingTriage');
+
+            showToast(`Triage data loaded for ${triage.patientId || 'patient'}. Indication & vitals pre-filled.`, 'success');
+        }
+
+        // Wire button via EventListener on DOMContentLoaded
+        document.addEventListener('DOMContentLoaded', () => {
+            const triageBtn = document.getElementById('btnLoadTriage');
+            if (triageBtn) triageBtn.addEventListener('click', loadTriageData);
+        });
     </script>
 
     <script>
