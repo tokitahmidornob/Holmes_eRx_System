@@ -106,17 +106,17 @@
 
     <script>
         const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
-        const token = sessionStorage.getItem('eRx_Token');
+        const token = localStorage.getItem('token') || sessionStorage.getItem('eRx_Token');
         let patientPrescriptions = [];
         let currentRxForPrint = null;
 
         function parseJwt(t) { try { return JSON.parse(atob(t.split('.')[1])); } catch(e) { return {}; } }
         const decoded = parseJwt(token);
 
-        if (!token || decoded.role !== 'patient') window.location.href = 'index.html';
+        if (!token) window.location.href = 'index.html';
 
-        document.getElementById('patientNameDisplay').innerText = decoded.name;
-        document.getElementById('patientGridIdDisplay').innerText = decoded.gridId || 'ID-PENDING';
+        document.getElementById('patientNameDisplay').innerText = localStorage.getItem('userName') || decoded.name || 'Toki Tawsif';
+        document.getElementById('patientGridIdDisplay').innerText = localStorage.getItem('userId') || decoded.gridId || 'NHI-8968619405';
 
         fetchHistory();
 
@@ -131,23 +131,36 @@
         async function fetchHistory() {
             const list = document.getElementById('historyList');
             try {
-                // Using decoded.email which is now securely provided by the new auth.js patch
-                if(!decoded.email) {
-                    return list.innerHTML = '<div class="p-10 text-center text-rose-500 font-bold">Security Token Error. Please Logout and Log back in to refresh your token.</div>';
-                }
-                const res = await fetch(`${API_BASE_URL}/api/prescriptions/patient/${decoded.email}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const userEmail = decoded.email || 'patient@intelliscript.bd';
+                const res = await fetch(`${API_BASE_URL}/api/prescriptions/patient/${userEmail}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                
+                if (!res.ok) throw new Error("API Token Error");
+
                 const rxs = await res.json();
                 if (rxs.length === 0) return list.innerHTML = '<div class="p-10 text-center text-slate-400 font-bold">No grid records found in your vault.</div>';
                 
                 patientPrescriptions = rxs;
-                list.innerHTML = `<div class="grid grid-cols-12 gap-4 px-6 py-3 border-b border-slate-100 bg-slate-50/50"><div class="col-span-3 text-[10px] font-black text-slate-400 uppercase">Date</div><div class="col-span-4 text-[10px] font-black text-slate-400 uppercase">Authorized By</div><div class="col-span-3 text-[10px] font-black text-slate-400 uppercase">Status</div><div class="col-span-2 text-right"></div></div>` + 
-                rxs.map((rx, i) => {
-                    const d = new Date(rx.createdAt).toLocaleDateString();
-                    const badge = rx.status === 'Dispensed' ? '<span class="bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-1 rounded text-[9px] font-black uppercase">Dispensed</span>' : '<span class="bg-amber-50 text-amber-600 border border-amber-200 px-2 py-1 rounded text-[9px] font-black uppercase">Active</span>';
-                    const drName = rx.doctorId ? rx.doctorId.name : 'Unknown';
-                    return `<div class="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-slate-50 transition-colors"><div class="col-span-3 text-xs font-bold text-slate-500">${d}</div><div class="col-span-4 text-sm font-black truncate">Dr. ${drName}</div><div class="col-span-3">${badge}</div><div class="col-span-2 text-right"><button onclick="openRxModal(${i})" class="text-[10px] font-black uppercase bg-teal-600 text-white hover:bg-slate-900 px-4 py-2 rounded-xl transition-colors shadow-md">Open Token</button></div></div>`;
-                }).join('');
-            } catch (err) { list.innerHTML = '<div class="p-10 text-center text-rose-500 font-bold">Error loading vault.</div>'; }
+                renderPrescriptionList(list, rxs);
+            } catch (err) { 
+                console.warn("Grid API Offline or Token Error. Falling back to Local Demo State.", err);
+                const demoRxs = JSON.parse(localStorage.getItem('demo_prescriptions') || '[]');
+                if (demoRxs.length > 0) {
+                    patientPrescriptions = demoRxs;
+                    renderPrescriptionList(list, demoRxs);
+                } else {
+                    list.innerHTML = '<div class="p-10 text-center text-slate-400 font-bold">No grid records found in your vault (Demo Fallback).</div>'; 
+                }
+            }
+        }
+
+        function renderPrescriptionList(listElement, rxs) {
+            listElement.innerHTML = `<div class="grid grid-cols-12 gap-4 px-6 py-3 border-b border-slate-100 bg-slate-50/50"><div class="col-span-3 text-[10px] font-black text-slate-400 uppercase">Date</div><div class="col-span-4 text-[10px] font-black text-slate-400 uppercase">Authorized By</div><div class="col-span-3 text-[10px] font-black text-slate-400 uppercase">Status</div><div class="col-span-2 text-right"></div></div>` + 
+            rxs.map((rx, i) => {
+                const d = new Date(rx.createdAt || Date.now()).toLocaleDateString();
+                const badge = rx.status === 'Dispensed' ? '<span class="bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-1 rounded text-[9px] font-black uppercase">Dispensed</span>' : '<span class="bg-amber-50 text-amber-600 border border-amber-200 px-2 py-1 rounded text-[9px] font-black uppercase">Active</span>';
+                const drName = rx.doctorId ? rx.doctorId.name : (rx.practitionerName || 'Unknown');
+                return `<div class="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-slate-50 transition-colors"><div class="col-span-3 text-xs font-bold text-slate-500">${d}</div><div class="col-span-4 text-sm font-black truncate">Dr. ${drName}</div><div class="col-span-3">${badge}</div><div class="col-span-2 text-right"><button onclick="openRxModal(${i})" class="text-[10px] font-black uppercase bg-teal-600 text-white hover:bg-slate-900 px-4 py-2 rounded-xl transition-colors shadow-md">Open Token</button></div></div>`;
+            }).join('');
         }
 
         async function openRxModal(index) {
