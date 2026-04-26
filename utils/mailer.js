@@ -12,13 +12,13 @@ const transporter = nodemailer.createTransport({
 const sendPrescriptionEmail = async (patientEmail, broadcastId, otp, doctorName) => {
     try {
         const mailOptions = {
-            from: `"Holmes National Grid" <${process.env.EMAIL_USER}>`,
+            from: `"IntelliScript BD" <${process.env.EMAIL_USER}>`,
             to: patientEmail,
             subject: '🔒 Secure Grid Payload: Your Prescription OTP',
             html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px; background-color: #ffffff;">
                     <div style="text-align: center; margin-bottom: 20px;">
-                        <h2 style="color: #0f172a; margin: 0; font-size: 24px;">Holmes National Grid</h2>
+                        <h2 style="color: #0f172a; margin: 0; font-size: 24px;">IntelliScript BD</h2>
                         <p style="color: #64748b; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Encrypted Medical Payload</p>
                     </div>
                     

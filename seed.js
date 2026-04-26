@@ -11,7 +11,7 @@ const actors = [
     {
         role: 'admin',
         email: 'admin@holmesgrid.ai',
-        fullName: 'Holmes Grid Admin',
+        fullName: 'IntelliScript BD Admin',
         loginIdentity: 'admin@holmesgrid.ai',
         gridId: 'GRID-ADMIN-0001',
         contact: {
