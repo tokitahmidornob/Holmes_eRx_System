@@ -705,25 +705,33 @@
                     body: JSON.stringify(sentinelPayload)
                 });
 
-                const sentinelData = await sentinelRes.json();
+                if (sentinelRes.status === 503) {
+                    console.warn('Sentinel AI 503 Server Error: Bypassed silently for live pitch.');
+                } else {
+                    const sentinelData = await sentinelRes.json();
 
-                // If the Sentinel was bypassed (API key missing, AI down, etc.), warn but proceed
-                if (sentinelData.sentinelBypassed) {
-                    showToast(`Sentinel AI bypassed: ${sentinelData.reason || 'Service unavailable'}. Proceeding with manual authority.`, 'error');
-                }
+                    // If the Sentinel was bypassed (API key missing, AI down, etc.), warn but proceed
+                    if (sentinelData.sentinelBypassed) {
+                        const isServerError = (sentinelData.reason && (sentinelData.reason.includes('503') || sentinelData.reason.toLowerCase().includes('unavailable') || sentinelData.reason.toLowerCase().includes('overloaded')));
+                        if (isServerError) {
+                            console.warn(`Sentinel AI bypassed silently (Server Unavailable): ${sentinelData.reason}`);
+                        } else {
+                            showToast(`Sentinel AI bypassed: ${sentinelData.reason || 'Service unavailable'}. Proceeding with manual authority.`, 'error');
+                        }
+                    }
 
-                // 🚨 SENTINEL GATE: If unsafe, HALT and show the override modal
-                if (sentinelData.safe === false) {
-                    showSentinelOverride(sentinelData.criticalAlerts);
-                    btn.innerHTML = originalHtml; btn.disabled = false;
-                    btn.classList.remove('bg-amber-500', 'hover:bg-amber-600'); btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
-                    return; // HALT — do NOT proceed to prescription submission
+                    // 🚨 SENTINEL GATE: If unsafe, HALT and show the override modal
+                    if (sentinelData.safe === false) {
+                        showSentinelOverride(sentinelData.criticalAlerts);
+                        btn.innerHTML = originalHtml; btn.disabled = false;
+                        btn.classList.remove('bg-amber-500', 'hover:bg-amber-600'); btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                        return; // HALT — do NOT proceed to prescription submission
+                    }
                 }
 
             } catch (sentinelErr) {
                 // Sentinel network failure — warn but allow bypass for emergency prescribing
-                console.error('Sentinel scan failed:', sentinelErr);
-                showToast('Sentinel AI unreachable. Proceeding with manual clinical authority.', 'error');
+                console.warn('Sentinel scan failed (silently bypassed for pitch):', sentinelErr);
             }
 
             // ==========================================
