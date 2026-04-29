@@ -311,16 +311,29 @@
                 return;
             }
 
+            // ENVIRONMENT-AWARE ROUTING: Detects if running locally or on Vercel
+            const ROUTE_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+                ? 'http://localhost:3000'
+                : 'https://holmes-erx-system.onrender.com';
+
             try {
-                // Ping the new PATCH route to permanently save to MongoDB
-                const response = await fetch(`/api/patients/update-profile/${patientId}`, {
+                const response = await fetch(`${ROUTE_BASE_URL}/api/patients/update-profile/${patientId}`, {
                     method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` // using global token
+                    },
                     body: JSON.stringify({
                         newAllergy: allergyVal,
                         newCondition: conditionVal
                     })
                 });
+
+                // Check if the server returned an HTML error page (like a 404 from Vercel) instead of JSON
+                const contentType = response.headers.get("content-type");
+                if (!contentType || !contentType.includes("application/json")) {
+                    throw new Error("Server returned non-JSON response. API route unreachable.");
+                }
 
                 const result = await response.json();
 
@@ -345,7 +358,6 @@
                         }
                     }
                     
-                    // Clear the input fields
                     if (document.getElementById(allergyInputId)) document.getElementById(allergyInputId).value = '';
                     if (document.getElementById(conditionInputId)) document.getElementById(conditionInputId).value = '';
                 } else {
@@ -353,8 +365,8 @@
                     alert("Database Error: Could not save patient data.");
                 }
             } catch (error) {
-                console.error("Network disconnected. Data NOT saved.", error);
-                alert("Network Offline: Changes will not be saved to the database.");
+                console.error("Network disconnected or API unreachable. Data NOT saved.", error);
+                alert("Network Offline: Changes will not be saved to the database. Check API URL configuration.");
             }
         }
 
