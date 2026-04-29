@@ -128,5 +128,45 @@ router.post('/search', authenticate, async (req, res) => {
         res.status(500).json({ msg: 'National Directory Unreachable.' });
     }
 });
+const { AllergyProfile } = require('../models/GridModels');
+
+// PATCH route to permanently update patient medical profile
+router.patch('/update-profile/:id', async (req, res) => {
+    try {
+        const patientId = req.params.id;
+        const { newAllergy, newCondition } = req.body;
+
+        // Build the dynamic update query using $addToSet to prevent duplicates
+        let updateQuery = { $addToSet: {} };
+        if (newAllergy) updateQuery.$addToSet.allergies = newAllergy;
+        if (newCondition) updateQuery.$addToSet.conditions = newCondition;
+
+        // If nothing was sent, return early
+        if (!newAllergy && !newCondition) {
+            return res.status(400).json({ error: 'No data provided to update.' });
+        }
+
+        // Execute the hard write to MongoDB
+        const updatedPatient = await Patient.findByIdAndUpdate(
+            patientId,
+            updateQuery,
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedPatient) {
+            return res.status(404).json({ error: 'Patient not found in Grid.' });
+        }
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Data permanently etched to Grid.',
+            patient: updatedPatient
+        });
+
+    } catch (error) {
+        console.error('Database Write Failure:', error);
+        res.status(500).json({ error: 'Failed to commit data to MongoDB.' });
+    }
+});
 
 module.exports = router;

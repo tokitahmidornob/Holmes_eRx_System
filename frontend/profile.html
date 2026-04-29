@@ -176,11 +176,11 @@
                                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Active Allergies</p>
                                 <div class="flex gap-2">
                                     <input type="text" id="allergyInput" class="flex-1 rounded-xl border border-slate-300 px-3 py-2 text-xs focus:border-rose-500 outline-none" placeholder="Enter Allergy...">
-                                    <button onclick="addAllergy()" class="bg-rose-500 hover:bg-rose-600 text-white px-3 py-2 rounded-xl text-xs font-bold uppercase transition-colors"><i class="fa-solid fa-plus"></i></button>
+                                    <button onclick="commitPatientDataToGrid(currentPatientId, 'allergyInput', null)" class="bg-rose-500 hover:bg-rose-600 text-white px-3 py-2 rounded-xl text-xs font-bold uppercase transition-colors"><i class="fa-solid fa-plus"></i> Save</button>
                                 </div>
                             </div>
                         </div>
-                        <div id="allergyTags" class="flex flex-wrap gap-2 mt-1"></div>
+                        <ul id="allergy-list-ul" class="flex flex-wrap gap-2 mt-1 list-none p-0"></ul>
                     </div>
                     <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col gap-4">
                         <div class="flex items-center gap-4">
@@ -189,11 +189,11 @@
                                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Current Conditions</p>
                                 <div class="flex gap-2">
                                     <input type="text" id="conditionInput" class="flex-1 rounded-xl border border-slate-300 px-3 py-2 text-xs focus:border-blue-500 outline-none" placeholder="Enter Condition...">
-                                    <button onclick="addCondition()" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-xl text-xs font-bold uppercase transition-colors"><i class="fa-solid fa-plus"></i></button>
+                                    <button onclick="commitPatientDataToGrid(currentPatientId, null, 'conditionInput')" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-xl text-xs font-bold uppercase transition-colors"><i class="fa-solid fa-plus"></i> Save</button>
                                 </div>
                             </div>
                         </div>
-                        <div id="conditionTags" class="flex flex-wrap gap-2 mt-1"></div>
+                        <ul id="condition-list-ul" class="flex flex-wrap gap-2 mt-1 list-none p-0"></ul>
                     </div>
                 </div>
                 </div>
@@ -269,6 +269,7 @@
         function parseJwt(t) { try { return JSON.parse(atob(t.split('.')[1])); } catch(e) { return {}; } }
         const decoded = parseJwt(token);
         const role = decoded.role;
+        let currentPatientId = null;
 
         document.addEventListener('DOMContentLoaded', () => {
             renderRoleSpecificFields();
@@ -280,17 +281,17 @@
             const allergies = JSON.parse(localStorage.getItem('demo_allergies') || '[]');
             const conditions = JSON.parse(localStorage.getItem('demo_conditions') || '[]');
             
-            const allergyTags = document.getElementById('allergyTags');
+            const allergyTags = document.getElementById('allergy-list-ul');
             if(allergyTags) {
                 allergyTags.innerHTML = allergies.map(a => 
-                    `<span class="bg-rose-100 text-rose-700 px-2 py-1.5 rounded-lg text-[10px] font-black uppercase flex items-center gap-1.5">${a} <i class="fa-solid fa-xmark cursor-pointer hover:text-rose-900 ml-1" onclick="removeAllergy('${a}')"></i></span>`
+                    `<li class="bg-rose-100 text-rose-700 px-2 py-1.5 rounded-lg text-[10px] font-black uppercase flex items-center gap-1.5">${a} <i class="fa-solid fa-xmark cursor-pointer hover:text-rose-900 ml-1" onclick="removeAllergy('${a}')"></i></li>`
                 ).join('');
             }
             
-            const conditionTags = document.getElementById('conditionTags');
+            const conditionTags = document.getElementById('condition-list-ul');
             if(conditionTags) {
                 conditionTags.innerHTML = conditions.map(c => 
-                    `<span class="bg-blue-100 text-blue-700 px-2 py-1.5 rounded-lg text-[10px] font-black uppercase flex items-center gap-1.5">${c} <i class="fa-solid fa-xmark cursor-pointer hover:text-blue-900 ml-1" onclick="removeCondition('${c}')"></i></span>`
+                    `<li class="bg-blue-100 text-blue-700 px-2 py-1.5 rounded-lg text-[10px] font-black uppercase flex items-center gap-1.5">${c} <i class="fa-solid fa-xmark cursor-pointer hover:text-blue-900 ml-1" onclick="removeCondition('${c}')"></i></li>`
                 ).join('');
             }
 
@@ -301,15 +302,70 @@
             }
         }
 
-        function addAllergy() {
-            const val = document.getElementById('allergyInput').value.trim();
-            if (!val) return;
-            const allergies = JSON.parse(localStorage.getItem('demo_allergies') || '[]');
-            if (!allergies.includes(val)) {
-                allergies.push(val);
-                localStorage.setItem('demo_allergies', JSON.stringify(allergies));
-                loadClinicalData();
-                document.getElementById('allergyInput').value = '';
+        async function commitPatientDataToGrid(patientId, allergyInputId, conditionInputId) {
+            const allergyVal = document.getElementById(allergyInputId)?.value.trim();
+            const conditionVal = document.getElementById(conditionInputId)?.value.trim();
+
+            if (!allergyVal && !conditionVal) {
+                alert("Please enter an allergy or condition to save.");
+                return;
+            }
+
+            try {
+                // Ping the new PATCH route to permanently save to MongoDB
+                const response = await fetch(`/api/patients/update-profile/${patientId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({
+                        newAllergy: allergyVal,
+                        newCondition: conditionVal
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    console.log("Grid Sync Successful:", result.message);
+                    
+                    // STAGE-SAFE UI UPDATE: Only update the DOM after database confirms
+                    if (allergyVal) {
+                        appendToUIList('allergy-list-ul', allergyVal);
+                        const allergies = JSON.parse(localStorage.getItem('demo_allergies') || '[]');
+                        if (!allergies.includes(allergyVal)) {
+                            allergies.push(allergyVal);
+                            localStorage.setItem('demo_allergies', JSON.stringify(allergies));
+                        }
+                    }
+                    if (conditionVal) {
+                        appendToUIList('condition-list-ul', conditionVal);
+                        const conditions = JSON.parse(localStorage.getItem('demo_conditions') || '[]');
+                        if (!conditions.includes(conditionVal)) {
+                            conditions.push(conditionVal);
+                            localStorage.setItem('demo_conditions', JSON.stringify(conditions));
+                        }
+                    }
+                    
+                    // Clear the input fields
+                    if (document.getElementById(allergyInputId)) document.getElementById(allergyInputId).value = '';
+                    if (document.getElementById(conditionInputId)) document.getElementById(conditionInputId).value = '';
+                } else {
+                    console.error("Grid Sync Failed:", result.error);
+                    alert("Database Error: Could not save patient data.");
+                }
+            } catch (error) {
+                console.error("Network disconnected. Data NOT saved.", error);
+                alert("Network Offline: Changes will not be saved to the database.");
+            }
+        }
+
+        // Helper function to safely update the DOM
+        function appendToUIList(listElementId, value) {
+            const ul = document.getElementById(listElementId);
+            if (ul) {
+                const li = document.createElement('li');
+                li.className = "bg-emerald-100 text-emerald-700 px-2 py-1.5 rounded-lg text-[10px] font-black uppercase flex items-center gap-1.5";
+                li.textContent = value;
+                ul.appendChild(li);
             }
         }
 
@@ -318,18 +374,6 @@
             allergies = allergies.filter(a => a !== val);
             localStorage.setItem('demo_allergies', JSON.stringify(allergies));
             loadClinicalData();
-        }
-
-        function addCondition() {
-            const val = document.getElementById('conditionInput').value.trim();
-            if (!val) return;
-            const conditions = JSON.parse(localStorage.getItem('demo_conditions') || '[]');
-            if (!conditions.includes(val)) {
-                conditions.push(val);
-                localStorage.setItem('demo_conditions', JSON.stringify(conditions));
-                loadClinicalData();
-                document.getElementById('conditionInput').value = '';
-            }
         }
 
         function removeCondition(val) {
@@ -432,6 +476,7 @@
                     document.getElementById('field-account-status').innerText = matrix.layer5.security?.status || 'Active / Unlocked';
 
                     if (role === 'patient') {
+                        currentPatientId = matrix.layer4?._id;
                         document.getElementById('field-blood').innerText = matrix.layer4?.bloodGroup || 'Not Available';
                         document.getElementById('field-emergency').innerText = matrix.layer4?.emergencyContact || 'Not Available';
                         document.getElementById('field-nok').innerText = matrix.layer4?.guardian || 'Not Available';

@@ -132,7 +132,7 @@
                 localStorage.setItem('pharmacy_queue', JSON.stringify(queue));
                 
                 // Animate removal
-                const card = document.getElementById(\`rx-card-\${id}\`);
+                const card = document.getElementById(`rx-card-${id}`);
                 card.style.transition = 'all 0.3s ease';
                 card.style.opacity = '0';
                 card.style.transform = 'translateX(20px)';
@@ -166,7 +166,7 @@
             }
 
             container.innerHTML = pending.map((rx, idx) => `
-                <div id="rx-card-\${rx.id}" class="glass p-6 rounded-3xl shadow-sm border border-slate-200 hover:border-teal-200 transition-colors fade-in" style="animation-delay: \${idx * 0.05}s">
+                <div id="rx-card-${rx.id}" class="glass p-6 rounded-3xl shadow-sm border border-slate-200 hover:border-teal-200 transition-colors fade-in" style="animation-delay: ${idx * 0.05}s">
                     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4 mb-4">
                         <div class="flex items-center gap-3">
                             <div class="w-12 h-12 bg-teal-50 text-teal-600 rounded-2xl flex items-center justify-center border border-teal-100">
@@ -174,33 +174,33 @@
                             </div>
                             <div>
                                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Patient ID</p>
-                                <p class="text-sm font-black text-slate-800">\${rx.patientId}</p>
+                                <p class="text-sm font-black text-slate-800">${rx.patientId}</p>
                             </div>
                         </div>
                         <div class="flex flex-col md:items-end">
                             <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Prescribed By</p>
-                            <p class="text-xs font-bold text-slate-700"><i class="fa-solid fa-user-doctor text-teal-500 mr-1"></i> \${rx.doctorName}</p>
-                            <p class="text-[9px] font-bold text-slate-400 uppercase mt-1">\${new Date(rx.date).toLocaleString()}</p>
+                            <p class="text-xs font-bold text-slate-700"><i class="fa-solid fa-user-doctor text-teal-500 mr-1"></i> ${rx.doctorName}</p>
+                            <p class="text-[9px] font-bold text-slate-400 uppercase mt-1">${new Date(rx.date).toLocaleString()}</p>
                         </div>
                     </div>
                     
                     <div class="space-y-3 mb-6">
                         <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Medication Payload</p>
-                        \${rx.medications.map(med => `
+                        ${rx.medications.map(med => `
                             <div class="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-100">
                                 <div class="flex items-center gap-3">
                                     <i class="fa-solid fa-capsules text-teal-400"></i>
                                     <div>
-                                        <p class="text-sm font-bold text-slate-800">\${med.drug}</p>
-                                        <p class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mt-0.5">\${med.rules}</p>
+                                        <p class="text-sm font-bold text-slate-800">${med.drug}</p>
+                                        <p class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mt-0.5">${med.rules}</p>
                                     </div>
                                 </div>
-                                <span class="text-xs font-black text-teal-700 bg-teal-100 px-3 py-1 rounded-lg">\${med.dosage}</span>
+                                <span class="text-xs font-black text-teal-700 bg-teal-100 px-3 py-1 rounded-lg">${med.dosage}</span>
                             </div>
                         `).join('')}
                     </div>
 
-                    <button onclick="dispenseMedication('\${rx.id}')" class="w-full py-4 bg-teal-600 hover:bg-teal-700 text-white rounded-xl font-black text-sm uppercase tracking-widest shadow-md shadow-teal-600/20 transition-all hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                    <button onclick="dispenseMedication('${rx.id}')" class="w-full py-4 bg-teal-600 hover:bg-teal-700 text-white rounded-xl font-black text-sm uppercase tracking-widest shadow-md shadow-teal-600/20 transition-all hover:-translate-y-0.5 flex items-center justify-center gap-2">
                         <i class="fa-solid fa-hand-holding-medical"></i> Dispense Medication
                     </button>
                 </div>
