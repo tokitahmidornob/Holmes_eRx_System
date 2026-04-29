@@ -1,0 +1,101 @@
+id,indication,category
+IND-01,Essential Hypertension,Cardiovascular
+IND-02,Type 2 Diabetes Mellitus,Endocrine
+IND-03,Dengue Fever,Infectious Disease
+IND-04,Typhoid Fever,Infectious Disease
+IND-05,Acute Asthma,Respiratory
+IND-06,Allergic Rhinitis,Respiratory
+IND-07,Peptic Ulcer Disease,Gastrointestinal
+IND-08,Acute Bronchitis,Respiratory
+IND-09,Malaria,Infectious Disease
+IND-10,Osteoarthritis,Musculoskeletal
+IND-11,Acute Pharyngitis,ENT
+IND-12,Urinary Tract Infection (UTI),Urology
+IND-13,Migraine,Neurology
+IND-14,Gastroesophageal Reflux Disease (GERD),Gastrointestinal
+IND-15,Major Depressive Disorder,Psychiatry
+IND-16,Iron Deficiency Anemia,Hematology
+IND-17,Viral Gastroenteritis,Gastrointestinal
+IND-18,Pneumonia,Respiratory
+IND-19,Hyperlipidemia,Endocrine
+IND-20,Chronic Kidney Disease,Nephrology
+IND-21,Coronary Artery Disease,Cardiovascular
+IND-22,Heart Failure,Cardiovascular
+IND-23,Atrial Fibrillation,Cardiovascular
+IND-24,Myocardial Infarction (Post-MI),Cardiovascular
+IND-25,Type 1 Diabetes Mellitus,Endocrine
+IND-26,Hypothyroidism,Endocrine
+IND-27,Hyperthyroidism,Endocrine
+IND-28,Polycystic Ovary Syndrome (PCOS),Endocrine
+IND-29,Tuberculosis (Pulmonary),Infectious Disease
+IND-30,Cholera,Infectious Disease
+IND-31,COVID-19,Infectious Disease
+IND-32,Influenza,Infectious Disease
+IND-33,Hepatitis B,Infectious Disease
+IND-34,Hepatitis C,Infectious Disease
+IND-35,Kala-azar (Leishmaniasis),Infectious Disease
+IND-36,Syphilis,Infectious Disease
+IND-37,Gonorrhea,Infectious Disease
+IND-38,HIV/AIDS,Infectious Disease
+IND-39,Chronic Obstructive Pulmonary Disease (COPD),Respiratory
+IND-40,Pulmonary Embolism,Respiratory
+IND-41,Sleep Apnea,Respiratory
+IND-42,Irritable Bowel Syndrome (IBS),Gastrointestinal
+IND-43,Crohn's Disease,Gastrointestinal
+IND-44,Ulcerative Colitis,Gastrointestinal
+IND-45,Liver Cirrhosis,Gastrointestinal
+IND-46,Acute Pancreatitis,Gastrointestinal
+IND-47,Cholelithiasis (Gallstones),Gastrointestinal
+IND-48,Acute Appendicitis,Gastrointestinal
+IND-49,Epilepsy,Neurology
+IND-50,Parkinson's Disease,Neurology
+IND-51,Alzheimer's Disease,Neurology
+IND-52,Multiple Sclerosis,Neurology
+IND-53,Ischemic Stroke,Neurology
+IND-54,Bell's Palsy,Neurology
+IND-55,Generalized Anxiety Disorder,Psychiatry
+IND-56,Schizophrenia,Psychiatry
+IND-57,Bipolar Disorder,Psychiatry
+IND-58,Post-Traumatic Stress Disorder (PTSD),Psychiatry
+IND-59,Obsessive-Compulsive Disorder (OCD),Psychiatry
+IND-60,Rheumatoid Arthritis,Musculoskeletal
+IND-61,Gout,Musculoskeletal
+IND-62,Osteoporosis,Musculoskeletal
+IND-63,Fibromyalgia,Musculoskeletal
+IND-64,Systemic Lupus Erythematosus (SLE),Musculoskeletal
+IND-65,Acne Vulgaris,Dermatology
+IND-66,Psoriasis,Dermatology
+IND-67,Atopic Dermatitis (Eczema),Dermatology
+IND-68,Cellulitis,Dermatology
+IND-69,Scabies,Dermatology
+IND-70,Fungal Infection (Tinea),Dermatology
+IND-71,Otitis Media,ENT
+IND-72,Acute Sinusitis,ENT
+IND-73,Acute Tonsillitis,ENT
+IND-74,Vertigo,ENT
+IND-75,Glaucoma,Ophthalmology
+IND-76,Cataract,Ophthalmology
+IND-77,Allergic Conjunctivitis,Ophthalmology
+IND-78,Bacterial Conjunctivitis,Ophthalmology
+IND-79,Macular Degeneration,Ophthalmology
+IND-80,Acute Kidney Injury (AKI),Nephrology
+IND-81,Nephrolithiasis (Kidney Stones),Urology
+IND-82,Benign Prostatic Hyperplasia (BPH),Urology
+IND-83,Sickle Cell Disease,Hematology
+IND-84,Thalassemia,Hematology
+IND-85,Deep Vein Thrombosis (DVT),Hematology
+IND-86,Endometriosis,Gynecology
+IND-87,Pelvic Inflammatory Disease (PID),Gynecology
+IND-88,Pre-eclampsia,Obstetrics
+IND-89,Ectopic Pregnancy,Obstetrics
+IND-90,Breast Cancer,Oncology
+IND-91,Lung Cancer,Oncology
+IND-92,Prostate Cancer,Oncology
+IND-93,Colorectal Cancer,Oncology
+IND-94,Leukemia,Oncology
+IND-95,Lymphoma,Oncology
+IND-96,Meningitis,Infectious Disease
+IND-97,Encephalitis,Neurology
+IND-98,Sepsis,Infectious Disease
+IND-99,Tetanus,Infectious Disease
+IND-100,Rabies,Infectious Disease

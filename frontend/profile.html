@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Identity Matrix | IntelliScript BD</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="antialiased text-slate-800 bg-slate-50 flex h-screen overflow-hidden">
+
+    <aside class="w-64 lg:w-72 bg-slate-900 text-white flex flex-col shrink-0 border-r border-slate-800">
+        <a href="#" onclick="goHome(); return false;" class="h-24 flex items-center px-8 bg-slate-950/50 text-current no-underline cursor-pointer">
+            <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg"><i class="fa-solid fa-id-card"></i></div>
+            <h1 class="ml-4 text-xl font-bold">Identity <span class="text-blue-400">Matrix</span></h1>
+        </a>
+        <nav class="flex-1 py-8 px-4 space-y-2 overflow-y-auto">
+            <button onclick="goHome()" class="w-full flex items-center p-3.5 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition-all font-medium">
+                <i class="fa-solid fa-house text-lg mr-4 w-6"></i><span class="text-sm">Command Hub</span>
+            </button>
+            <div class="h-px bg-slate-800 my-4"></div>
+            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-4 mb-2">Matrix Layers</p>
+            <button onclick="scrollToSection('layer-identity', event)" class="w-full flex items-center p-3.5 rounded-xl bg-blue-600 text-white font-medium shadow-md">
+                <i class="fa-solid fa-user-check text-lg mr-4 w-6"></i><span class="text-sm">1. Identity Profile</span>
+            </button>
+            <button id="navLayerProfessional" onclick="scrollToSection('layer-professional', event)" class="w-full flex items-center p-3.5 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition-all font-medium">
+                <i class="fa-solid fa-briefcase text-lg mr-4 w-6"></i><span class="text-sm">2. Professional Context</span>
+            </button>
+            <button id="navLayerClinical" onclick="scrollToSection('layer-clinical', event)" class="w-full flex items-center p-3.5 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition-all font-medium">
+                <i class="fa-solid fa-notes-medical text-lg mr-4 w-6"></i><span class="text-sm">3. Clinical Linkage</span>
+            </button>
+            <button onclick="scrollToSection('layer-consent', event)" class="w-full flex items-center p-3.5 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition-all font-medium">
+                <i class="fa-solid fa-shield-halved text-lg mr-4 w-6"></i><span class="text-sm">4. Consent & Privacy</span>
+            </button>
+            <button onclick="scrollToSection('layer-security', event)" class="w-full flex items-center p-3.5 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition-all font-medium">
+                <i class="fa-solid fa-lock text-lg mr-4 w-6"></i><span class="text-sm">5. Security & Audit</span>
+            </button>
+        </nav>
+        <div class="p-5 border-t border-slate-800 bg-slate-950/50 mt-auto">
+            <button onclick="logout()" class="w-full flex items-center justify-center p-3 rounded-xl bg-slate-800 hover:bg-rose-600 text-slate-300 hover:text-white transition-all-spring group border border-slate-700 hover:border-rose-500">
+                <i class="fa-solid fa-power-off text-sm mr-2 group-hover:rotate-180 transition-transform duration-500"></i><span class="font-semibold text-xs uppercase tracking-wider">Secure Disconnect</span>
+            </button>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col h-screen overflow-hidden">
+        <header class="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-10 shrink-0 shadow-sm">
+            <div>
+                <h2 class="text-xl font-bold text-slate-800" id="headerTitle">Identity Verification</h2>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">National Health Grid Profile v2.0</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <span class="px-3 py-1 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-full text-[10px] font-bold uppercase tracking-widest"><i class="fa-solid fa-circle-check mr-1.5"></i> Verified Identity</span>
+                <button onclick="openEditModal()" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 px-6 py-2 rounded-lg text-xs font-bold uppercase tracking-wide transition-all shadow-sm mr-3"><i class="fa-solid fa-pen-to-square mr-2"></i> Edit Profile</button>
+                <button id="btnSyncGrid" onclick="syncToGrid()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg text-xs font-bold uppercase tracking-wide transition-all shadow-md flex items-center justify-center min-w-[140px]">Sync to Grid</button>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto custom-scrollbar p-10 space-y-12 bg-slate-50/50 relative">
+            <div id="editModal" class="hidden fixed inset-0 z-[100] bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+                <div class="w-full max-w-2xl bg-white rounded-[32px] border border-slate-200 shadow-2xl p-8 relative max-h-[90vh] overflow-y-auto">
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <p class="text-xs uppercase tracking-[0.3em] text-slate-500 font-bold">Edit Profile</p>
+                            <h2 class="text-2xl font-bold text-slate-900">Update Contact Details</h2>
+                        </div>
+                        <button onclick="closeEditModal()" class="text-slate-500 hover:text-slate-900 text-xl"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <form id="editProfileForm" class="space-y-6" onsubmit="submitProfileUpdate(event)">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <label class="block text-slate-700 font-bold text-xs uppercase tracking-[0.2em]">
+                                Legal Full Name
+                                <input id="editLegalFullName" type="text" class="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-blue-500 outline-none" placeholder="John Doe">
+                            </label>
+                            <label class="block text-slate-700 font-bold text-xs uppercase tracking-[0.2em]">
+                                Date of Birth
+                                <input id="editDateOfBirth" type="date" class="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-blue-500 outline-none">
+                            </label>
+                            <label class="block text-slate-700 font-bold text-xs uppercase tracking-[0.2em]">
+                                Sex / Gender
+                                <input id="editGender" type="text" class="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-blue-500 outline-none" placeholder="Male / Female / Other">
+                            </label>
+                            <label class="block text-slate-700 font-bold text-xs uppercase tracking-[0.2em]">
+                                National Health ID
+                                <input id="editHealthId" type="text" class="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-blue-500 outline-none" placeholder="NHI-XXXXXX">
+                            </label>
+                            <label class="block text-slate-700 font-bold text-xs uppercase tracking-[0.2em]">
+                                Mobile Contact
+                                <input id="editMobile" type="text" class="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-blue-500 outline-none" placeholder="+880 1XXXXXXXXX">
+                            </label>
+                            <label class="block text-slate-700 font-bold text-xs uppercase tracking-[0.2em]">
+                                Grid Email
+                                <input id="editEmail" type="email" class="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-blue-500 outline-none" placeholder="name@holmesgrid.ai">
+                            </label>
+                            <label class="block text-slate-700 font-bold text-xs uppercase tracking-[0.2em]">
+                                Registered Address
+                                <input id="editAddress" type="text" class="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-blue-500 outline-none" placeholder="123 Holmes Avenue, Sector 1">
+                            </label>
+                            <label class="block text-slate-700 font-bold text-xs uppercase tracking-[0.2em]">
+                                Language Pref
+                                <input id="editLanguagePref" type="text" class="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-blue-500 outline-none" placeholder="English, বাংলা, العربية">
+                            </label>
+                            <label class="block text-slate-700 font-bold text-xs uppercase tracking-[0.2em]">
+                                Blood Group
+                                <input id="editBloodGroup" type="text" class="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-blue-500 outline-none" placeholder="A+ / B- / O+">
+                            </label>
+                            <label class="block text-slate-700 font-bold text-xs uppercase tracking-[0.2em]">
+                                Emergency Contact
+                                <input id="editEmergencyContact" type="text" class="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-blue-500 outline-none" placeholder="Name, Relation, Phone">
+                            </label>
+                            <label class="block text-slate-700 font-bold text-xs uppercase tracking-[0.2em]">
+                                Guardian / Next of Kin
+                                <input id="editGuardian" type="text" class="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-blue-500 outline-none" placeholder="Guardian or NOK">
+                            </label>
+                            <label class="block text-slate-700 font-bold text-xs uppercase tracking-[0.2em]">
+                                Insurance Provider
+                                <input id="editInsurance" type="text" class="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-blue-500 outline-none" placeholder="Insurance Company Name">
+                            </label>
+                        </div>
+                        <div class="flex flex-col sm:flex-row items-center justify-end gap-3 pt-3 border-t border-slate-200">
+                            <button type="button" onclick="closeEditModal()" class="w-full sm:w-auto bg-slate-100 hover:bg-slate-200 text-slate-700 px-6 py-3 rounded-2xl text-xs font-bold uppercase tracking-wide transition-all">Cancel</button>
+                            <button type="submit" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl text-xs font-bold uppercase tracking-wide transition-all">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <section id="layer-identity" class="fade-in-up">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Layer 01: Core Identity</h3>
+                </div>
+                <div class="bg-white rounded-[32px] border border-slate-200 shadow-sm p-8 flex flex-col md:flex-row gap-10">
+                    <div class="w-40 h-40 bg-slate-100 rounded-[32px] border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden shrink-0">
+                        <i class="fa-solid fa-camera text-slate-300 text-3xl"></i>
+                        <img id="displayPhoto" src="" class="hidden w-full h-full object-cover">
+                    </div>
+                    <div class="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="field-box"><label>Preferred Name</label><p id="field-name">-</p></div>
+                        <div class="field-box"><label>Date of Birth</label><p id="field-dob">-</p></div>
+                        <div class="field-box"><label>Sex / Gender</label><p id="field-gender">-</p></div>
+                        <div class="field-box"><label>National Health ID / MRN</label><p id="field-nhi" class="font-mono text-blue-600">-</p></div>
+                        <div class="field-box"><label>Mobile Contact</label><p id="field-mobile">-</p></div>
+                        <div class="field-box"><label>Grid Email</label><p id="field-email">-</p></div>
+                        <div class="field-box"><label>Language Preference</label><p id="field-lang">-</p></div>
+                        <div class="field-box md:col-span-3"><label>Registered Address</label><p id="field-address">-</p></div>
+                        
+                        <div id="patient-identity-extra" class="hidden md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="field-box"><label>Blood Group</label><p id="field-blood">-</p></div>
+                            <div class="field-box"><label>Emergency Contact</label><p id="field-emergency">-</p></div>
+                            <div class="field-box"><label>Guardian / Next of Kin</label><p id="field-nok">-</p></div>
+                            <div class="field-box"><label>Insurance / Payer</label><p id="field-insurance">-</p></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="layer-professional" class="hidden fade-in-up">
+                <h3 class="text-sm font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Layer 02: Professional Authority</h3>
+                <div class="bg-white rounded-[32px] border border-slate-200 shadow-sm p-8 grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div id="professional-fields-container" class="md:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-8"></div>
+                </div>
+            </section>
+
+            <section id="layer-clinical" class="hidden fade-in-up">
+                <div id="patientClinicalLayer">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Layer 03: Longitudinal Health Linkage</h3>
+                        <button class="text-blue-600 font-bold text-xs uppercase tracking-widest hover:underline">View Full Longitudinal Record <i class="fa-solid fa-arrow-up-right-from-square ml-1"></i></button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col gap-4">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-rose-50 text-rose-500 rounded-xl flex items-center justify-center text-xl shrink-0"><i class="fa-solid fa-hand-dots"></i></div>
+                            <div class="flex-1">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Active Allergies</p>
+                                <div class="flex gap-2">
+                                    <input type="text" id="allergyInput" class="flex-1 rounded-xl border border-slate-300 px-3 py-2 text-xs focus:border-rose-500 outline-none" placeholder="Enter Allergy...">
+                                    <button onclick="addAllergy()" class="bg-rose-500 hover:bg-rose-600 text-white px-3 py-2 rounded-xl text-xs font-bold uppercase transition-colors"><i class="fa-solid fa-plus"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="allergyTags" class="flex flex-wrap gap-2 mt-1"></div>
+                    </div>
+                    <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col gap-4">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-blue-50 text-blue-500 rounded-xl flex items-center justify-center text-xl shrink-0"><i class="fa-solid fa-capsules"></i></div>
+                            <div class="flex-1">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Current Conditions</p>
+                                <div class="flex gap-2">
+                                    <input type="text" id="conditionInput" class="flex-1 rounded-xl border border-slate-300 px-3 py-2 text-xs focus:border-blue-500 outline-none" placeholder="Enter Condition...">
+                                    <button onclick="addCondition()" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-xl text-xs font-bold uppercase transition-colors"><i class="fa-solid fa-plus"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="conditionTags" class="flex flex-wrap gap-2 mt-1"></div>
+                    </div>
+                </div>
+                </div>
+
+                <div id="doctorProfessionalLayer" class="hidden">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Layer 03: Professional Credentials</h3>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col gap-2">
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Department</label>
+                            <input type="text" id="docDept" class="rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 outline-none w-full" placeholder="e.g. Cardiology">
+                        </div>
+                        <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col gap-2">
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Credentials / Degrees</label>
+                            <input type="text" id="docCred" class="rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 outline-none w-full" placeholder="e.g., MBBS, FCPS, MS (Surgery)">
+                        </div>
+                        <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col gap-2">
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Medical License No</label>
+                            <input type="text" id="docLicense" class="rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 outline-none w-full" placeholder="BMDC Registration No.">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="layer-consent" class="fade-in-up">
+                <h3 class="text-sm font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Layer 04: Consent & Privacy Metadata</h3>
+                <div class="bg-white rounded-[32px] border border-slate-200 shadow-sm p-8 grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="field-box"><label>Consent Status</label><p class="text-emerald-600 font-bold"><i class="fa-solid fa-check-circle mr-1"></i> Active / Granted</p></div>
+                    <div class="field-box"><label>Sharing Scope</label><p>National Grid Interchange</p></div>
+                    <div class="field-box"><label>Emergency Rules</label><p>Break-glass Authorized</p></div>
+                    <div class="field-box md:col-span-2"><label>Effective Dates</label><p>Mar 20, 2026 - Mar 20, 2027</p></div>
+                    <div class="field-box"><label>Source Document</label><p class="text-blue-500 underline cursor-pointer font-mono text-[10px]">FHIR-CONSENT-DOC-ID</p></div>
+                </div>
+            </section>
+
+            <section id="layer-security" class="fade-in-up pb-20">
+                <h3 class="text-sm font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Layer 05: Cryptographic Security & Audit</h3>
+                <div class="bg-white rounded-[32px] border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="p-8 grid grid-cols-1 md:grid-cols-4 gap-6 bg-slate-50/50">
+                        <div class="field-box"><label>MFA Status</label><p class="text-emerald-500 font-bold" id="field-mfa">Enabled (Biometric)</p></div>
+                        <div class="field-box"><label>Identity Proofing</label><p id="field-proofing">NIST IAL2 Verified</p></div>
+                        <div class="field-box"><label>Account Status</label><p id="field-account-status">Active / Unlocked</p></div>
+                        <div class="field-box"><label>Last Login</label><p class="font-mono text-[11px]" id="field-last-login">2026-03-30 14:11:16</p></div>
+                    </div>
+                    <div class="p-8 border-t border-slate-100">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Active Sessions & Device History</p>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs font-medium">
+                                <div class="flex items-center gap-3"><i class="fa-solid fa-laptop text-slate-400"></i><span>Windows Terminal • Chrome • 103.45.XX.XX</span></div>
+                                <span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded text-[9px] font-bold">CURRENT SESSION</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[110] flex flex-col gap-3 pointer-events-none w-full max-w-[320px] px-4 lg:px-0"></div>
+
+    <style>
+        .field-box label { display: block; font-size: 9px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; }
+        .field-box p { font-size: 13px; font-weight: 600; color: #1e293b; }
+    </style>
+
+    <script>
+        const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
+        const token = sessionStorage.getItem('eRx_Token');
+        if (!token) window.location.href = 'index.html';
+
+        function parseJwt(t) { try { return JSON.parse(atob(t.split('.')[1])); } catch(e) { return {}; } }
+        const decoded = parseJwt(token);
+        const role = decoded.role;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderRoleSpecificFields();
+            loadProfileData();
+            loadClinicalData();
+        });
+
+        function loadClinicalData() {
+            const allergies = JSON.parse(localStorage.getItem('demo_allergies') || '[]');
+            const conditions = JSON.parse(localStorage.getItem('demo_conditions') || '[]');
+            
+            const allergyTags = document.getElementById('allergyTags');
+            if(allergyTags) {
+                allergyTags.innerHTML = allergies.map(a => 
+                    `<span class="bg-rose-100 text-rose-700 px-2 py-1.5 rounded-lg text-[10px] font-black uppercase flex items-center gap-1.5">${a} <i class="fa-solid fa-xmark cursor-pointer hover:text-rose-900 ml-1" onclick="removeAllergy('${a}')"></i></span>`
+                ).join('');
+            }
+            
+            const conditionTags = document.getElementById('conditionTags');
+            if(conditionTags) {
+                conditionTags.innerHTML = conditions.map(c => 
+                    `<span class="bg-blue-100 text-blue-700 px-2 py-1.5 rounded-lg text-[10px] font-black uppercase flex items-center gap-1.5">${c} <i class="fa-solid fa-xmark cursor-pointer hover:text-blue-900 ml-1" onclick="removeCondition('${c}')"></i></span>`
+                ).join('');
+            }
+
+            if (role === 'doctor') {
+                if (document.getElementById('docDept')) document.getElementById('docDept').value = localStorage.getItem('demo_doctor_dept') || '';
+                if (document.getElementById('docCred')) document.getElementById('docCred').value = localStorage.getItem('demo_doctor_cred') || '';
+                if (document.getElementById('docLicense')) document.getElementById('docLicense').value = localStorage.getItem('demo_doctor_license') || '';
+            }
+        }
+
+        function addAllergy() {
+            const val = document.getElementById('allergyInput').value.trim();
+            if (!val) return;
+            const allergies = JSON.parse(localStorage.getItem('demo_allergies') || '[]');
+            if (!allergies.includes(val)) {
+                allergies.push(val);
+                localStorage.setItem('demo_allergies', JSON.stringify(allergies));
+                loadClinicalData();
+                document.getElementById('allergyInput').value = '';
+            }
+        }
+
+        function removeAllergy(val) {
+            let allergies = JSON.parse(localStorage.getItem('demo_allergies') || '[]');
+            allergies = allergies.filter(a => a !== val);
+            localStorage.setItem('demo_allergies', JSON.stringify(allergies));
+            loadClinicalData();
+        }
+
+        function addCondition() {
+            const val = document.getElementById('conditionInput').value.trim();
+            if (!val) return;
+            const conditions = JSON.parse(localStorage.getItem('demo_conditions') || '[]');
+            if (!conditions.includes(val)) {
+                conditions.push(val);
+                localStorage.setItem('demo_conditions', JSON.stringify(conditions));
+                loadClinicalData();
+                document.getElementById('conditionInput').value = '';
+            }
+        }
+
+        function removeCondition(val) {
+            let conditions = JSON.parse(localStorage.getItem('demo_conditions') || '[]');
+            conditions = conditions.filter(c => c !== val);
+            localStorage.setItem('demo_conditions', JSON.stringify(conditions));
+            loadClinicalData();
+        }
+
+        function renderRoleSpecificFields(matrix = null) {
+            const container = document.getElementById('professional-fields-container');
+            const profLayer = document.getElementById('layer-professional');
+            const clinicalLayer = document.getElementById('layer-clinical');
+            const navProf = document.getElementById('navLayerProfessional');
+            const navClin = document.getElementById('navLayerClinical');
+
+            if (role === 'patient') {
+                document.getElementById('patient-identity-extra').classList.remove('hidden');
+                clinicalLayer.classList.remove('hidden');
+                navClin.classList.remove('hidden');
+                // Patients don't have a professional layer
+                profLayer.classList.add('hidden');
+                navProf.classList.add('hidden');
+                container.innerHTML = '';
+                
+                const pLayer = document.getElementById('patientClinicalLayer');
+                const dLayer = document.getElementById('doctorProfessionalLayer');
+                if (pLayer) pLayer.classList.remove('hidden');
+                if (dLayer) dLayer.classList.add('hidden');
+                
+                return;
+            }
+
+            profLayer.classList.remove('hidden');
+            navProf.classList.remove('hidden');
+            navClin.classList.remove('hidden');
+            clinicalLayer.classList.remove('hidden');
+
+            const pLayer = document.getElementById('patientClinicalLayer');
+            const dLayer = document.getElementById('doctorProfessionalLayer');
+
+            if (role === 'doctor') {
+                if (pLayer) pLayer.classList.add('hidden');
+                if (dLayer) dLayer.classList.remove('hidden');
+                navClin.innerHTML = '<i class="fa-solid fa-user-doctor text-lg mr-4 w-6"></i><span class="text-sm">3. Prof Credentials</span>';
+            } else {
+                if (pLayer) pLayer.classList.add('hidden');
+                if (dLayer) dLayer.classList.add('hidden');
+            }
+
+            let fields = '';
+            if (matrix && Array.isArray(matrix.layer2) && matrix.layer2.length > 0) {
+                matrix.layer2.forEach((profile) => {
+                    const specialty = Array.isArray(profile.specialty) ? profile.specialty.join(' / ') : (profile.specialty || 'General');
+                    const affiliation = profile.affiliation || 'National Health Grid';
+                    fields += `
+                        <div class="field-box"><label>${profile.roleType} License</label><p>${profile.licenseNumber || 'N/A'}</p></div>
+                        <div class="field-box"><label>Professional Role</label><p>${profile.roleType || 'Authority'}</p></div>
+                        <div class="field-box"><label>Specialty</label><p>${specialty}</p></div>
+                        <div class="field-box"><label>Affiliation</label><p>${affiliation}</p></div>
+                        <div class="field-box md:col-span-3"><label>Credentials</label><p>${specialty}</p></div>
+                    `;
+                });
+            } else {
+                const defaultTitle = role === 'doctor' ? 'Doctor' : role === 'pharmacist' ? 'Pharmacist' : 'Pathologist';
+                fields = `
+                    <div class="field-box md:col-span-3"><label>${defaultTitle} credentials</label><p class="text-slate-500">Professional profile will be populated after the Identity Matrix is loaded.</p></div>
+                `;
+            }
+
+            container.innerHTML = fields;
+        }
+
+        async function loadProfileData() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/profile/matrix`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (res.ok) {
+                    const matrix = await res.json();
+                    const contact = matrix.layer1.contact || {};
+                    document.getElementById('field-name').innerText = matrix.layer1.legalFullName || '-';
+                    const dobDisplay = matrix.layer1.dateOfBirth ? new Date(matrix.layer1.dateOfBirth).toLocaleDateString() : '-';
+                    document.getElementById('field-dob').innerText = dobDisplay;
+                    document.getElementById('field-dob').setAttribute('data-iso-date', matrix.layer1.dateOfBirth ? matrix.layer1.dateOfBirth.split('T')[0] : '');
+                    document.getElementById('field-gender').innerText = matrix.layer1.genderLegal || '-';
+                    document.getElementById('field-nhi').innerText = matrix.layer1.gridId || '-';
+                    document.getElementById('field-mobile').innerText = contact.primaryMobile || '-';
+                    document.getElementById('field-email').innerText = contact.primaryEmail || matrix.layer5.security?.email || '-';
+                    document.getElementById('field-lang').innerText = contact.languagePref || 'Not Available';
+                    document.getElementById('field-address').innerText = contact.address || 'Not Available';
+
+                    document.getElementById('field-mfa').innerText = matrix.layer5.security?.mfaEnabled ? 'Enabled (Biometric)' : 'Enabled (Token)';
+                    document.getElementById('field-proofing').innerText = matrix.layer5.security?.proofingLevel || 'NIST IAL2 Verified';
+                    document.getElementById('field-last-login').innerText = matrix.layer5.security?.lastLogin || matrix.layer5.security?.updatedAt || 'Unknown';
+                    document.getElementById('field-account-status').innerText = matrix.layer5.security?.status || 'Active / Unlocked';
+
+                    if (role === 'patient') {
+                        document.getElementById('field-blood').innerText = matrix.layer4?.bloodGroup || 'Not Available';
+                        document.getElementById('field-emergency').innerText = matrix.layer4?.emergencyContact || 'Not Available';
+                        document.getElementById('field-nok').innerText = matrix.layer4?.guardian || 'Not Available';
+                        document.getElementById('field-insurance').innerText = matrix.layer4?.insuranceProvider || 'Not Available';
+                    }
+
+                    document.getElementById('headerTitle').innerText = `${role.toUpperCase()} Profile: ${matrix.layer1.legalFullName || '-'}`;
+                    renderRoleSpecificFields(matrix);
+                } else {
+                    const errorData = await res.json();
+                    console.error('Matrix Mapping Error:', errorData);
+                }
+            } catch (error) {
+                console.error('Matrix Mapping Error:', error);
+            }
+        }
+
+        function scrollToSection(id, e) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+            // Update Active Nav State
+            document.querySelectorAll('nav button').forEach(btn => btn.className = "w-full flex items-center p-3.5 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition-all font-medium");
+            if (e && e.currentTarget) e.currentTarget.className = "w-full flex items-center p-3.5 rounded-xl bg-blue-600 text-white font-medium shadow-md";
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const accent = type === 'error' ? 'border-rose-500 bg-white text-rose-600' : 'border-blue-500 bg-white text-blue-700';
+            toast.className = `flex items-center p-4 rounded-3xl border-l-4 shadow-xl pointer-events-auto ${accent}`;
+            toast.innerHTML = `<div class="mr-3 text-lg"><i class="fa-solid ${type === 'error' ? 'fa-triangle-exclamation' : 'fa-circle-check'}"></i></div><div class="text-xs font-bold uppercase tracking-[0.25em]">${message}</div>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3200);
+        }
+
+        function openEditModal() {
+            document.getElementById('editLegalFullName').value = document.getElementById('field-name').innerText === '-' ? '' : document.getElementById('field-name').innerText;
+            const isoDate = document.getElementById('field-dob').getAttribute('data-iso-date') || '';
+            document.getElementById('editDateOfBirth').value = isoDate;
+            document.getElementById('editGender').value = document.getElementById('field-gender').innerText === '-' ? '' : document.getElementById('field-gender').innerText;
+            document.getElementById('editHealthId').value = document.getElementById('field-nhi').innerText === '-' ? '' : document.getElementById('field-nhi').innerText;
+            document.getElementById('editMobile').value = document.getElementById('field-mobile').innerText === '-' ? '' : document.getElementById('field-mobile').innerText;
+            document.getElementById('editAddress').value = document.getElementById('field-address').innerText === 'Not Available' ? '' : document.getElementById('field-address').innerText;
+            document.getElementById('editEmail').value = document.getElementById('field-email').innerText === '-' ? '' : document.getElementById('field-email').innerText;
+            document.getElementById('editLanguagePref').value = document.getElementById('field-lang').innerText === 'Not Available' ? '' : document.getElementById('field-lang').innerText;
+            document.getElementById('editBloodGroup').value = document.getElementById('field-blood') ? (document.getElementById('field-blood').innerText === 'Not Available' ? '' : document.getElementById('field-blood').innerText) : '';
+            document.getElementById('editEmergencyContact').value = document.getElementById('field-emergency') ? (document.getElementById('field-emergency').innerText === 'Not Available' ? '' : document.getElementById('field-emergency').innerText) : '';
+            document.getElementById('editGuardian').value = document.getElementById('field-nok') ? (document.getElementById('field-nok').innerText === 'Not Available' ? '' : document.getElementById('field-nok').innerText) : '';
+            document.getElementById('editInsurance').value = document.getElementById('field-insurance') ? (document.getElementById('field-insurance').innerText === 'Not Available' ? '' : document.getElementById('field-insurance').innerText) : '';
+            document.getElementById('editModal').classList.remove('hidden');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.add('hidden');
+        }
+
+        async function submitProfileUpdate(event) {
+            event.preventDefault();
+            const legalFullName = document.getElementById('editLegalFullName').value.trim();
+            const dateOfBirth = document.getElementById('editDateOfBirth').value;
+            const gender = document.getElementById('editGender').value.trim();
+            const healthId = document.getElementById('editHealthId').value.trim();
+            const mobile = document.getElementById('editMobile').value.trim();
+            const address = document.getElementById('editAddress').value.trim();
+            const email = document.getElementById('editEmail').value.trim();
+            const languagePref = document.getElementById('editLanguagePref').value.trim();
+            const bloodGroup = document.getElementById('editBloodGroup').value.trim();
+            const emergencyContact = document.getElementById('editEmergencyContact').value.trim();
+            const guardian = document.getElementById('editGuardian').value.trim();
+            const insurance = document.getElementById('editInsurance').value.trim();
+
+            const payload = { legalFullName, dateOfBirth, gender, healthId, mobile, address, email, languagePref, bloodGroup, emergencyContact, guardian, insurance };
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/profile/update`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+                if (!res.ok) {
+                    showToast(data.msg || 'Failed to update profile.', 'error');
+                    return;
+                }
+
+                closeEditModal();
+                showToast(data.msg || 'Profile updated successfully.', 'success');
+                loadProfileData();
+            } catch (error) {
+                console.error('Profile Update Error:', error);
+                showToast('Network error while updating profile.', 'error');
+            }
+        }
+
+        function logout() { sessionStorage.clear(); window.location.href = 'index.html'; }
+
+        function goHome() {
+            if (role === 'doctor') window.location.href = 'doctor_home.html';
+            else if (role === 'pharmacist') window.location.href = 'pharmacist_home.html';
+            else if (role === 'pathologist') window.location.href = 'pathologist_home.html';
+            else window.location.href = 'patient_home.html';
+        }
+
+        function syncToGrid() {
+            const btn = document.getElementById('btnSyncGrid');
+            const originalContent = btn.innerHTML;
+            
+            // Loading State
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Syncing...';
+            btn.disabled = true;
+            btn.classList.replace('bg-blue-600', 'bg-blue-400');
+            btn.classList.replace('hover:bg-blue-700', 'hover:bg-blue-400');
+            
+            setTimeout(() => {
+                // Restore Button State
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
+                btn.classList.replace('bg-blue-400', 'bg-blue-600');
+                btn.classList.replace('hover:bg-blue-400', 'hover:bg-blue-700');
+                
+                // Show Success Toast
+                showToast('Data successfully synchronized with the H.O.L.M.E.S. National Grid.', 'success');
+                
+                if (role === 'doctor') {
+                    localStorage.setItem('demo_doctor_dept', document.getElementById('docDept').value);
+                    localStorage.setItem('demo_doctor_cred', document.getElementById('docCred').value);
+                    localStorage.setItem('demo_doctor_license', document.getElementById('docLicense').value);
+                    
+                    const inputs = document.querySelectorAll('#docDept, #docCred, #docLicense');
+                    inputs.forEach(input => {
+                        input.classList.add('ring-2', 'ring-emerald-400', 'ring-offset-1', 'transition-all', 'duration-300');
+                        setTimeout(() => input.classList.remove('ring-2', 'ring-emerald-400', 'ring-offset-1'), 1000);
+                    });
+                } else if (role === 'patient') {
+                    // Subtle pulse animation on tags
+                    const tags = document.querySelectorAll('#allergyTags span, #conditionTags span');
+                    tags.forEach(tag => {
+                        tag.classList.add('ring-2', 'ring-emerald-400', 'ring-offset-1', 'transition-all', 'duration-300');
+                        setTimeout(() => tag.classList.remove('ring-2', 'ring-emerald-400', 'ring-offset-1'), 1000);
+                    });
+                }
+            }, 1500);
+        }
+    </script>
+</body>
+</html>

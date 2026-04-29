@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Citizen Portal | IntelliScript BD</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .fade-in-up { animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex bg-slate-950">
+
+    <aside class="w-64 glass-panel border-r border-slate-800 flex flex-col justify-between z-20" style="background: rgba(176, 38, 255, 0.05) !important; border-color: rgba(176, 38, 255, 0.2) !important;">
+        <div>
+            <div class="h-20 flex items-center gap-3 px-6 border-b border-indigo-500/20">
+                <div class="w-8 h-8 bg-indigo-500/20 rounded-lg flex items-center justify-center border border-indigo-500/50">
+                    <i class="fa-solid fa-shield-halved text-indigo-400"></i>
+                </div>
+                <h1 class="text-xl font-black tracking-tighter text-white">Holmes</h1>
+            </div>
+            
+            <div class="p-6 space-y-2">
+                <p class="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-4">My Health</p>
+                
+                <button class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-indigo-500 text-white font-bold text-sm shadow-[0_0_15px_rgba(176,38,255,0.4)] transition-all border-none">
+                    <i class="fa-solid fa-file-medical"></i> Clinical Dossier
+                </button>
+                
+                <button onclick="window.location.href='patient_app.html'" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-indigo-400 hover:bg-indigo-500/10 font-bold text-sm transition-all border border-transparent">
+                    <i class="fa-solid fa-pills"></i> Prescription Vault
+                </button>
+
+                <button onclick="window.location.href='profile.html'" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-indigo-400 hover:bg-indigo-500/10 font-bold text-sm transition-all border border-transparent">
+                    <i class="fa-solid fa-id-card-clip"></i> Identity Matrix
+                </button>
+            </div>
+        </div>
+        
+        <div class="p-6 border-t border-indigo-500/20">
+            <div class="bg-slate-900/50 rounded-xl p-4 border border-indigo-500/20 text-center">
+                <p id="patientNameDisplay" class="text-sm font-black text-white mb-1">Citizen</p>
+                <p id="patientNhiDisplay" class="text-[10px] font-black text-indigo-400 uppercase tracking-widest bg-indigo-500/10 py-1 rounded-md border border-indigo-500/20">NHI: PENDING</p>
+            </div>
+            <button onclick="logout()" class="w-full mt-4 flex items-center justify-center gap-2 px-4 py-3 rounded-xl hover:bg-rose-500/10 text-slate-400 hover:text-rose-400 font-bold text-sm transition-all border border-transparent hover:border-rose-500/30">
+                <i class="fa-solid fa-power-off"></i> Sign Out
+            </button>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col relative z-10 overflow-y-auto custom-scrollbar">
+        <header class="h-20 glass-panel border-b border-slate-800 flex items-center px-10 sticky top-0 z-30">
+            <div>
+                <h2 class="text-2xl font-black text-white tracking-tighter">Clinical Dossier</h2>
+                <p class="text-[10px] font-black text-emerald-400 uppercase tracking-widest mt-1 flex items-center gap-1"><i class="fa-solid fa-lock text-xs"></i> End-to-End Encrypted</p>
+            </div>
+        </header>
+
+        <div class="p-10 max-w-5xl mx-auto w-full space-y-6 fade-in-up">
+            
+            <div class="glass-panel p-8 rounded-[32px] border border-slate-800">
+                <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-hand-holding-medical text-rose-500"></i> Self-Report an Allergy
+                </h3>
+                
+                <div class="flex flex-col md:flex-row gap-4">
+                    <div class="flex-1">
+                        <input type="text" id="allergyName" placeholder="e.g. Peanuts, Penicillin" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none focus:border-rose-500 transition-colors">
+                    </div>
+                    <div class="w-full md:w-64">
+                        <select id="allergySeverity" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none focus:border-rose-500 transition-colors cursor-pointer appearance-none">
+                            <option value="High">High Risk (Severe)</option>
+                            <option value="Moderate">Moderate Risk</option>
+                            <option value="Low">Low Risk (Mild)</option>
+                        </select>
+                    </div>
+                    <button id="addAllergyBtn" onclick="recordAllergy()" class="bg-rose-500 hover:bg-rose-400 text-white px-8 py-3 rounded-xl font-black text-sm transition-all shadow-[0_0_15px_rgba(255,0,60,0.3)] hover:shadow-[0_0_25px_rgba(255,0,60,0.5)] flex items-center justify-center gap-2 whitespace-nowrap border-none">
+                        <i class="fa-solid fa-plus"></i> Add Record
+                    </button>
+                </div>
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-4"><i class="fa-solid fa-circle-info mr-1"></i> Self-reported allergies will be visible to your doctor during prescribing.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="glass-panel p-6 rounded-3xl border border-rose-500/20">
+                    <h3 class="text-[10px] font-black text-rose-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-triangle-exclamation"></i> My Recorded Allergies
+                    </h3>
+                    <div id="allergyList" class="space-y-3">
+                        <p class="text-sm font-bold text-slate-500">No allergies recorded.</p>
+                    </div>
+                </div>
+                <div class="glass-panel p-6 rounded-3xl border border-teal-500/20">
+                    <h3 class="text-[10px] font-black text-teal-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-capsules"></i> Ongoing Medications
+                    </h3>
+                    <div id="medicationList" class="space-y-3">
+                        <p class="text-sm font-bold text-slate-500">No active medications.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[150] flex flex-col gap-3 pointer-events-none w-full max-w-[320px] px-4 lg:px-0"></div>
+
+    <script>
+        const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
+
+        // 1. Verify Grid Access
+        const token = sessionStorage.getItem('eRx_Token');
+        if (!token) window.location.href = 'auth.html';
+
+        // 2. Populate Identity Data
+        const userName = sessionStorage.getItem('eRx_UserName');
+        if(userName) {
+            document.getElementById('patientNameDisplay').innerText = userName;
+        }
+
+        // 3. System Alert Function
+        function showToast(message, type = 'error') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const colors = type === 'error' ? 'glass-panel border-rose-500' : 'glass-panel border-emerald-500';
+            const iconColor = type === 'error' ? 'text-rose-500 bg-rose-500/10' : 'text-emerald-500 bg-emerald-500/10';
+            const icon = type === 'error' ? 'fa-triangle-exclamation' : 'fa-check';
+            
+            toast.className = `flex items-center p-4 rounded-2xl shadow-xl border-l-4 transform transition-all duration-500 translate-y-10 opacity-0 ${colors}`;
+            toast.innerHTML = `<div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${iconColor}"><i class="fa-solid ${icon}"></i></div><div class="ml-3"><p class="text-xs font-black text-white uppercase tracking-widest leading-tight">${type === 'error' ? 'System Alert' : 'Success'}</p><p class="text-xs font-bold text-slate-400 mt-0.5">${message}</p></div>`;
+            container.appendChild(toast);
+            requestAnimationFrame(() => toast.classList.remove('translate-y-10', 'opacity-0'));
+            setTimeout(() => { toast.classList.add('translate-y-10', 'opacity-0'); setTimeout(() => toast.remove(), 500); }, 4000);
+        }
+
+        // 4. Secure Disconnect
+        function logout() {
+            sessionStorage.clear();
+            window.location.href = 'auth.html';
+        }
+
+        // 5. THE ALLERGY TRANSMITTER
+        async function recordAllergy() {
+            const substance = document.getElementById('allergyName').value.trim();
+            const severity = document.getElementById('allergySeverity').value;
+
+            if (!substance) return showToast("Please specify the allergy substance.");
+
+            // Lock Button
+            const btn = document.getElementById('addAllergyBtn');
+            const ogText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Transmitting...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/patient/allergy`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` 
+                    },
+                    body: JSON.stringify({ substance, criticality: severity })
+                });
+                
+                const data = await res.json();
+
+                if (res.ok) {
+                    showToast("Allergy securely logged in the Clinical Dossier.", "success");
+                    document.getElementById('allergyName').value = ''; // Clear input on success
+                } else {
+                    showToast(data.msg, "error");
+                }
+            } catch (err) {
+                showToast("Grid Transmission Failed.", "error");
+            } finally {
+                // Unlock Button
+                btn.innerHTML = ogText;
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

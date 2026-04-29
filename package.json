@@ -1,0 +1,39 @@
+{
+  "name": "holmes_erx_system",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tokitahmidornob/Holmes_eRx_System.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/tokitahmidornob/Holmes_eRx_System/issues"
+  },
+  "homepage": "https://github.com/tokitahmidornob/Holmes_eRx_System#readme",
+  "dependencies": {
+    "@google/genai": "^1.50.1",
+    "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "csv-parser": "^3.2.0",
+    "csvtojson": "^2.0.14",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.3.1",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.3",
+    "mongodb": "3.6",
+    "mongoose": "^9.3.1",
+    "multer": "^2.1.1",
+    "nodemailer": "^8.0.4",
+    "socket.io": "^4.8.3"
+  }
+}

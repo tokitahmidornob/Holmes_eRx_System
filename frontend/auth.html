@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Authentication | IntelliScript BD</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .fade-in-up { animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        /* High-Tech Grid Background */
+        .bg-grid-pattern {
+            background-image: radial-gradient(rgba(15, 23, 42, 0.05) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 via-sky-50 to-teal-50 antialiased min-h-screen flex items-center justify-center relative overflow-hidden selection:bg-blue-200 selection:text-blue-900">
+
+    <div class="fixed inset-0 w-full h-full bg-grid-pattern z-0 pointer-events-none opacity-60"></div>
+    <div class="absolute top-[-10%] right-[-5%] w-[40rem] h-[40rem] bg-teal-300/30 rounded-full blur-3xl z-0 pointer-events-none"></div>
+    <div class="absolute bottom-[-10%] left-[-10%] w-[45rem] h-[45rem] bg-blue-400/20 rounded-full blur-3xl z-0 pointer-events-none"></div>
+
+    <div class="bg-white/90 backdrop-blur-xl w-full max-w-md mx-4 rounded-[32px] shadow-2xl border border-white/60 overflow-hidden relative z-10 fade-in-up">
+        
+        <div class="pt-10 pb-6 px-10 text-center relative">
+            <a href="index.html" class="absolute top-6 left-6 w-8 h-8 flex items-center justify-center rounded-full bg-slate-50 text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors border border-slate-200"><i class="fa-solid fa-arrow-left"></i></a>
+            <div class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm border border-blue-100">
+                <i class="fa-solid fa-network-wired text-blue-600 text-2xl"></i>
+            </div>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-2">Secure Access Terminal</p>
+            <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Grid Identity</h1>
+        </div>
+
+        <div class="flex border-b border-slate-200 px-6">
+            <button onclick="switchTab('login')" id="tabLogin" class="flex-1 pb-4 text-xs font-bold uppercase tracking-widest text-blue-600 border-b-2 border-blue-600 transition-colors">Secure Login</button>
+            <button onclick="switchTab('register')" id="tabRegister" class="flex-1 pb-4 text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-slate-600 border-b-2 border-transparent transition-colors">Register Profile</button>
+        </div>
+
+        <div class="p-8 lg:p-10">
+            <div id="loginForm" class="space-y-5 block fade-in-up" style="animation-delay: 0.1s;">
+                <div>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Access Role</label>
+                    <div class="flex items-center relative">
+                        <i class="fa-solid fa-user-shield text-slate-400 absolute left-4 z-10"></i>
+                        <select id="loginRole" class="w-full bg-slate-50 border border-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-xl px-4 py-3.5 pl-11 outline-none text-sm font-bold text-slate-700 appearance-none cursor-pointer transition-all">
+                            <option value="patient">Citizen (Patient)</option>
+                            <option value="doctor">Practitioner (Doctor)</option>
+                            <option value="pharmacist">Authority (Pharmacist)</option>
+                            <option value="pathologist">Pathology (Lab)</option>
+                            <option value="insurance">Insurance / Payer</option>
+                            <option value="admin">System Administrator</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down text-slate-400 absolute right-4 z-10 text-xs pointer-events-none"></i>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Grid Identity (Email)</label>
+                    <div class="flex items-center relative">
+                        <i class="fa-solid fa-envelope text-slate-400 absolute left-4 z-10"></i>
+                        <input type="email" id="loginEmail" class="w-full bg-slate-50 border border-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-xl px-4 py-3.5 pl-11 outline-none text-sm font-bold text-slate-800 transition-all placeholder:text-slate-400 placeholder:font-medium" placeholder="citizen@grid.com">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Security Passphrase</label>
+                    <div class="flex items-center relative">
+                        <i class="fa-solid fa-lock text-slate-400 absolute left-4 z-10"></i>
+                        <input type="password" id="loginPassword" class="w-full bg-slate-50 border border-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-xl px-4 py-3.5 pl-11 outline-none text-sm font-bold text-slate-800 transition-all placeholder:text-slate-400 placeholder:font-medium" placeholder="••••••••">
+                    </div>
+                </div>
+                <button onclick="login()" id="loginBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl font-bold text-sm uppercase tracking-wide shadow-lg shadow-blue-600/20 mt-6 flex items-center justify-center gap-3 transition-all hover:-translate-y-0.5">
+                    <i class="fa-solid fa-right-to-bracket"></i> Authenticate
+                </button>
+            </div>
+
+            <div id="registerForm" class="space-y-4 hidden fade-in-up">
+                <div>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Legal Full Name</label>
+                    <input type="text" id="regName" class="w-full bg-slate-50 border border-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 outline-none transition-all placeholder:text-slate-400 placeholder:font-medium" placeholder="John Doe">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Access Role</label>
+                    <div class="relative">
+                        <select id="regRole" class="w-full bg-slate-50 border border-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-xl px-4 py-3 outline-none text-sm font-bold text-slate-700 appearance-none cursor-pointer transition-all">
+                            <option value="patient">Citizen (Patient)</option>
+                            <option value="doctor">Practitioner (Doctor)</option>
+                            <option value="pharmacist">Authority (Pharmacist)</option>
+                            <option value="pathologist">Pathology (Lab)</option>
+                            <option value="insurance">Insurance / Payer</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down text-slate-400 absolute right-4 top-1/2 -translate-y-1/2 text-xs pointer-events-none"></i>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Email Address</label>
+                    <input type="email" id="regEmail" class="w-full bg-slate-50 border border-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 outline-none transition-all placeholder:text-slate-400 placeholder:font-medium" placeholder="name@domain.com">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Secure Passphrase</label>
+                    <input type="password" id="regPassword" class="w-full bg-slate-50 border border-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 outline-none transition-all placeholder:text-slate-400 placeholder:font-medium" placeholder="••••••••">
+                </div>
+                <button onclick="register()" id="registerBtn" class="w-full bg-slate-800 hover:bg-slate-900 text-white py-4 rounded-xl font-bold text-sm uppercase tracking-wide shadow-lg shadow-slate-900/20 mt-4 flex items-center justify-center gap-3 transition-all hover:-translate-y-0.5">
+                    <i class="fa-solid fa-fingerprint"></i> Initialize Identity
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[150] flex flex-col gap-3 pointer-events-none w-full max-w-[320px] px-4 lg:px-0"></div>
+
+    <script>
+        const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
+
+        // Auto-Route if already logged in
+        if (sessionStorage.getItem('eRx_Token')) {
+            const role = parseJwt(sessionStorage.getItem('eRx_Token')).role;
+            routeUser(role);
+        }
+
+        function parseJwt(t) { try { return JSON.parse(atob(t.split('.')[1])); } catch(e) { return {}; } }
+
+        // Enterprise Toast Notifications
+        function showToast(message, type = 'error') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const colors = type === 'error' ? 'bg-white border-rose-200 shadow-lg' : 'bg-white border-emerald-200 shadow-lg';
+            const iconColor = type === 'error' ? 'text-rose-500 bg-rose-50' : 'text-emerald-500 bg-emerald-50';
+            const icon = type === 'error' ? 'fa-triangle-exclamation' : 'fa-check';
+            
+            toast.className = `flex items-center p-4 rounded-xl border-l-4 transform transition-all duration-300 translate-y-10 opacity-0 ${colors}`;
+            toast.innerHTML = `<div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${iconColor}"><i class="fa-solid ${icon}"></i></div><div class="ml-3"><p class="text-[11px] font-bold text-slate-800 uppercase tracking-wider leading-tight">${type === 'error' ? 'System Alert' : 'Success'}</p><p class="text-xs font-medium text-slate-500 mt-0.5">${message}</p></div>`;
+            container.appendChild(toast);
+            requestAnimationFrame(() => toast.classList.remove('translate-y-10', 'opacity-0'));
+            setTimeout(() => { toast.classList.add('translate-y-10', 'opacity-0'); setTimeout(() => toast.remove(), 500); }, 4000);
+        }
+
+        // UI Tab Switcher
+        function switchTab(tab) {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('registerForm').classList.add('hidden');
+            document.getElementById('tabLogin').className = "flex-1 pb-4 text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-slate-600 border-b-2 border-transparent transition-colors";
+            document.getElementById('tabRegister').className = "flex-1 pb-4 text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-slate-600 border-b-2 border-transparent transition-colors";
+
+            if (tab === 'login') {
+                document.getElementById('loginForm').classList.remove('hidden');
+                document.getElementById('tabLogin').className = "flex-1 pb-4 text-xs font-bold uppercase tracking-widest text-blue-600 border-b-2 border-blue-600 transition-colors";
+            } else {
+                document.getElementById('registerForm').classList.remove('hidden');
+                document.getElementById('tabRegister').className = "flex-1 pb-4 text-xs font-bold uppercase tracking-widest text-slate-800 border-b-2 border-slate-800 transition-colors";
+            }
+        }
+
+        // 🚨 CRITICAL FIX: The new Enterprise Traffic Controller
+        function routeUser(role) {
+            if (role === 'doctor') window.location.href = 'doctor_home.html';
+            else if (role === 'pharmacist') window.location.href = 'pharmacist_home.html';
+            else if (role === 'pathologist') window.location.href = 'pathologist_home.html';
+            else if (role === 'insurance') window.location.href = 'insurance_portal.html';
+            else if (role === 'admin') window.location.href = 'admin_portal.html';
+            else window.location.href = 'patient_home.html'; 
+        }
+
+        // Login Action
+        async function login() {
+            const role = document.getElementById('loginRole').value;
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            if (!email || !password) return showToast("Credentials are required.");
+
+            const btn = document.getElementById('loginBtn');
+            const ogHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Authenticating...'; btn.disabled = true;
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, role }) 
+                });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    sessionStorage.setItem('eRx_Token', data.token);
+                    sessionStorage.setItem('eRx_UserName', data.user.name);
+                    showToast("Access Granted.", "success");
+                    setTimeout(() => routeUser(data.user.role), 500); 
+                } else showToast(data.msg, "error");
+            } catch (err) { showToast("Grid Terminal Offline.", "error"); } finally { btn.innerHTML = ogHtml; btn.disabled = false; }
+        }
+
+        // Register Action
+        async function register() {
+            const name = document.getElementById('regName').value.trim();
+            const role = document.getElementById('regRole').value;
+            const email = document.getElementById('regEmail').value.trim();
+            const password = document.getElementById('regPassword').value.trim();
+            if (!name || !email || !password) return showToast("All fields are strictly required.");
+
+            const btn = document.getElementById('registerBtn');
+            const ogHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Initializing...'; btn.disabled = true;
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password, role })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showToast("Identity Successfully Initialized. Proceed to Login.", "success");
+                    setTimeout(() => switchTab('login'), 1500);
+                } else showToast(data.msg, "error");
+            } catch (err) { showToast("Grid Initialization Failure.", "error"); } finally { btn.innerHTML = ogHtml; btn.disabled = false; }
+        }
+    </script>
+</body>
+</html>

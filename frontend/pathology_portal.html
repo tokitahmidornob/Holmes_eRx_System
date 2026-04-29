@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnostic Terminal | IntelliScript BD</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+</head>
+<body class="antialiased text-slate-800 bg-slate-50 flex h-screen overflow-hidden">
+
+    <aside class="fixed lg:static inset-y-0 left-0 w-64 lg:w-72 bg-slate-900 text-white flex flex-col z-50 shadow-xl shrink-0 h-full border-r border-slate-800">
+        <a href="pathology_portal.html" class="h-24 flex items-center justify-start px-8 border-b border-slate-800 bg-slate-950/50 text-current no-underline cursor-pointer">
+            <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-md shrink-0"><i class="fa-solid fa-microscope"></i></div>
+            <h1 class="ml-4 text-xl font-bold tracking-tight text-white">IntelliScript <span class="text-indigo-400">BD</span></h1>
+        </a>
+        
+        <nav class="flex-1 py-8 flex flex-col gap-2 px-4 overflow-y-auto custom-scrollbar">
+            <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider px-4 mb-2">Lab Workspace</p>
+            <button class="nav-btn active flex items-center p-3.5 rounded-xl bg-indigo-600 text-white transition-all-spring font-medium shadow-md shadow-indigo-900/20">
+                <i class="fa-solid fa-vial-virus text-lg mr-4 w-6 text-center"></i><span class="text-sm">Lab Terminal</span>
+            </button>
+            <button onclick="window.location.href='pathologist_home.html'" class="nav-btn flex items-center p-3.5 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition-all-spring font-medium">
+                <i class="fa-solid fa-house text-lg mr-4 w-6 text-center"></i><span class="text-sm">Command Hub</span>
+            </button>
+        </nav>
+        
+        <div class="p-5 border-t border-slate-800 bg-slate-950/50">
+            <div class="mb-4 text-left px-2">
+                <p id="pathNameDisplay" class="font-bold text-sm text-white truncate">Loading Identity...</p>
+                <div class="inline-block bg-slate-800 border border-slate-700 rounded-md mt-1.5 px-2 py-1"><p id="pathGridIdDisplay" class="text-[10px] font-mono font-bold text-indigo-400 tracking-wide">ID: PENDING</p></div>
+            </div>
+            <button onclick="logout()" class="w-full flex items-center justify-center p-3 rounded-xl bg-slate-800 hover:bg-rose-600 text-slate-300 hover:text-white transition-all-spring group border border-slate-700 hover:border-rose-500">
+                <i class="fa-solid fa-power-off text-sm mr-2 group-hover:rotate-180 transition-transform duration-500"></i><span class="font-semibold text-xs uppercase tracking-wider">Secure Disconnect</span>
+            </button>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col relative z-10 h-screen overflow-y-auto custom-scrollbar bg-slate-50">
+        
+        <header class="h-20 lg:h-24 bg-white border-b border-slate-200 flex items-center justify-between px-6 lg:px-10 shrink-0 z-10 shadow-sm">
+            <div>
+                <h2 class="text-xl lg:text-2xl font-bold text-slate-800 tracking-tight">Diagnostic Terminal</h2>
+                <p class="text-[11px] font-semibold text-slate-500 mt-1 flex items-center uppercase tracking-wider"><div class="w-2 h-2 rounded-full bg-indigo-500 mr-2 animate-pulse"></div> Investigation Intake Engine</p>
+            </div>
+        </header>
+
+        <div class="max-w-7xl mx-auto w-full p-6 lg:p-10 grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm h-fit">
+                <h3 class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-6 border-b border-slate-100 pb-4"><i class="fa-solid fa-key mr-2 text-indigo-500"></i> Enter Patient Keys</h3>
+                
+                <div class="space-y-5">
+                    <button onclick="startScanner()" class="w-full bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 py-5 rounded-xl font-bold text-sm uppercase tracking-wide transition-all shadow-sm flex items-center justify-center gap-3 mb-4 group">
+                        <i class="fa-solid fa-qrcode text-xl group-hover:scale-110 transition-transform"></i> Launch Optical Scanner
+                    </button>
+
+                    <div class="relative flex items-center justify-center">
+                        <hr class="w-full border-slate-200">
+                        <span class="absolute bg-white px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">OR MANUAL ENTRY</span>
+                    </div>
+
+                    <div>
+                        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 mb-2 block">Broadcast ID</label>
+                        <input type="text" id="broadcastId" placeholder="e.g. RX-A7B9-C123" class="w-full bg-slate-50 border border-slate-300 focus:border-indigo-500 rounded-xl px-4 py-4 font-mono font-bold text-slate-800 outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all uppercase">
+                    </div>
+                    <div>
+                        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 mb-2 block">6-Digit OTP</label>
+                        <input type="text" id="otp" placeholder="XXXXXX" maxlength="6" class="w-full bg-slate-50 border border-slate-300 focus:border-indigo-500 rounded-xl px-4 py-4 font-mono text-2xl tracking-[0.5em] text-center font-black text-indigo-600 outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all">
+                    </div>
+                    <button onclick="decryptPayload()" id="decryptBtn" class="w-full bg-slate-900 hover:bg-slate-800 text-white py-4 rounded-xl font-bold text-sm uppercase tracking-wide shadow-lg shadow-slate-900/20 transition-all mt-4 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-unlock"></i> Decrypt Investigation Order
+                    </button>
+                </div>
+            </div>
+
+            <div id="resultPanel" class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm hidden opacity-0 transition-all duration-500 transform translate-y-4">
+                <div class="flex justify-between items-start border-b border-slate-100 pb-4 mb-6">
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Citizen</p>
+                        <p id="resPatient" class="text-lg font-bold text-slate-800"></p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Prescribing Authority</p>
+                        <p id="resDoctor" class="text-sm font-bold text-indigo-600"></p>
+                    </div>
+                </div>
+
+                <div id="statusBadge" class="mb-6 inline-block px-4 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-widest border shadow-sm border-indigo-200 bg-indigo-50 text-indigo-600">
+                    <i class='fa-solid fa-microscope mr-1'></i> Orders Pending
+                </div>
+
+                <h4 class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-4 border-b border-slate-100 pb-2"><i class="fa-solid fa-vial-virus mr-2"></i> Requested Investigations</h4>
+                
+                <div class="space-y-3 mb-8" id="testList">
+                    </div>
+
+                <button onclick="acknowledgeOrder()" id="ackBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-xl font-bold text-sm uppercase tracking-wide transition-all shadow-md flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-file-arrow-up text-lg"></i> Acknowledge & Upload Findings
+                </button>
+            </div>
+
+            <!-- ✅ PENDING INVESTIGATION QUEUE -->
+            <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-6 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+                    <h3 class="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></div>
+                        <i class="fa-solid fa-list-check mr-1 text-indigo-500"></i> Pending Investigation Queue
+                    </h3>
+                    <button id="refreshQueueBtn" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 border border-slate-200 px-4 py-2 rounded-lg transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-rotate-right"></i> Refresh
+                    </button>
+                </div>
+                <div id="pendingOrdersList" class="p-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 max-h-[600px] overflow-y-auto custom-scrollbar">
+                    <div class="col-span-full p-10 text-center">
+                        <i class="fa-solid fa-circle-notch fa-spin text-2xl text-indigo-300 mb-3 block"></i>
+                        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Loading queue...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="scannerModal" class="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4 hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl w-full max-w-md p-6 shadow-2xl relative overflow-hidden transform transition-all flex flex-col">
+            <div class="flex justify-between items-center mb-4 pb-4 border-b border-slate-100">
+                <h3 class="text-sm font-bold text-slate-800 uppercase tracking-widest"><i class="fa-solid fa-camera mr-2 text-indigo-500"></i> Optical Scanner</h3>
+                <button onclick="stopScanner()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-rose-100 hover:text-rose-500 flex items-center justify-center transition-colors"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div id="reader" class="w-full bg-slate-900 rounded-xl overflow-hidden aspect-square border-2 border-dashed border-indigo-400/50"></div>
+            
+            <p class="text-[11px] font-medium text-slate-500 text-center mt-4 uppercase tracking-widest">Position Grid QR Code in frame</p>
+        </div>
+    </div>
+
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[150] flex flex-col gap-3 pointer-events-none w-full max-w-[320px]"></div>
+
+    <script>
+        const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://holmes-erx-system.onrender.com';
+        const token = sessionStorage.getItem('eRx_Token');
+        if (!token) window.location.href = 'index.html';
+        
+        // Setup UI Profile
+        const userName = sessionStorage.getItem('eRx_UserName');
+        if(userName) document.getElementById('pathNameDisplay').innerText = userName;
+        try { const decoded = JSON.parse(atob(token.split('.')[1])); document.getElementById('pathGridIdDisplay').innerText = decoded.uuid || 'PTH-ACTIVE'; } catch(e){}
+
+        let currentRxId = null;
+        let html5QrcodeScanner = null;
+
+        function showToast(message, type = 'error') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const colors = type === 'error' ? 'bg-white border-rose-200 shadow-lg' : 'bg-white border-emerald-200 shadow-lg';
+            const iconColor = type === 'error' ? 'text-rose-500 bg-rose-50' : 'text-emerald-500 bg-emerald-50';
+            const icon = type === 'error' ? 'fa-triangle-exclamation' : 'fa-check';
+            
+            toast.className = `flex items-center p-4 rounded-xl border-l-4 transform transition-all duration-300 translate-y-10 opacity-0 ${colors}`;
+            toast.innerHTML = `<div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${iconColor}"><i class="fa-solid ${icon}"></i></div><div class="ml-3"><p class="text-[11px] font-bold text-slate-800 uppercase tracking-wider leading-tight">${type === 'error' ? 'System Alert' : 'Success'}</p><p class="text-xs font-medium text-slate-500 mt-0.5">${message}</p></div>`;
+            container.appendChild(toast);
+            requestAnimationFrame(() => toast.classList.remove('translate-y-10', 'opacity-0'));
+            setTimeout(() => { toast.classList.add('translate-y-10', 'opacity-0'); setTimeout(() => toast.remove(), 500); }, 4000);
+        }
+
+        // ==========================================
+        // OPTICAL SCANNER LOGIC
+        // ==========================================
+        function startScanner() {
+            const modal = document.getElementById('scannerModal');
+            modal.classList.remove('hidden');
+            requestAnimationFrame(() => modal.classList.remove('opacity-0'));
+
+            html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: {width: 250, height: 250} }, false);
+            html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+        }
+
+        function onScanSuccess(decodedText, decodedResult) {
+            try {
+                stopScanner();
+                const data = JSON.parse(decodedText);
+                if(data.bId && data.otp) {
+                    showToast("Optical Scan Complete.", "success");
+                    document.getElementById('broadcastId').value = data.bId;
+                    document.getElementById('otp').value = data.otp;
+                    decryptPayload();
+                } else {
+                    showToast("Invalid Grid Payload format.", "error");
+                }
+            } catch(e) {
+                stopScanner();
+                showToast("Unrecognized Grid Format.", "error");
+            }
+        }
+
+        function onScanFailure(error) { /* Ignore background scan failures */ }
+
+        function stopScanner() {
+            if(html5QrcodeScanner) {
+                html5QrcodeScanner.clear();
+                html5QrcodeScanner = null;
+            }
+            const modal = document.getElementById('scannerModal');
+            modal.classList.add('opacity-0');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        // ==========================================
+        // DECRYPTION LOGIC
+        // ==========================================
+        async function decryptPayload() {
+            const bId = document.getElementById('broadcastId').value;
+            const otp = document.getElementById('otp').value;
+            if(!bId || !otp) return showToast("Both security keys are required.");
+
+            const btn = document.getElementById('decryptBtn');
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Decrypting...'; btn.disabled = true;
+
+            try {
+                // Utilizing the exact same decryption endpoint
+                const res = await fetch(`${API_BASE_URL}/api/prescriptions/decrypt`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ broadcastId: bId, otp: otp })
+                });
+                const data = await res.json();
+
+                if(res.ok) {
+                    currentRxId = data.rxId;
+                    document.getElementById('resPatient').innerText = data.patientName;
+                    document.getElementById('resDoctor').innerText = "Dr. " + data.doctorName;
+                    
+                    const testList = document.getElementById('testList');
+                    const ackBtn = document.getElementById('ackBtn');
+                    
+                    if(data.investigations && data.investigations.length > 0) {
+                        testList.innerHTML = data.investigations.map(t => `
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 shadow-sm flex items-center">
+                                <div class="w-10 h-10 bg-indigo-100 text-indigo-500 rounded-lg flex items-center justify-center mr-4 shrink-0"><i class="fa-solid fa-vial"></i></div>
+                                <p class="font-bold text-sm text-slate-800">${t}</p>
+                            </div>
+                        `).join('');
+                        ackBtn.classList.remove('hidden');
+                        showToast("Payload successfully decrypted.", "success");
+                    } else {
+                        testList.innerHTML = `<div class="p-6 text-center border-2 border-dashed border-slate-200 rounded-xl bg-slate-50"><p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">No investigations ordered.</p></div>`;
+                        ackBtn.classList.add('hidden');
+                        showToast("Warning: No lab tests found in this payload.", "error");
+                    }
+
+                    const panel = document.getElementById('resultPanel');
+                    panel.classList.remove('hidden');
+                    setTimeout(() => panel.classList.remove('opacity-0', 'translate-y-4'), 50);
+
+                } else { showToast(data.msg, "error"); }
+            } catch (err) { showToast("Grid Network Failure.", "error"); } finally {
+                btn.innerHTML = '<i class="fa-solid fa-unlock"></i> Decrypt Investigation Order'; btn.disabled = false;
+            }
+        }
+
+        // Feature placeholder for when we build the Clinical Record API
+        function acknowledgeOrder() {
+            if(!currentRxId) return;
+            const btn = document.getElementById('ackBtn');
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Initializing Upload...'; btn.disabled = true;
+
+            setTimeout(() => {
+                showToast("Investigations Acknowledged. Linked to Clinical Layer.", "success");
+                document.getElementById('statusBadge').className = "mb-6 inline-block px-4 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-widest border shadow-sm border-emerald-200 bg-emerald-50 text-emerald-600";
+                document.getElementById('statusBadge').innerHTML = "<i class='fa-solid fa-check-double mr-1'></i> Order Received & Processed";
+                btn.classList.add('hidden');
+            }, 1000);
+        }
+
+        function logout() { sessionStorage.clear(); window.location.href = 'index.html'; }
+
+        // ==========================================
+        // PENDING INVESTIGATION QUEUE
+        // ==========================================
+        async function fetchPendingOrders() {
+            const listEl = document.getElementById('pendingOrdersList');
+            listEl.innerHTML = `
+                <div class="col-span-full p-10 text-center">
+                    <i class="fa-solid fa-circle-notch fa-spin text-2xl text-indigo-300 mb-3 block"></i>
+                    <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Syncing queue...</p>
+                </div>`;
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/prescriptions/doctor/me`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!res.ok) throw new Error('API error');
+
+                const allRx = await res.json();
+
+                // Filter: only prescriptions that have at least one investigation
+                const pending = allRx.filter(rx =>
+                    Array.isArray(rx.investigations) && rx.investigations.length > 0
+                );
+
+                if (pending.length === 0) {
+                    listEl.innerHTML = `
+                        <div class="col-span-full p-10 text-center border-2 border-dashed border-slate-200 rounded-2xl">
+                            <i class="fa-solid fa-microscope text-3xl text-slate-300 mb-3 block"></i>
+                            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">No pending investigation orders.</p>
+                        </div>`;
+                    return;
+                }
+
+                listEl.innerHTML = pending.map((rx, i) => {
+                    const testTags = rx.investigations.map(t =>
+                        `<span class="inline-flex items-center gap-1 bg-indigo-50 border border-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide">
+                            <i class="fa-solid fa-vial text-indigo-400 text-[9px]"></i>${t}
+                        </span>`
+                    ).join('');
+
+                    const statusClass = rx.status === 'Dispensed'
+                        ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
+                        : 'bg-amber-50 text-amber-600 border-amber-200';
+
+                    const date = new Date(rx.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
+                    return `
+                        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all flex flex-col gap-4">
+                            <div class="flex items-start justify-between gap-2">
+                                <div>
+                                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Patient ID</p>
+                                    <p class="text-sm font-black text-slate-800 truncate">${rx.patientId || '—'}</p>
+                                </div>
+                                <span class="text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-lg border shrink-0 ${statusClass}">${rx.status}</span>
+                            </div>
+
+                            ${ rx.indication ? `
+                            <div class="bg-amber-50 border border-amber-100 rounded-xl px-3 py-2">
+                                <p class="text-[9px] font-bold text-amber-500 uppercase tracking-widest mb-0.5"><i class="fa-solid fa-stethoscope mr-1"></i>Indication</p>
+                                <p class="text-xs font-bold text-amber-800">${rx.indication}</p>
+                            </div>` : '' }
+
+                            <div>
+                                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-2"><i class="fa-solid fa-vial-virus mr-1"></i>Investigations (${rx.investigations.length})</p>
+                                <div class="flex flex-wrap gap-1.5">${testTags}</div>
+                            </div>
+
+                            <div class="mt-auto pt-3 border-t border-slate-100 flex items-center justify-between">
+                                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">${date}</p>
+                                <span class="text-[9px] font-bold text-slate-500 font-mono">${rx.broadcastId || ''}</span>
+                            </div>
+                        </div>`;
+                }).join('');
+
+            } catch (err) {
+                console.error('Queue sync failed:', err);
+                listEl.innerHTML = `
+                    <div class="col-span-full p-8 text-center">
+                        <i class="fa-solid fa-triangle-exclamation text-rose-400 text-2xl mb-2 block"></i>
+                        <p class="text-[11px] font-bold text-rose-500 uppercase tracking-wider">Failed to sync investigation queue.</p>
+                    </div>`;
+            }
+        }
+
+        // Auto-load queue on page ready + wire refresh button
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchPendingOrders();
+            const btn = document.getElementById('refreshQueueBtn');
+            if (btn) btn.addEventListener('click', fetchPendingOrders);
+        });
+
+    </script>
+</body>
+</html>

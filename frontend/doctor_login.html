@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clinical Suite | IntelliScript BD</title>
+    <style>
+        :root { --primary-dark: #0f172a; --doc-color: #3b82f6; --doc-light: #dbeafe; --bg-color: #f8fafc; --text-main: #334155; --text-light: #64748b; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); margin: 0; color: var(--text-main); }
+        
+        .header { background-color: var(--primary-dark); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .header h1 { margin: 0; font-size: 1.5rem; border-left: 4px solid var(--doc-color); padding-left: 10px; }
+        .logout-btn { background-color: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        
+        .dashboard-container { max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 2rem; border-bottom: 2px solid #e2e8f0; }
+        .tab-btn { background: none; border: none; padding: 10px 20px; font-size: 1.1rem; color: var(--text-light); cursor: pointer; font-weight: bold; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: 0.3s; }
+        .tab-btn.active { color: var(--doc-color); border-bottom: 3px solid var(--doc-color); }
+        .tab-content { display: none; animation: fadeIn 0.4s; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card { background: white; border-radius: 10px; padding: 2rem; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border-top: 4px solid var(--doc-color); margin-bottom: 1.5rem; }
+        
+        .queue-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 10px; background: #fff; }
+        .btn-consult { background: var(--doc-color); color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.9rem; }
+        .form-group input, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-family: inherit; }
+        
+        /* SMART eRx ROW STYLES */
+        .med-row-container { background: #f1f5f9; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid var(--doc-color); position: relative; }
+        .med-row { display: grid; grid-template-columns: 2fr 1fr 1fr 2fr auto; gap: 10px; align-items: center; }
+        .btn-remove { background: #ef4444; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .btn-add { background: #10b981; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-bottom: 20px; }
+        .btn-submit { background: var(--primary-dark); color: white; border: none; padding: 15px 30px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1.1rem; width: 100%; margin-top: 20px;}
+        
+        /* AUTOCOMPLETE & DRUG INFO */
+        .autocomplete-dropdown { position: absolute; top: 50px; left: 15px; width: 40%; background: white; border: 1px solid #cbd5e1; border-radius: 6px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 100; max-height: 200px; overflow-y: auto; display: none; }
+        .dropdown-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #f1f5f9; }
+        .dropdown-item:hover { background: var(--doc-light); }
+        .drug-info-card { background: white; border: 1px dashed #cbd5e1; border-radius: 6px; padding: 10px; margin-top: 10px; font-size: 0.85rem; display: none; }
+        
+        #successOverlay { display: none; background: #ecfdf5; border: 2px solid #10b981; padding: 30px; border-radius: 12px; text-align: center; margin-top: 20px; }
+        .otp-display { font-size: 3rem; font-weight: bold; letter-spacing: 10px; color: #047857; margin: 10px 0; font-family: monospace; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Clinical Suite</h1>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <span id="docNameDisplay" style="font-weight: bold;">Loading...</span>
+            <button class="logout-btn" onclick="logout()">Secure Logout</button>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('queueTab', this)">Patient Queue</button>
+            <button class="tab-btn" onclick="switchTab('erxTab', this)">Smart eRx Pad</button>
+        </div>
+
+        <div id="queueTab" class="tab-content active">
+            <div class="card">
+                <h2 style="margin-top: 0; color: var(--primary-dark);">Today's Appointments</h2>
+                <div id="queueList"><p style="color: gray;">Fetching your patient queue...</p></div>
+            </div>
+        </div>
+
+        <div id="erxTab" class="tab-content">
+            <div class="card">
+                <h2 style="margin-top: 0; color: var(--primary-dark); border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">Issue Smart Prescription</h2>
+                
+                <form id="erxForm" onsubmit="submitPrescription(event)">
+                    <div class="form-group">
+                        <label>Patient ID</label>
+                        <input type="text" id="rxPatientId" required placeholder="e.g., PT-12345" style="font-size: 1.1rem; font-weight: bold; color: var(--doc-color);">
+                    </div>
+
+                    <h3 style="margin-top: 30px; color: var(--primary-dark);">Medications (Auto-Dose Enabled)</h3>
+                    <div id="medicationsContainer"></div>
+                    <button type="button" class="btn-add" onclick="addMedicationRow()">+ Add Medication</button>
+
+                    <h3 style="margin-top: 20px; color: var(--primary-dark);">Diagnostic Tests & Advice</h3>
+                    <div class="form-group">
+                        <label>Required Tests (Comma separated)</label>
+                        <textarea id="rxTests" rows="2" placeholder="e.g., CBC, Chest X-Ray"></textarea>
+                    </div>
+
+                    <button type="submit" class="btn-submit" id="submitBtn">Seal & Transmit to Vault</button>
+                </form>
+
+                <div id="successOverlay">
+                    <h2 style="color: #047857; margin-top: 0;">Prescription Sealed!</h2>
+                    <p>Provide this 6-digit Vault Key to the patient:</p>
+                    <div class="otp-display" id="generatedOtp">------</div>
+                    <button class="btn-consult" style="margin-top: 15px;" onclick="resetErxPad()">Write Another Prescription</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = "https://holmes-erx-system.onrender.com/api";
+        const token = sessionStorage.getItem('token');
+        const doctorId = sessionStorage.getItem('userId');
+
+        if (!token || !doctorId || !doctorId.startsWith('DR-')) {
+            alert("Unauthorized Entry."); window.location.href = 'index.html';
+        }
+
+        function logout() { sessionStorage.clear(); window.location.href = 'index.html'; }
+
+        function switchTab(tabId, element) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            element.classList.add('active');
+        }
+
+        async function loadDoctorDashboard() {
+            try {
+                const docRes = await fetch(`${API_BASE_URL}/doctors/${doctorId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                if (docRes.ok) {
+                    const docData = await docRes.json();
+                    document.getElementById('docNameDisplay').innerText = `Dr. ${docData.name}`;
+                }
+
+                const queueRes = await fetch(`${API_BASE_URL}/appointments/doctor/${doctorId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const queueList = document.getElementById('queueList');
+                if (queueRes.ok) {
+                    const appointments = await queueRes.json();
+                    queueList.innerHTML = appointments.length === 0 ? '<p style="color: gray;">No appointments today.</p>' : '';
+                    appointments.forEach(apt => {
+                        queueList.innerHTML += `
+                            <div class="queue-item">
+                                <div><strong>${apt.patientName}</strong> <span style="color: gray;">(${apt.patientId})</span><br>Date: ${apt.date}</div>
+                                <button class="btn-consult" onclick="startConsultation('${apt.patientId}')">Start Consultation</button>
+                            </div>
+                        `;
+                    });
+                }
+            } catch (err) {}
+        }
+
+        function startConsultation(patientId) {
+            document.getElementById('rxPatientId').value = patientId;
+            switchTab('erxTab', document.querySelectorAll('.tab-btn')[1]);
+        }
+
+        function addMedicationRow() {
+            const container = document.getElementById('medicationsContainer');
+            const rowId = Date.now(); // Unique ID for targeting
+            const wrapperDiv = document.createElement('div');
+            wrapperDiv.className = 'med-row-container';
+            
+            // 🛠️ THE FIX: Added id="medInstruction_${rowId}" so we can target the instructions box
+            wrapperDiv.innerHTML = `
+                <div class="med-row">
+                    <input type="text" placeholder="Search Drug..." class="med-name" id="medName_${rowId}" autocomplete="off" oninput="searchVault(this, ${rowId})">
+                    <input type="text" placeholder="Dose (1+1+1)" class="med-dose" id="medDose_${rowId}" required>
+                    <input type="text" placeholder="Days (e.g., 5)" class="med-duration" required>
+                    <input type="text" placeholder="Instructions" class="med-instruction" id="medInstruction_${rowId}">
+                    <button type="button" class="btn-remove" onclick="this.parentElement.parentElement.remove()">X</button>
+                </div>
+                <div class="autocomplete-dropdown" id="dropdown_${rowId}"></div>
+                <div class="drug-info-card" id="info_${rowId}"></div>
+            `;
+            container.appendChild(wrapperDiv);
+        }
+
+        // 🧠 THE SMART SEARCH ENGINE
+        let searchTimeout;
+        async function searchVault(inputElement, rowId) {
+            clearTimeout(searchTimeout);
+            const query = inputElement.value;
+            const dropdown = document.getElementById(`dropdown_${rowId}`);
+            
+            if (query.length < 2) { dropdown.style.display = 'none'; return; }
+
+            searchTimeout = setTimeout(async () => {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/drugs/search?q=${query}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                    const drugs = await response.json();
+                    
+                    dropdown.innerHTML = '';
+                    if (drugs.length > 0) {
+                        drugs.forEach(drug => {
+                            const item = document.createElement('div');
+                            item.className = 'dropdown-item';
+                            item.innerHTML = `<strong>${drug.brandName}</strong> <span style="font-size:0.8rem; color:gray;">(${drug.genericName})</span>`;
+                            // When doctor clicks the drug, execute the auto-fill protocol
+                            item.onclick = () => selectDrug(drug, rowId);
+                            dropdown.appendChild(item);
+                        });
+                        dropdown.style.display = 'block';
+                    } else {
+                        dropdown.style.display = 'none';
+                    }
+                } catch (err) { }
+            }, 300); 
+        }
+
+        // 💉 THE AUTO-FILL PROTOCOL
+        function selectDrug(drug, rowId) {
+            // Fill Inputs
+            document.getElementById(`medName_${rowId}`).value = `${drug.brandName} (${drug.strength})`;
+            document.getElementById(`medDose_${rowId}`).value = drug.defaultDose || '';
+            
+            // 🛠️ THE FIX: Auto-fill the instructions/administration!
+            document.getElementById(`medInstruction_${rowId}`).value = drug.administration || '';
+            
+            document.getElementById(`dropdown_${rowId}`).style.display = 'none';
+
+            // Show Clinical Pharmacopoeia Info
+            const infoCard = document.getElementById(`info_${rowId}`);
+            infoCard.style.display = 'block';
+            infoCard.innerHTML = `
+                <div style="color: var(--primary-dark);"><strong>Indications:</strong> ${drug.indications || 'N/A'}</div>
+                <div style="color: #ef4444; margin-top: 3px;"><strong>Side Effects:</strong> ${drug.sideEffects || 'N/A'}</div>
+                <div style="color: #64748b; margin-top: 3px;"><strong>Renal Dose:</strong> ${drug.renalDose || 'N/A'} | <strong>Child Dose:</strong> ${drug.childDose || 'N/A'}</div>
+            `;
+        }
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.classList.contains('med-name')) {
+                document.querySelectorAll('.autocomplete-dropdown').forEach(d => d.style.display = 'none');
+            }
+        });
+
+        async function submitPrescription(e) {
+            e.preventDefault();
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.innerText = "Transmitting to Iron Vault..."; submitBtn.disabled = true;
+
+            const medications = [];
+            document.querySelectorAll('.med-row-container').forEach(row => {
+                medications.push({
+                    name: row.querySelector('.med-name').value,
+                    dosage: row.querySelector('.med-dose').value,
+                    duration: row.querySelector('.med-duration').value + " Days",
+                    instruction: row.querySelector('.med-instruction').value
+                });
+            });
+
+            const testsInput = document.getElementById('rxTests').value;
+            const testsArray = testsInput ? testsInput.split(',').map(t => t.trim()) : [];
+
+            const payload = { doctorId: doctorId, doctorName: document.getElementById('docNameDisplay').innerText, patientId: document.getElementById('rxPatientId').value, medications: medications, tests: testsArray };
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/prescriptions`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) });
+                const data = await response.json();
+                if (response.ok) {
+                    document.getElementById('erxForm').style.display = 'none';
+                    document.getElementById('successOverlay').style.display = 'block';
+                    document.getElementById('generatedOtp').innerText = data.otp;
+                } else { alert("Transmission Failed."); }
+            } catch (err) {}
+            
+            submitBtn.innerText = "Seal & Transmit to Vault"; submitBtn.disabled = false;
+        }
+
+        function resetErxPad() {
+            document.getElementById('erxForm').reset();
+            document.getElementById('medicationsContainer').innerHTML = '';
+            addMedicationRow();
+            document.getElementById('erxForm').style.display = 'block';
+            document.getElementById('successOverlay').style.display = 'none';
+        }
+
+        addMedicationRow(); loadDoctorDashboard();
+    </script>
+</body>
+</html>

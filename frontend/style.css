@@ -1,0 +1,87 @@
+/* ==========================================================================
+   HOLMES eRx SYSTEM - ENTERPRISE STYLESHEET
+   ========================================================================== */
+
+/* 1. PREMIUM TYPOGRAPHY IMPORT */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* 2. ENTERPRISE SCROLLBARS */
+.custom-scrollbar::-webkit-scrollbar { 
+    width: 6px; 
+    height: 6px; 
+}
+.custom-scrollbar::-webkit-scrollbar-track { 
+    background: transparent; 
+}
+.custom-scrollbar::-webkit-scrollbar-thumb { 
+    background-color: #cbd5e1; 
+    border-radius: 10px; 
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { 
+    background-color: #94a3b8; 
+}
+
+/* 3. STRUCTURAL COMPONENTS */
+.glass-panel { 
+    background: rgba(255, 255, 255, 0.95); 
+    backdrop-filter: blur(16px); 
+    -webkit-backdrop-filter: blur(16px); 
+}
+
+/* 4. FLUID ANIMATIONS */
+.transition-all-spring { 
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); 
+}
+
+.fade-in-up { 
+    animation: fadeInUp 0.4s ease-out forwards; 
+}
+
+@keyframes fadeInUp { 
+    from { opacity: 0; transform: translateY(10px); } 
+    to { opacity: 1; transform: translateY(0); } 
+}
+
+/* 5. DATA LOADING SKELETONS */
+.skeleton { 
+    background: #f1f5f9; 
+    background-image: linear-gradient(
+        90deg, 
+        rgba(255, 255, 255, 0) 0, 
+        rgba(255, 255, 255, 0.6) 20%, 
+        rgba(255, 255, 255, 0) 40%, 
+        rgba(255, 255, 255, 0) 100%
+    ); 
+    background-repeat: no-repeat; 
+    background-size: 200px 100%; 
+    animation: shimmer 1.5s infinite linear; 
+    border-radius: 8px; 
+}
+
+@keyframes shimmer { 
+    0% { background-position: -200px 0; } 
+    100% { background-position: calc(200px + 100%) 0; } 
+}
+
+/* 6. CLINICAL PRINT MEDIA (For Physical Prescriptions) */
+@media print {
+    aside, header, button, #toast-container, #drugMetadataPanel {
+        display: none !important;
+    }
+    body, main {
+        background: white !important;
+        padding: 0 !important;
+        height: auto !important;
+        overflow: visible !important;
+    }
+    .glass-panel {
+        border: none !important;
+        box-shadow: none !important;
+    }
+}
