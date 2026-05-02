@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const path = require('path');
 require('dotenv').config();
 const orgRoutes = require('./routes/organizations');
 const credentialRoutes = require('./routes/credentials');
@@ -30,9 +31,7 @@ mongoose.connect(process.env.MONGO_URI || process.env.MONGO_URT)
     .then(() => console.log('✅ Iron Vault (MongoDB) Connected Successfully'))
     .catch(err => console.error('❌ Database Connection Failed:', err));
 
-app.get('/', (req, res) => {
-    res.status(200).send("🚀 National Grid Online and Operational.");
-});
+app.use(express.static(path.join(__dirname, 'frontend')));
 const { logAudit } = require('./middleware/auditLogger.js');
 
 
@@ -62,7 +61,7 @@ app.use('/api/patient', require('./routes/patient'));
 app.use('/api/sentinel', require('./routes/sentinel'));
 app.use('/api/optimizer', require('./routes/optimizer'));
 
-const PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 IntelliScript BD Server Online on port: ${PORT}`);
 });
