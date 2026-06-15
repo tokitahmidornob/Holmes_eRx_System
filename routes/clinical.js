@@ -151,7 +151,7 @@ router.get('/dossier/:id', verifyToken, async (req, res) => {
         };
 
         // 🔍 Debug: log full payload so the frontend can be verified against it
-        console.log('[DOSSIER] Full response payload:', JSON.stringify(responsePayload, null, 2));
+        // console.log('[DOSSIER] Full response payload:', JSON.stringify(responsePayload, null, 2));
 
         res.json(responsePayload);
     } catch (err) {
