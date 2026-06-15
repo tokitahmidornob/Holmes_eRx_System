@@ -38,9 +38,22 @@
                 <h2 class="text-xl font-bold text-slate-900">Clinical Formulation Pad</h2>
                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Secure Doctor Workflow • Seal Prescription Payloads</p>
             </div>
-            <button onclick="logout()" class="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-slate-100 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 text-slate-600 hover:text-rose-600 font-bold text-xs uppercase tracking-wider transition-all">
-                <i class="fa-solid fa-power-off"></i><span class="hidden sm:inline">Logout</span>
-            </button>
+            <div class="flex items-center gap-4">
+                <div id="networkStatusBadge" class="flex items-center gap-2 px-3 py-1.5 rounded-full border text-[10px] font-bold uppercase tracking-wider bg-emerald-50 border-emerald-200 text-emerald-600 transition-colors">
+                    <span class="relative flex h-2 w-2">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    Online
+                </div>
+                <div id="unsyncedBadge" class="hidden flex items-center gap-2 px-3 py-1.5 rounded-full border bg-amber-50 border-amber-200 text-amber-600 text-[10px] font-bold uppercase tracking-wider shadow-sm transition-all">
+                    <i class="fa-solid fa-cloud-arrow-up animate-bounce"></i>
+                    Unsynced: <span id="unsyncedCount">0</span>
+                </div>
+                <button onclick="logout()" class="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-slate-100 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 text-slate-600 hover:text-rose-600 font-bold text-xs uppercase tracking-wider transition-all">
+                    <i class="fa-solid fa-power-off"></i><span class="hidden sm:inline">Logout</span>
+                </button>
+            </div>
         </header>
 
         <div class="flex-1 overflow-y-auto custom-scrollbar p-10 space-y-10 bg-slate-50/70">
@@ -201,7 +214,76 @@
             bindSearch();
             loadFormulary();
             renderPayloadSummary();
+            initNetworkListeners();
+            updateSyncBadge();
         });
+
+        // ==========================================
+        // 🌐 NETWORK UI & IDEMPOTENCY SYNC LOGIC
+        // ==========================================
+        function initNetworkListeners() {
+            window.addEventListener('online', updateNetworkStatus);
+            window.addEventListener('offline', updateNetworkStatus);
+            window.addEventListener('offline-queue-updated', updateSyncBadge);
+            updateNetworkStatus();
+        }
+
+        function updateNetworkStatus() {
+            const badge = document.getElementById('networkStatusBadge');
+            if (navigator.onLine) {
+                badge.className = 'flex items-center gap-2 px-3 py-1.5 rounded-full border text-[10px] font-bold uppercase tracking-wider bg-emerald-50 border-emerald-200 text-emerald-600 transition-colors';
+                badge.innerHTML = `
+                    <span class="relative flex h-2 w-2">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    Online
+                `;
+                // Trigger sync immediately if online
+                if ('serviceWorker' in navigator && 'SyncManager' in window) {
+                    navigator.serviceWorker.ready.then(reg => reg.sync.register('sync-prescriptions')).catch(console.error);
+                }
+                setTimeout(updateSyncBadge, 2000); // Check queue after sync resolves
+            } else {
+                badge.className = 'flex items-center gap-2 px-3 py-1.5 rounded-full border text-[10px] font-bold uppercase tracking-wider bg-rose-50 border-rose-200 text-rose-600 transition-colors';
+                badge.innerHTML = `<i class="fa-solid fa-wifi"></i> Offline`;
+            }
+            updateSyncBadge();
+        }
+
+        async function updateSyncBadge() {
+            try {
+                const count = await getOfflineQueueCount();
+                const unsyncedBadge = document.getElementById('unsyncedBadge');
+                const countSpan = document.getElementById('unsyncedCount');
+                
+                if (count > 0) {
+                    unsyncedBadge.classList.remove('hidden');
+                    countSpan.innerText = count;
+                } else {
+                    unsyncedBadge.classList.add('hidden');
+                }
+            } catch (err) {
+                console.error("Failed to read offline queue count", err);
+            }
+        }
+
+        function getOfflineQueueCount() {
+            return new Promise((resolve) => {
+                const request = indexedDB.open('HolmesOfflineDB', 1);
+                request.onsuccess = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains('offline_rx_queue')) return resolve(0);
+                    const tx = db.transaction('offline_rx_queue', 'readonly');
+                    const store = tx.objectStore('offline_rx_queue');
+                    const countReq = store.count();
+                    countReq.onsuccess = () => resolve(countReq.result);
+                    countReq.onerror = () => resolve(0);
+                };
+                request.onerror = () => resolve(0);
+            });
+        }
+
 
         function bindSearch() {
             const searchInput = document.getElementById('patientSearchInput');
@@ -252,6 +334,12 @@
         }
 
         function selectPatient(id, name, age, gender, nhi) {
+            // Security Hardening: Purge any symmetric decryption keys from the previous patient's session
+            if (window.selectedPatientId && window.selectedPatientId !== id) {
+                sessionStorage.removeItem(`aes_gcm_key_${window.selectedPatientId}`);
+                sessionStorage.removeItem('active_decryption_key');
+            }
+
             selectedPatientId = id;
             selectedPatient = { name, age, gender, nhi };
             document.getElementById('selectedPatientId').innerText = id;
@@ -502,6 +590,12 @@
         }
 
         function logout() {
+            // Security Hardening: Strictly purge all encryption keys, session tokens, and patient-scoped data from memory
+            Object.keys(sessionStorage).forEach(key => {
+                if (key.includes('aes_gcm_key') || key.includes('decryption_key') || key.includes('crypto')) {
+                    sessionStorage.removeItem(key);
+                }
+            });
             sessionStorage.clear();
             window.location.href = 'index.html';
         }

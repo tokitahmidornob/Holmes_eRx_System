@@ -133,9 +133,23 @@ const sendPrescriptionNotification = async ({ patientEmail, patientName, doctorN
 // ==========================================
 router.post('/', verifyToken, requireRole('doctor'), async (req, res) => {
     try {
-        const { patientId, medications, investigations, conditions } = req.body;
+        const { patientId, medications, investigations, conditions, _offlineId } = req.body;
         if (!patientId || !medications || medications.length === 0) {
             return res.status(400).json({ msg: "Invalid Payload. Patient and Therapy required." });
+        }
+
+        // --- IDEMPOTENCY CHECK ---
+        // If this payload was sent previously (e.g. background sync retry), return the existing record
+        if (_offlineId) {
+            const existingRx = await Prescription.findOne({ offlineId: _offlineId });
+            if (existingRx) {
+                console.log(`[Idempotency] Offline Sync Duplicate Prevented for ID: ${_offlineId}`);
+                return res.status(200).json({
+                    msg: "Payload Synced Successfully (Idempotent Return).",
+                    broadcastId: existingRx.broadcastId,
+                    otp: existingRx.otp
+                });
+            }
         }
 
         const practitioner = await PractitionerRole.findOne({ personId: req.user.id })
@@ -163,6 +177,7 @@ router.post('/', verifyToken, requireRole('doctor'), async (req, res) => {
         const newRx = new Prescription({
             patientId: patientId,
             practitionerId: practitioner._id,
+            offlineId: _offlineId || undefined,
             medications: encryptedMedications,
             investigations: investigations || [],
             broadcastId: broadcastId,

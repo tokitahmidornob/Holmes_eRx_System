@@ -76,6 +76,7 @@ const Medicine = mongoose.model('Medicine', MedicineSchema);
 const PrescriptionSchema = new mongoose.Schema({
     patientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient', required: true },
     practitionerId: { type: mongoose.Schema.Types.ObjectId, ref: 'PractitionerRole' },
+    offlineId: { type: String, unique: true, sparse: true }, // Idempotency Key
     medications: [{
         brandName: String,
         dosage: String,

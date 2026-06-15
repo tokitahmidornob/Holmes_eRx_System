@@ -91,6 +91,11 @@
                 <span id="networkStatus" class="bg-emerald-500/20 text-emerald-700 px-3 py-1.5 rounded-full text-[10px] font-black border border-emerald-400/40 flex items-center gap-1.5 shrink-0 transition-all duration-300">
                     <i class="fa-solid fa-wifi text-emerald-500"></i> Online
                 </span>
+                <!-- Unsynced Records Badge -->
+                <div id="unsyncedBadge" class="hidden flex items-center gap-2 px-3 py-1.5 rounded-full border bg-amber-50 border-amber-200 text-amber-600 text-[10px] font-bold uppercase tracking-wider shadow-sm transition-all">
+                    <i class="fa-solid fa-cloud-arrow-up animate-bounce"></i>
+                    Unsynced: <span id="unsyncedCount">0</span>
+                </div>
                 <div id="activePatientBanner" class="hidden bg-blue-50 border border-blue-200 px-4 py-2 lg:px-6 rounded-full flex items-center gap-2 lg:gap-3 shadow-sm transform transition-all-spring">
                     <i class="fa-solid fa-user-check text-blue-600"></i>
                     <span class="text-[11px] lg:text-xs font-bold text-blue-800 uppercase tracking-wider truncate max-w-[120px] lg:max-w-xs" id="bannerPatientName">Active Session</span>
@@ -459,6 +464,12 @@
         }
 
         async function selectPatient(patientId, name, nhi) {
+            // Security Hardening: Purge any symmetric decryption keys from the previous patient's session
+            if (window.currentPatientId && window.currentPatientId !== patientId) {
+                sessionStorage.removeItem(`aes_gcm_key_${window.currentPatientId}`);
+                sessionStorage.removeItem('active_decryption_key');
+            }
+
             document.getElementById('patientSearchInput').value = `${name} (${nhi})`;
             document.getElementById('selectedPatientId').value = patientId; 
             document.getElementById('patientDropdown').classList.add('hidden');
@@ -467,8 +478,12 @@
             document.getElementById('bannerPatientName').innerText = `${name}`;
             document.getElementById('activePatientBanner').classList.remove('hidden');
 
-            const demoAllergies = JSON.parse(localStorage.getItem('demo_allergies') || '[]');
-            const demoConditions = JSON.parse(localStorage.getItem('demo_conditions') || '[]');
+            const allDemoAllergies = JSON.parse(localStorage.getItem('demo_allergies_db') || '{}');
+            const demoAllergies = allDemoAllergies[patientId] || [];
+            
+            const allDemoConditions = JSON.parse(localStorage.getItem('demo_conditions_db') || '{}');
+            const demoConditions = allDemoConditions[patientId] || [];
+            
             const banner = document.getElementById('criticalConditionsBanner');
             const bannerText = document.getElementById('criticalConditionsText');
             const criticals = [...demoAllergies, ...demoConditions];
@@ -744,18 +759,9 @@
             try {
                 // ==========================================
                 // 📡 OFFLINE-FIRST RESILIENCE GATE
+                // (Handled automatically by offline-core.js interceptor)
                 // ==========================================
                 const rxPayload = { patientId: currentPatientId, indication: primaryInd, medications, investigations };
-
-                if (!navigator.onLine) {
-                    // Save to Offline Vault instead of hitting the network
-                    const vault = JSON.parse(localStorage.getItem('offlineRxVault') || '[]');
-                    vault.push({ payload: rxPayload, token, savedAt: new Date().toISOString() });
-                    localStorage.setItem('offlineRxVault', JSON.stringify(vault));
-                    showToast(`Saved to Offline Vault. Will sync when reconnected. (${vault.length} queued)`, 'success');
-                    btn.innerHTML = originalHtml; btn.disabled = false;
-                    return;
-                }
 
                 const res = await fetch(`${API_BASE_URL}/api/prescriptions`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(rxPayload) });
                 const data = await res.json();
@@ -976,7 +982,16 @@
         }
 
         function closeAllDropdowns(e) { if(!document.getElementById('patientDropdownContainer').contains(e.target)) document.getElementById('patientDropdown').classList.add('hidden'); }
-        function logout() { sessionStorage.clear(); window.location.href = 'index.html'; }
+        function logout() { 
+            // Strictly purge all encryption keys and session tokens from browser memory
+            Object.keys(sessionStorage).forEach(key => {
+                if (key.startsWith('aes_gcm_key_') || key.includes('crypto')) {
+                    sessionStorage.removeItem(key);
+                }
+            });
+            sessionStorage.clear(); 
+            window.location.href = 'index.html'; 
+        }
 
         // ==========================================
         // ⚡ TRIAGE AUTO-LOADER
@@ -1041,62 +1056,55 @@
 
         window.addEventListener('offline', () => {
             setNetworkStatus(false);
-            showToast('Network disconnected. Prescriptions will be queued in Offline Vault.', 'error');
+            showToast('Network disconnected. Prescriptions will be securely queued.', 'error');
         });
 
         window.addEventListener('online', () => {
             setNetworkStatus(true);
-            showToast('Network restored. Syncing Offline Vault...', 'success');
-            syncOfflineVault();
+            showToast('Network restored. Background sync engaging...', 'success');
+            if ('serviceWorker' in navigator && 'SyncManager' in window) {
+                navigator.serviceWorker.ready.then(reg => reg.sync.register('sync-prescriptions')).catch(console.error);
+            }
+            setTimeout(updateSyncBadge, 2000);
         });
 
-        async function syncOfflineVault() {
-            const vaultRaw = localStorage.getItem('offlineRxVault');
-            if (!vaultRaw) return;
+        window.addEventListener('offline-queue-updated', updateSyncBadge);
 
-            let vault;
-            try { vault = JSON.parse(vaultRaw); } catch(e) {
-                localStorage.removeItem('offlineRxVault');
-                return;
-            }
-
-            if (!Array.isArray(vault) || vault.length === 0) return;
-
-            showToast(`Syncing ${vault.length} offline prescription(s)...`, 'success');
-
-            const failed = [];
-            for (const entry of vault) {
-                try {
-                    const res = await fetch(`${API_BASE_URL}/api/prescriptions`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${entry.token || token}`
-                        },
-                        body: JSON.stringify(entry.payload)
-                    });
-                    if (!res.ok) {
-                        // Server-side failure — keep in vault for retry
-                        failed.push(entry);
-                        console.warn('Vault sync failed for entry:', entry.payload, await res.text());
-                    }
-                } catch(netErr) {
-                    // Network failed mid-sync — stop and keep remaining
-                    failed.push(entry);
-                    console.error('Network error during vault sync:', netErr);
-                    break;
+        async function updateSyncBadge() {
+            try {
+                const count = await getOfflineQueueCount();
+                const unsyncedBadge = document.getElementById('unsyncedBadge');
+                const countSpan = document.getElementById('unsyncedCount');
+                
+                if (count > 0) {
+                    unsyncedBadge.classList.remove('hidden');
+                    countSpan.innerText = count;
+                } else {
+                    unsyncedBadge.classList.add('hidden');
                 }
-            }
-
-            if (failed.length === 0) {
-                localStorage.removeItem('offlineRxVault');
-                showToast('Offline Vault Synced Successfully. All queued prescriptions transmitted.', 'success');
-                fetchHistory(); // Refresh history list
-            } else {
-                localStorage.setItem('offlineRxVault', JSON.stringify(failed));
-                showToast(`Partial sync: ${vault.length - failed.length} synced, ${failed.length} still queued.`, 'error');
-            }
+            } catch (err) {}
         }
+
+        function getOfflineQueueCount() {
+            return new Promise((resolve) => {
+                const request = indexedDB.open('HolmesOfflineDB', 1);
+                request.onsuccess = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains('offline_rx_queue')) return resolve(0);
+                    const tx = db.transaction('offline_rx_queue', 'readonly');
+                    const store = tx.objectStore('offline_rx_queue');
+                    const countReq = store.count();
+                    countReq.onsuccess = () => resolve(countReq.result);
+                    countReq.onerror = () => resolve(0);
+                };
+                request.onerror = () => resolve(0);
+            });
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            setNetworkStatus(navigator.onLine);
+            updateSyncBadge();
+        });
     </script>
 
     <script>

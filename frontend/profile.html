@@ -271,15 +271,17 @@
         const role = decoded.role;
         let currentPatientId = null;
 
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             renderRoleSpecificFields();
-            loadProfileData();
+            await loadProfileData();
             loadClinicalData();
         });
 
         function loadClinicalData() {
-            const allergies = JSON.parse(localStorage.getItem('demo_allergies') || '[]');
-            const conditions = JSON.parse(localStorage.getItem('demo_conditions') || '[]');
+            const allAllergies = JSON.parse(localStorage.getItem('demo_allergies_db') || '{}');
+            const allConditions = JSON.parse(localStorage.getItem('demo_conditions_db') || '{}');
+            const allergies = currentPatientId ? (allAllergies[currentPatientId] || []) : [];
+            const conditions = currentPatientId ? (allConditions[currentPatientId] || []) : [];
             
             const allergyTags = document.getElementById('allergy-list-ul');
             if(allergyTags) {
@@ -343,18 +345,22 @@
                     // STAGE-SAFE UI UPDATE: Only update the DOM after database confirms
                     if (allergyVal) {
                         appendToUIList('allergy-list-ul', allergyVal);
-                        const allergies = JSON.parse(localStorage.getItem('demo_allergies') || '[]');
-                        if (!allergies.includes(allergyVal)) {
+                        const allAllergies = JSON.parse(localStorage.getItem('demo_allergies_db') || '{}');
+                        const allergies = currentPatientId ? (allAllergies[currentPatientId] || []) : [];
+                        if (!allergies.includes(allergyVal) && currentPatientId) {
                             allergies.push(allergyVal);
-                            localStorage.setItem('demo_allergies', JSON.stringify(allergies));
+                            allAllergies[currentPatientId] = allergies;
+                            localStorage.setItem('demo_allergies_db', JSON.stringify(allAllergies));
                         }
                     }
                     if (conditionVal) {
                         appendToUIList('condition-list-ul', conditionVal);
-                        const conditions = JSON.parse(localStorage.getItem('demo_conditions') || '[]');
-                        if (!conditions.includes(conditionVal)) {
+                        const allConditions = JSON.parse(localStorage.getItem('demo_conditions_db') || '{}');
+                        const conditions = currentPatientId ? (allConditions[currentPatientId] || []) : [];
+                        if (!conditions.includes(conditionVal) && currentPatientId) {
                             conditions.push(conditionVal);
-                            localStorage.setItem('demo_conditions', JSON.stringify(conditions));
+                            allConditions[currentPatientId] = conditions;
+                            localStorage.setItem('demo_conditions_db', JSON.stringify(allConditions));
                         }
                     }
                     
@@ -382,16 +388,22 @@
         }
 
         function removeAllergy(val) {
-            let allergies = JSON.parse(localStorage.getItem('demo_allergies') || '[]');
+            if (!currentPatientId) return;
+            const allAllergies = JSON.parse(localStorage.getItem('demo_allergies_db') || '{}');
+            let allergies = allAllergies[currentPatientId] || [];
             allergies = allergies.filter(a => a !== val);
-            localStorage.setItem('demo_allergies', JSON.stringify(allergies));
+            allAllergies[currentPatientId] = allergies;
+            localStorage.setItem('demo_allergies_db', JSON.stringify(allAllergies));
             loadClinicalData();
         }
 
         function removeCondition(val) {
-            let conditions = JSON.parse(localStorage.getItem('demo_conditions') || '[]');
+            if (!currentPatientId) return;
+            const allConditions = JSON.parse(localStorage.getItem('demo_conditions_db') || '{}');
+            let conditions = allConditions[currentPatientId] || [];
             conditions = conditions.filter(c => c !== val);
-            localStorage.setItem('demo_conditions', JSON.stringify(conditions));
+            allConditions[currentPatientId] = conditions;
+            localStorage.setItem('demo_conditions_db', JSON.stringify(allConditions));
             loadClinicalData();
         }
 
