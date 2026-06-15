@@ -3,7 +3,7 @@ const router = express.Router();
 const LabReport = require('../models/LabReport');
 const { Prescription } = require('../models/GridModels');
 const jwt = require('jsonwebtoken');
-
+const { GoogleGenAI } = require('@google/genai');
 // Security Tripwire
 const authenticate = (req, res, next) => {
     const authHeader = req.header('Authorization');
@@ -22,7 +22,7 @@ const authenticate = (req, res, next) => {
 // ==========================================
 router.post('/', authenticate, async (req, res) => {
     try {
-        const { prescriptionId, testName, resultValue, unit, referenceRange, pdfReport } = req.body;
+        const { prescriptionId, testName, resultValue, unit, referenceRange, pdfReport, ai_summary } = req.body;
 
         // 🔍 Detective Work: Find the original prescription to link the Doctor and Patient
         const originalRx = await Prescription.findById(prescriptionId);
@@ -39,7 +39,8 @@ router.post('/', authenticate, async (req, res) => {
             resultValue,
             unit: unit || 'N/A',
             referenceRange: referenceRange || 'N/A',
-            pdfReport                                 // The Base64 PDF String
+            pdfReport,                                // The Base64 PDF String
+            ai_summary                                // The LLM AI Summary Object
         });
 
         const savedReport = await newReport.save();
@@ -65,3 +66,55 @@ router.get('/prescription/:rxId', authenticate, async (req, res) => {
 });
 
 module.exports = router;
+
+// ==========================================
+// 🧠 AI DIAGNOSTIC SUMMARIZATION
+// ==========================================
+router.post('/generate-summary', authenticate, async (req, res) => {
+    try {
+        const { prescriptionId, testName, resultValue, unit, referenceRange, clinicalNotes } = req.body;
+
+        if (!process.env.GEMINI_API_KEY) {
+            return res.status(503).json({ msg: "AI Summary Unavailable: API Key missing." });
+        }
+
+        const originalRx = await Prescription.findById(prescriptionId);
+        if (!originalRx) {
+            return res.status(404).json({ msg: "Original Prescription not found." });
+        }
+
+        const medications = originalRx.medications.map(m => `${m.brandName} (${m.dosage})`).join(', ');
+
+        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+        
+        const prompt = `
+You are a highly intelligent medical AI. Analyze the following lab result in the context of the patient's active medications.
+Lab Test: ${testName}
+Result: ${resultValue} ${unit} (Reference Range: ${referenceRange})
+Patient Active Medications: ${medications || 'None'}
+Pathologist Notes: ${clinicalNotes || 'None'}
+
+Please generate a concise JSON response strictly following this structure:
+{
+  "clinical_notes": "A brief analysis for the doctor, flagging specific biochemical anomalies or drug-test interactions.",
+  "patient_summary": "A layman-friendly explanation of the results for the patient."
+}
+Return only valid JSON.`;
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+            config: {
+                responseMimeType: "application/json",
+            }
+        });
+
+        const text = response.text;
+        const resultJson = JSON.parse(text);
+
+        res.json(resultJson);
+    } catch (err) {
+        console.error("AI Generation Error:", err);
+        res.status(500).json({ msg: "AI Summary Unavailable: Generation failed.", details: err.message });
+    }
+});

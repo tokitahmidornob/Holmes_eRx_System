@@ -529,7 +529,7 @@
                 if(res.ok) {
                     const dossier = await res.json();
                     // ✅ FIX (Task 3): Debug log — verify exact payload from backend
-                    console.log('Fetched Patient Data:', dossier);
+                    // Patient data fetched successfully
                     
                     if (demoAllergies.length === 0) {
                         currentPatientAllergies = dossier.allergies || [];
@@ -569,7 +569,7 @@
                     
                     if(cleanMeds.length > 0) {
                         document.getElementById('dossierActiveMeds').innerHTML = cleanMeds.map(m => {
-                            console.log("Inspect Cleaned Medication Object:", m);
+                            // Medication processed
                             return `<div class="bg-white p-3 rounded-lg border border-emerald-100 shadow-sm"><p class="font-bold text-xs text-slate-800"><strong>${m.drugName || m.drug || m.name || m.brandName || 'Unknown Name'}</strong> <span class="text-xs font-normal text-slate-500 ml-1">${m.dosage || m.dose || ''}</span></p><p class="text-[9px] font-bold text-emerald-600 uppercase tracking-wider mt-1"><i class="fa-solid fa-capsules mr-1"></i>${m.frequency || m.timing || ''} ${(m.frequency || m.timing) ? '&bull;' : ''} Active Therapy</p></div>`;
                         }).join('');
                     } else {
@@ -1130,7 +1130,7 @@
                     const dbDrugs = await res.json();
                     if (dbDrugs && dbDrugs.length > 0) {
                         nationalFormulary = dbDrugs;
-                        console.log(`Enterprise System Synced: ${nationalFormulary.length} drug profiles loaded from Database.`);
+                        // Formulary loaded
                     } else {
                         nationalFormulary = emergencyFallbackDrugs;
                     }
@@ -1271,7 +1271,7 @@
         });
 
         async function triggerBreakGlassProtocol(patientId, nurseId, reason) {
-            console.log("Initiating Break-Glass Protocol...");
+            // Initiating Break-Glass Protocol
             
             try {
                 const response = await fetch('/api/emergency/break-glass', {

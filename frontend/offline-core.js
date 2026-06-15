@@ -1,6 +1,6 @@
 // frontend/offline-core.js
 (function() {
-    console.log("🛡️ IntelliScript BD Offline Core Activated.");
+    // 🛡️ IntelliScript BD Offline Core Activated.
 
     // IndexedDB Setup for Offline Queue
     const DB_NAME = 'HolmesOfflineDB';
@@ -56,7 +56,7 @@
             console.warn(`[Offline Core] Network request failed for ${url}`, error);
 
             if (url.includes('/api/prescriptions') && options.method === 'POST') {
-                console.log("⚠️ [Offline Core] Intercepting failed prescription payload...");
+                // ⚠️ [Offline Core] Intercepting failed prescription payload...
                 
                 try {
                     const payload = JSON.parse(options.body);
@@ -72,7 +72,7 @@
                     }
 
                     await saveToOfflineQueue(payload);
-                    console.log("✅ [Offline Core] Prescription securely queued in IndexedDB.");
+                    // ✅ [Offline Core] Prescription securely queued in IndexedDB.
 
                     // Attempt to register Background Sync
                     if ('serviceWorker' in navigator && 'SyncManager' in window) {

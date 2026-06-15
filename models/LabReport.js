@@ -15,7 +15,13 @@ const LabReportSchema = new mongoose.Schema({
     status: { type: String, enum: ['Completed'], default: 'Completed' },
 
     // 🌟 THE UPGRADE: The PDF Storage Vault (Base64 String) 🌟
-    pdfReport: { type: String } 
+    pdfReport: { type: String },
+
+    // 🧠 AI DIAGNOSTIC SUMMARIZATION
+    ai_summary: {
+        clinical_notes: { type: String },
+        patient_summary: { type: String }
+    }
 
 }, { timestamps: true });
 

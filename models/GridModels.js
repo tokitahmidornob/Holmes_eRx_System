@@ -97,7 +97,7 @@ const OrganizationSchema = new mongoose.Schema({ name: String });
 const LocationSchema = new mongoose.Schema({ name: String });
 const CredentialSchema = new mongoose.Schema({ title: String });
 const MedicationProfileSchema = new mongoose.Schema({ patientId: String });
-const LabProfileSchema = new mongoose.Schema({ patientId: String });
+const LabProfileSchema = new mongoose.Schema({ patientId: String, ai_summary: { clinical_notes: String, patient_summary: String } });
 const ConsentSchema = new mongoose.Schema({ patientId: String });
 const AuditEventSchema = new mongoose.Schema({ action: String });
 

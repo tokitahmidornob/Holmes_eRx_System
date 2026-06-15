@@ -97,7 +97,7 @@
                 <div class="space-y-3 mb-8" id="testList">
                     </div>
 
-                <button onclick="acknowledgeOrder()" id="ackBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-xl font-bold text-sm uppercase tracking-wide transition-all shadow-md flex items-center justify-center gap-2">
+                <button onclick="openLabUploadModal()" id="ackBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-xl font-bold text-sm uppercase tracking-wide transition-all shadow-md flex items-center justify-center gap-2">
                     <i class="fa-solid fa-file-arrow-up text-lg"></i> Acknowledge & Upload Findings
                 </button>
             </div>
@@ -133,6 +133,61 @@
             <div id="reader" class="w-full bg-slate-900 rounded-xl overflow-hidden aspect-square border-2 border-dashed border-indigo-400/50"></div>
             
             <p class="text-[11px] font-medium text-slate-500 text-center mt-4 uppercase tracking-widest">Position Grid QR Code in frame</p>
+        </div>
+    </div>
+
+    <!-- Lab Result Input Modal -->
+    <div id="labModal" class="fixed inset-0 z-[130] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4 hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl w-full max-w-2xl p-8 shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-100">
+                <h3 class="text-lg font-bold text-slate-800 uppercase tracking-widest"><i class="fa-solid fa-flask mr-2 text-indigo-500"></i> Lab Investigation Results</h3>
+                <button onclick="closeLabUploadModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-rose-100 hover:text-rose-500 flex items-center justify-center transition-colors"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="space-y-4 mb-6">
+                <div>
+                    <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 mb-2 block">Test Name</label>
+                    <input type="text" id="labTestName" placeholder="e.g. Complete Blood Count" class="w-full bg-slate-50 border border-slate-300 focus:border-indigo-500 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 mb-2 block">Result Value</label>
+                        <input type="text" id="labResultValue" placeholder="e.g. 14.2" class="w-full bg-slate-50 border border-slate-300 focus:border-indigo-500 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 outline-none">
+                    </div>
+                    <div>
+                        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 mb-2 block">Unit</label>
+                        <input type="text" id="labUnit" placeholder="e.g. g/dL" class="w-full bg-slate-50 border border-slate-300 focus:border-indigo-500 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 mb-2 block">Reference Range</label>
+                    <input type="text" id="labReferenceRange" placeholder="e.g. 13.0 - 17.0" class="w-full bg-slate-50 border border-slate-300 focus:border-indigo-500 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 outline-none">
+                </div>
+                <div>
+                    <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 mb-2 block">Pathologist Clinical Notes</label>
+                    <textarea id="labClinicalNotes" rows="3" placeholder="Any specific biochemical anomalies..." class="w-full bg-slate-50 border border-slate-300 focus:border-indigo-500 rounded-xl px-4 py-3 text-sm text-slate-800 outline-none"></textarea>
+                </div>
+            </div>
+
+            <button onclick="generateAISummary()" id="aiGenBtn" class="w-full bg-slate-900 hover:bg-slate-800 text-white py-4 rounded-xl font-bold text-sm uppercase tracking-wide transition-all shadow-md flex items-center justify-center gap-2 mb-6">
+                <i class="fa-solid fa-brain text-indigo-400"></i> Generate AI Diagnostic Summary
+            </button>
+
+            <div id="aiSummarySection" class="hidden bg-indigo-50/50 rounded-2xl border border-indigo-100 p-5 mb-6 space-y-4">
+                <p class="text-[10px] font-bold text-indigo-500 uppercase tracking-widest border-b border-indigo-100 pb-2"><i class="fa-solid fa-sparkles mr-1"></i> AI Summarization Results</p>
+                <div>
+                    <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Clinical Notes (For Doctor)</label>
+                    <textarea id="aiClinicalNotes" rows="3" class="w-full bg-white border border-indigo-200 rounded-xl px-3 py-2 text-sm text-slate-700 outline-none"></textarea>
+                </div>
+                <div>
+                    <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Patient Summary (Layman-friendly)</label>
+                    <textarea id="aiPatientSummary" rows="3" class="w-full bg-white border border-indigo-200 rounded-xl px-3 py-2 text-sm text-slate-700 outline-none"></textarea>
+                </div>
+            </div>
+
+            <button onclick="commitLabResults()" id="commitLabBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-xl font-bold text-sm uppercase tracking-wide transition-all shadow-md flex items-center justify-center gap-2 hidden">
+                <i class="fa-solid fa-cloud-arrow-up text-lg"></i> Commit to Database
+            </button>
         </div>
     </div>
 
@@ -261,17 +316,118 @@
         }
 
         // Feature placeholder for when we build the Clinical Record API
-        function acknowledgeOrder() {
+        function openLabUploadModal() {
             if(!currentRxId) return;
-            const btn = document.getElementById('ackBtn');
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Initializing Upload...'; btn.disabled = true;
+            const modal = document.getElementById('labModal');
+            modal.classList.remove('hidden');
+            requestAnimationFrame(() => modal.classList.remove('opacity-0'));
+            
+            document.getElementById('aiSummarySection').classList.add('hidden');
+            document.getElementById('commitLabBtn').classList.add('hidden');
+            document.getElementById('aiGenBtn').classList.remove('hidden');
+            document.getElementById('aiGenBtn').innerHTML = '<i class="fa-solid fa-brain text-indigo-400"></i> Generate AI Diagnostic Summary';
+            document.getElementById('aiGenBtn').disabled = false;
+        }
 
-            setTimeout(() => {
-                showToast("Investigations Acknowledged. Linked to Clinical Layer.", "success");
-                document.getElementById('statusBadge').className = "mb-6 inline-block px-4 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-widest border shadow-sm border-emerald-200 bg-emerald-50 text-emerald-600";
-                document.getElementById('statusBadge').innerHTML = "<i class='fa-solid fa-check-double mr-1'></i> Order Received & Processed";
-                btn.classList.add('hidden');
-            }, 1000);
+        function closeLabUploadModal() {
+            const modal = document.getElementById('labModal');
+            modal.classList.add('opacity-0');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        async function generateAISummary() {
+            const testName = document.getElementById('labTestName').value;
+            const resultValue = document.getElementById('labResultValue').value;
+            const unit = document.getElementById('labUnit').value;
+            const referenceRange = document.getElementById('labReferenceRange').value;
+            const clinicalNotes = document.getElementById('labClinicalNotes').value;
+
+            if(!testName || !resultValue) return showToast("Test Name and Result Value are required.");
+
+            const btn = document.getElementById('aiGenBtn');
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-indigo-400"></i> Generating...'; 
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/labs/generate-summary`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ 
+                        prescriptionId: currentRxId, 
+                        testName, 
+                        resultValue, 
+                        unit, 
+                        referenceRange, 
+                        clinicalNotes 
+                    })
+                });
+                
+                const data = await res.json();
+                
+                if(res.ok) {
+                    showToast("AI Summary Generated.", "success");
+                    document.getElementById('aiClinicalNotes').value = data.clinical_notes || "AI Summary Unavailable";
+                    document.getElementById('aiPatientSummary').value = data.patient_summary || "AI Summary Unavailable";
+                    
+                    document.getElementById('aiSummarySection').classList.remove('hidden');
+                    document.getElementById('commitLabBtn').classList.remove('hidden');
+                    btn.classList.add('hidden');
+                } else {
+                    showToast(data.msg || "AI Generation Failed.", "error");
+                    btn.innerHTML = '<i class="fa-solid fa-brain text-indigo-400"></i> Generate AI Diagnostic Summary'; 
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                showToast("Network Error: AI Generation Failed.", "error");
+                btn.innerHTML = '<i class="fa-solid fa-brain text-indigo-400"></i> Generate AI Diagnostic Summary'; 
+                btn.disabled = false;
+            }
+        }
+
+        async function commitLabResults() {
+            const btn = document.getElementById('commitLabBtn');
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Committing...'; 
+            btn.disabled = true;
+
+            const payload = {
+                prescriptionId: currentRxId,
+                testName: document.getElementById('labTestName').value,
+                resultValue: document.getElementById('labResultValue').value,
+                unit: document.getElementById('labUnit').value,
+                referenceRange: document.getElementById('labReferenceRange').value,
+                ai_summary: {
+                    clinical_notes: document.getElementById('aiClinicalNotes').value,
+                    patient_summary: document.getElementById('aiPatientSummary').value
+                }
+            };
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/labs`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(payload)
+                });
+                
+                if(res.ok) {
+                    showToast("Lab Results Commited Successfully.", "success");
+                    closeLabUploadModal();
+                    
+                    document.getElementById('statusBadge').className = "mb-6 inline-block px-4 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-widest border shadow-sm border-emerald-200 bg-emerald-50 text-emerald-600";
+                    document.getElementById('statusBadge').innerHTML = "<i class='fa-solid fa-check-double mr-1'></i> Order Received & Processed";
+                    document.getElementById('ackBtn').classList.add('hidden');
+                    
+                    fetchPendingOrders();
+                } else {
+                    const data = await res.json();
+                    showToast(data.msg || "Upload Failed.", "error");
+                    btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up text-lg"></i> Commit to Database'; 
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                showToast("Network Error: Upload Failed.", "error");
+                btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up text-lg"></i> Commit to Database'; 
+                btn.disabled = false;
+            }
         }
 
         function logout() { sessionStorage.clear(); window.location.href = 'index.html'; }
